@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "813025681886",
+    "project_id": "geargo-e0035",
+    "storage_bucket": "geargo-e0035.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:813025681886:android:9990a176c39fb6db267d4f",
+        "android_client_info": {
+          "package_name": "com.example.geargo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC72StYLf5ECEmohXZda84IqOREoWS6F6I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
