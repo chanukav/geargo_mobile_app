@@ -12,7 +12,20 @@
           "package_name": "com.example.geargo"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "813025681886-ch62a0tfd8d62l67hq51tvn52tnssgtu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.geargo",
+            "certificate_hash": "e773e7497c945bbb00951aa8f36a946cb6b3a138"
+          }
+        },
+        {
+          "client_id": "813025681886-r9651763gieqt2qufig2vj2nkji11l10.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC72StYLf5ECEmohXZda84IqOREoWS6F6I"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "813025681886-r9651763gieqt2qufig2vj2nkji11l10.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

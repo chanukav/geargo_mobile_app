@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:geargo/screens/authentication/authenticate.dart';
+import 'package:geargo/core/utils/validators.dart';
+import 'package:geargo/models/app_user.dart';
 
 void main() {
   group('email validation', () {
@@ -16,6 +17,42 @@ void main() {
       expect(validatePassword(null), isNotNull);
       expect(validatePassword('12345'), isNotNull);
       expect(validatePassword('123456'), isNull);
+    });
+  });
+
+  group('name validation', () {
+    test('requires name with at least two characters', () {
+      expect(validateName(null), isNotNull);
+      expect(validateName(''), isNotNull);
+      expect(validateName('A'), isNotNull);
+      expect(validateName('Alex'), isNull);
+    });
+  });
+
+  group('confirm password validation', () {
+    test('verifies matching passwords', () {
+      expect(validateConfirmPassword(null, 'secret123'), isNotNull);
+      expect(validateConfirmPassword('secret', 'secret123'), isNotNull);
+      expect(validateConfirmPassword('secret123', 'secret123'), isNull);
+    });
+  });
+
+  group('AppUser model', () {
+    test('computes displayTitle and initials properly', () {
+      const user = AppUser(
+        uid: 'user123',
+        displayName: 'John Doe',
+        email: 'john@example.com',
+      );
+      expect(user.displayTitle, 'John Doe');
+      expect(user.initials, 'JD');
+
+      const guestUser = AppUser(
+        uid: 'guest456',
+        isAnonymous: true,
+      );
+      expect(guestUser.displayTitle, 'Guest Driver');
+      expect(guestUser.initials, 'GD');
     });
   });
 }
