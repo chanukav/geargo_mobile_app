@@ -73,7 +73,7 @@ class _SplashScreenState extends State<SplashScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.white, Color(0xFFEAF1FF)],
+            colors: [Colors.white, Colors.white],
           ),
         ),
         child: SafeArea(
@@ -87,51 +87,11 @@ class _SplashScreenState extends State<SplashScreen>
                     opacity: _fade,
                     child: ScaleTransition(
                       scale: _scale,
-                      child: Container(
-                        width: 170,
-                        height: 170,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(44),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.28),
-                              blurRadius: 50,
-                              offset: const Offset(0, 20),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(44),
-                          child: Image.asset(
-                            'assets/images/logo_icon.jpg',
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 26),
-                  FadeTransition(
-                    opacity: _fade,
-                    child: const Text(
-                      'GearGo',
-                      style: TextStyle(
-                        fontSize: 38,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F2A4A),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  FadeTransition(
-                    opacity: _fade,
-                    child: const Text(
-                      'RENT  •  SHARE  •  PLAY',
-                      style: TextStyle(
-                        fontSize: 13,
-                        letterSpacing: 4,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textSecondaryLight,
+                      child: Image.asset(
+                        'assets/images/logo_full.jpg',
+                        width: 300,
+                        height: 300,
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ),

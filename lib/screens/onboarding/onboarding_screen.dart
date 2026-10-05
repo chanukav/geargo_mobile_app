@@ -156,10 +156,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       padding: const EdgeInsets.fromLTRB(24, 14, 12, 14),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(13),
-            child: Image.asset('assets/images/logo_icon.jpg',
-                width: 46, height: 46, fit: BoxFit.cover),
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: _navy.withValues(alpha: 0.12),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: -8,
+                    top: 5,
+                    child: Image.asset('assets/images/logo_full.jpg',
+                        width: 64, height: 64, fit: BoxFit.cover),
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           const Column(
