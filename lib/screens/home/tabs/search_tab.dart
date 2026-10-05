@@ -184,7 +184,7 @@ class _SearchTabState extends State<SearchTab> {
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
                     itemCount: results.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 14),
+                    separatorBuilder: (context, index) => const SizedBox(height: 14),
                     itemBuilder: (_, i) => _ResultCard(item: results[i]),
                   ),
           ),

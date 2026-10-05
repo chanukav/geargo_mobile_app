@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/theme/app_theme.dart';
 import '../../models/app_user.dart';
 import '../../services/auth_service.dart';
+import '../../services/app_settings_service.dart';
 import 'tabs/home_tab.dart';
 import 'tabs/profile_tab.dart';
 import 'tabs/search_tab.dart';
@@ -28,21 +28,22 @@ class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
 
   Future<void> _handleSignOut() async {
+    final settings = AppSettingsService.instance;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out of GearGo?'),
+        title: Text(settings.tr('sign_out_confirm_title')),
+        content: Text(settings.tr('sign_out_confirm_desc')),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(settings.tr('cancel')),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Sign Out'),
+            child: Text(settings.tr('sign_out')),
           ),
         ],
       ),
@@ -64,18 +65,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  static const _items = [
-    (Icons.home_rounded, Icons.home_outlined, 'Home'),
-    (Icons.search_rounded, Icons.search_rounded, 'Search'),
-    (Icons.calendar_month_rounded, Icons.calendar_today_outlined, 'Bookings'),
-    (Icons.chat_bubble_rounded, Icons.chat_bubble_outline_rounded, 'Messages'),
-    (Icons.person_rounded, Icons.person_outline_rounded, 'Profile'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final settings = AppSettingsService.instance;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final appUser = AppUser.fromFirebase(widget.user);
     final firstName = appUser.displayTitle.split(' ').first;
+
+    final navItems = [
+      (Icons.home_rounded, Icons.home_outlined, settings.tr('nav_home')),
+      (Icons.search_rounded, Icons.search_rounded, settings.tr('nav_search')),
+      (Icons.calendar_month_rounded, Icons.calendar_today_outlined, settings.tr('nav_bookings')),
+      (Icons.chat_bubble_rounded, Icons.chat_bubble_outline_rounded, settings.tr('nav_messages')),
+      (Icons.person_rounded, Icons.person_outline_rounded, settings.tr('nav_profile')),
+    ];
 
     final tabs = <Widget>[
       HomeTab(name: firstName, onSearchTap: () => setState(() => _index = 1)),
@@ -93,84 +96,91 @@ class _HomeScreenState extends State<HomeScreen> {
       ProfileTab(user: widget.user, onSignOut: _handleSignOut),
     ];
 
-    return Theme(
-      data: AppTheme.lightTheme,
-      child: Scaffold(
-        backgroundColor: kBg,
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              child: KeyedSubtree(key: ValueKey(_index), child: tabs[_index]),
-            ),
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: KeyedSubtree(key: ValueKey(_index), child: tabs[_index]),
           ),
         ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: kNavy.withValues(alpha: 0.08),
-                blurRadius: 24,
-                offset: const Offset(0, -6),
-              ),
-            ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          border: Border(
+            top: BorderSide(
+              color: isDark ? AppColors.borderDark : AppColors.borderLight,
+              width: 0.8,
+            ),
           ),
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: List.generate(_items.length, (i) {
-                  final sel = i == _index;
-                  final it = _items[i];
-                  return Expanded(
-                    child: InkWell(
-                      onTap: () => setState(() => _index = i),
-                      borderRadius: BorderRadius.circular(14),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 220),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: sel
-                                    ? AppColors.primary.withValues(alpha: 0.12)
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Icon(
-                                sel ? it.$1 : it.$2,
-                                size: 26,
-                                color: sel
-                                    ? AppColors.primary
-                                    : AppColors.textMutedLight,
-                              ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: List.generate(navItems.length, (i) {
+                final sel = i == _index;
+                final it = navItems[i];
+                return Expanded(
+                  child: InkWell(
+                    onTap: () => setState(() => _index = i),
+                    borderRadius: BorderRadius.circular(14),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 220),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: sel
+                                  ? AppColors.primary.withValues(alpha: 0.15)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            const SizedBox(height: 3),
-                            Text(
-                              it.$3,
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                fontWeight:
-                                    sel ? FontWeight.w800 : FontWeight.w500,
-                                color: sel
-                                    ? AppColors.primary
-                                    : AppColors.textMutedLight,
-                              ),
+                            child: Icon(
+                              sel ? it.$1 : it.$2,
+                              size: 26,
+                              color: sel
+                                  ? AppColors.primary
+                                  : (isDark
+                                      ? AppColors.textMutedDark
+                                      : AppColors.textMutedLight),
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            it.$3,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight:
+                                  sel ? FontWeight.w800 : FontWeight.w500,
+                              color: sel
+                                  ? AppColors.primary
+                                  : (isDark
+                                      ? AppColors.textMutedDark
+                                      : AppColors.textMutedLight),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  );
-                }),
-              ),
+                  ),
+                );
+              }),
             ),
           ),
         ),

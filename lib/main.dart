@@ -4,9 +4,11 @@ import 'package:flutter/foundation.dart';
 
 import 'core/theme/app_theme.dart';
 import 'screens/splash/splash_screen.dart';
+import 'services/app_settings_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppSettingsService.instance.init();
 
   if (kIsWeb) {
     await Firebase.initializeApp(
@@ -30,13 +32,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'GearGo',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      home: const SplashScreen(),
+    return ListenableBuilder(
+      listenable: AppSettingsService.instance,
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'GearGo',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: AppSettingsService.instance.themeMode,
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }
+

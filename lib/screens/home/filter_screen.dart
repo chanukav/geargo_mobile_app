@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../services/app_settings_service.dart';
 import 'tabs/home_tab.dart';
 
 /// Filter values chosen by the user on the [FilterScreen].
@@ -65,11 +66,17 @@ class _FilterScreenState extends State<FilterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = AppSettingsService.instance;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? AppColors.textPrimaryDark : kNavy;
+    final subColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final borderColor = isDark ? AppColors.borderDark : AppColors.borderLight;
+
     final priceLabel = '\$${_price.start.round()} – '
         '\$${_price.end.round()}${_price.end >= GearFilters.maxPrice ? '+' : ''}';
 
     return Scaffold(
-      backgroundColor: kBg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -80,27 +87,32 @@ class _FilterScreenState extends State<FilterScreen> {
                   padding: const EdgeInsets.fromLTRB(24, 16, 12, 16),
                   child: Row(
                     children: [
-                      const Expanded(
-                        child: Text('Filters',
-                            style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                color: kNavy)),
+                      Expanded(
+                        child: Text(
+                          settings.tr('filter'),
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: titleColor,
+                          ),
+                        ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, color: kNavy),
+                        icon: Icon(Icons.close_rounded, color: titleColor),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
                   ),
                 ),
-                const Divider(height: 1, color: AppColors.borderLight),
+                Divider(height: 1, color: borderColor),
                 Expanded(
                   child: ListView(
                     children: [
                       _section(
-                        title: 'Distance Radius',
+                        title: settings.tr('distance_radius'),
                         trailing: '${_distance.round()} km',
+                        titleColor: titleColor,
+                        borderColor: borderColor,
                         child: _slider(
                           Slider(
                             value: _distance,
@@ -110,10 +122,15 @@ class _FilterScreenState extends State<FilterScreen> {
                           ),
                           '1 km',
                           '50 km',
+                          isDark,
+                          borderColor,
+                          subColor,
                         ),
                       ),
                       _section(
-                        title: 'Categories',
+                        title: settings.tr('categories'),
+                        titleColor: titleColor,
+                        borderColor: borderColor,
                         child: Column(
                           children: filterCategories.map((c) {
                             final on = _cats.contains(c);
@@ -121,32 +138,31 @@ class _FilterScreenState extends State<FilterScreen> {
                               onTap: () => setState(
                                   () => on ? _cats.remove(c) : _cats.add(c)),
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
                                 child: Row(
                                   children: [
                                     Expanded(
-                                      child: Text(c,
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w500,
-                                              color: kNavy)),
+                                      child: Text(
+                                        c,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: titleColor,
+                                        ),
+                                      ),
                                     ),
                                     AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 150),
+                                      duration: const Duration(milliseconds: 150),
                                       width: 26,
                                       height: 26,
                                       decoration: BoxDecoration(
                                         color: on
                                             ? AppColors.primary
-                                            : Colors.white,
-                                        borderRadius:
-                                            BorderRadius.circular(7),
+                                            : (isDark ? AppColors.surfaceDark : Colors.white),
+                                        borderRadius: BorderRadius.circular(7),
                                         border: Border.all(
-                                            color: on
-                                                ? AppColors.primary
-                                                : AppColors.borderLight),
+                                          color: on ? AppColors.primary : borderColor,
+                                        ),
                                       ),
                                       child: on
                                           ? const Icon(Icons.check_rounded,
@@ -161,8 +177,10 @@ class _FilterScreenState extends State<FilterScreen> {
                         ),
                       ),
                       _section(
-                        title: 'Price Per Day',
+                        title: settings.tr('price_per_day'),
                         trailing: priceLabel,
+                        titleColor: titleColor,
+                        borderColor: borderColor,
                         child: _slider(
                           RangeSlider(
                             values: _price,
@@ -172,6 +190,9 @@ class _FilterScreenState extends State<FilterScreen> {
                           ),
                           '\$0',
                           '\$150+',
+                          isDark,
+                          borderColor,
+                          subColor,
                         ),
                       ),
                       Padding(
@@ -179,21 +200,26 @@ class _FilterScreenState extends State<FilterScreen> {
                             horizontal: 24, vertical: 18),
                         child: Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Available Now',
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w800,
-                                          color: kNavy)),
-                                  SizedBox(height: 3),
-                                  Text('Only show items ready to pick up today',
-                                      style: TextStyle(
-                                          fontSize: 12.5,
-                                          color:
-                                              AppColors.textSecondaryLight)),
+                                  Text(
+                                    settings.tr('available_now'),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: titleColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    settings.tr('only_available_today'),
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      color: subColor,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -209,7 +235,7 @@ class _FilterScreenState extends State<FilterScreen> {
                     ],
                   ),
                 ),
-                const Divider(height: 1, color: AppColors.borderLight),
+                Divider(height: 1, color: borderColor),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 14, 24, 8),
                   child: SizedBox(
@@ -226,19 +252,24 @@ class _FilterScreenState extends State<FilterScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14)),
                       ),
-                      child: const Text('Apply Filters',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w700)),
+                      child: Text(
+                        settings.tr('apply_filters'),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w700),
+                      ),
                     ),
                   ),
                 ),
                 TextButton(
                   onPressed: _reset,
-                  child: const Text('Reset All Filters',
-                      style: TextStyle(
-                          color: AppColors.textSecondaryLight,
-                          fontWeight: FontWeight.w600,
-                          decoration: TextDecoration.underline)),
+                  child: Text(
+                    settings.tr('reset_filters'),
+                    style: TextStyle(
+                      color: subColor,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 8),
               ],
@@ -249,11 +280,17 @@ class _FilterScreenState extends State<FilterScreen> {
     );
   }
 
-  Widget _section({required String title, String? trailing, required Widget child}) {
+  Widget _section({
+    required String title,
+    String? trailing,
+    required Color titleColor,
+    required Color borderColor,
+    required Widget child,
+  }) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 14),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.borderLight)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: borderColor)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,18 +298,24 @@ class _FilterScreenState extends State<FilterScreen> {
           Row(
             children: [
               Expanded(
-                child: Text(title,
-                    style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: kNavy)),
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: titleColor,
+                  ),
+                ),
               ),
               if (trailing != null)
-                Text(trailing,
-                    style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary)),
+                Text(
+                  trailing,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primary,
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 10),
@@ -282,14 +325,21 @@ class _FilterScreenState extends State<FilterScreen> {
     );
   }
 
-  Widget _slider(Widget slider, String min, String max) {
-    const style = TextStyle(fontSize: 12, color: AppColors.textSecondaryLight);
+  Widget _slider(
+    Widget slider,
+    String min,
+    String max,
+    bool isDark,
+    Color borderColor,
+    Color subColor,
+  ) {
+    final style = TextStyle(fontSize: 12, color: subColor);
     return Column(
       children: [
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: AppColors.primary,
-            inactiveTrackColor: AppColors.borderLight,
+            inactiveTrackColor: borderColor,
             thumbColor: Colors.white,
             overlayColor: AppColors.primary.withValues(alpha: 0.12),
             rangeThumbShape: const RoundRangeSliderThumbShape(),

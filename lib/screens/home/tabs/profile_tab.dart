@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../models/app_user.dart';
+import '../../../services/app_settings_service.dart';
 import '../widgets/account_details_card.dart';
+import '../widgets/appearance_language_sheet.dart';
 import 'home_tab.dart';
 
 /// Simple empty-state tab (Bookings / Messages).
@@ -21,6 +23,7 @@ class EmptyTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SafeArea(
       child: Center(
         child: Padding(
@@ -40,20 +43,20 @@ class EmptyTab extends StatelessWidget {
               const SizedBox(height: 22),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: kNavy,
+                  color: isDark ? AppColors.textPrimaryDark : kNavy,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 subtitle,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   height: 1.4,
-                  color: AppColors.textSecondaryLight,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                 ),
               ),
             ],
@@ -64,7 +67,9 @@ class EmptyTab extends StatelessWidget {
   }
 }
 
-/// Premium Profile Management Screen matching the Roamly / GearGo design.
+/// Premium Profile Management Screen matching the Roamly / GearGo design,
+/// equipped with multi-language support (English, Sinhala, Tamil) and
+/// theme switching (Light / Dark / Auto).
 class ProfileTab extends StatefulWidget {
   final User user;
   final VoidCallback onSignOut;
@@ -85,6 +90,11 @@ class _ProfileTabState extends State<ProfileTab> {
   final Set<String> _selectedActivities = {'Hiking', 'Cycling', 'Camping'};
 
   void _showPersonalInformationSheet() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
+    final titleColor = isDark ? AppColors.textPrimaryDark : kNavy;
+    final settings = AppSettingsService.instance;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -94,9 +104,9 @@ class _ProfileTabState extends State<ProfileTab> {
         minChildSize: 0.5,
         maxChildSize: 0.95,
         builder: (_, scrollCtrl) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           child: ListView(
@@ -107,26 +117,26 @@ class _ProfileTabState extends State<ProfileTab> {
                   width: 44,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: AppColors.borderLight,
+                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Personal Information',
+              Text(
+                settings.tr('personal_info'),
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: kNavy,
+                  color: titleColor,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Review your verified credentials and authentication settings.',
+              Text(
+                settings.tr('personal_info_sub'),
                 style: TextStyle(
                   fontSize: 13.5,
-                  color: AppColors.textSecondaryLight,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                 ),
               ),
               const SizedBox(height: 18),
@@ -141,7 +151,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                 ),
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
+                child: Text(settings.tr('close')),
               ),
             ],
           ),
@@ -151,25 +161,27 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   void _showHelpDialog() {
+    final settings = AppSettingsService.instance;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.support_agent_rounded, color: AppColors.secondary),
-            SizedBox(width: 10),
-            Text('GearGo Support', style: TextStyle(fontWeight: FontWeight.w800)),
+            const Icon(Icons.support_agent_rounded, color: AppColors.secondary),
+            const SizedBox(width: 10),
+            Text(settings.tr('help_adventure_title'),
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
           ],
         ),
-        content: const Text(
-          'Need assistance with gear handovers, safety guidelines, or deposit refunds? Our 24/7 adventure support team is here to help.',
-          style: TextStyle(height: 1.4),
+        content: Text(
+          settings.tr('help_adventure_sub'),
+          style: const TextStyle(height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text(settings.tr('cancel')),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -179,230 +191,303 @@ class _ProfileTabState extends State<ProfileTab> {
             onPressed: () {
               Navigator.of(ctx).pop();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Support agent contacted. We will respond in a few minutes.'),
+                SnackBar(
+                  content: Text(settings.tr('contact_support')),
                   backgroundColor: AppColors.primary,
                 ),
               );
             },
-            child: const Text('Contact Support'),
+            child: Text(settings.tr('get_help')),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showNotificationSettings() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('All notifications are up to date.'),
-        duration: Duration(seconds: 2),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final appUser = AppUser.fromFirebase(widget.user);
-    final displayName = appUser.displayName?.trim().isNotEmpty == true
-        ? appUser.displayName!
-        : 'Maya Chen';
-    final userInitials = appUser.initials;
+    final settings = AppSettingsService.instance;
 
-    return SafeArea(
-      bottom: false,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-        children: [
-          // 1. Top Header Bar
-          _buildTopBar(),
-          const SizedBox(height: 18),
+    return ListenableBuilder(
+      listenable: settings,
+      builder: (context, _) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final appUser = AppUser.fromFirebase(widget.user);
+        final displayName = appUser.displayName?.trim().isNotEmpty == true
+            ? appUser.displayName!
+            : 'Maya Chen';
+        final userInitials = appUser.initials;
 
-          // 2. Main Profile Hero Card (Cover + Avatar + Stats)
-          _buildHeroCard(displayName, userInitials, appUser.photoUrl),
-          const SizedBox(height: 18),
+        final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
+        final borderColor = isDark ? AppColors.borderDark : AppColors.borderLight;
+        final titleColor = isDark ? AppColors.textPrimaryDark : kNavy;
+        final subColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
-          // 3. Profile Readiness Progress Card
-          _buildReadinessCard(),
-          const SizedBox(height: 22),
-
-          // 4. Account & Trust Section
-          _buildSectionHeader(
-            title: 'Account & trust',
-            actionText: 'Manage',
-            onAction: _showPersonalInformationSheet,
-          ),
-          const SizedBox(height: 10),
-          _buildCard(
+        return SafeArea(
+          bottom: false,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
             children: [
-              _buildListTile(
-                icon: Icons.person_outline_rounded,
-                title: 'Personal information',
-                subtitle: 'Name, email, phone and emergency contact',
-                trailing: const Icon(
-                  Icons.chevron_right_rounded,
-                  color: AppColors.textSecondaryLight,
-                ),
-                onTap: _showPersonalInformationSheet,
+              // 1. Top Header Bar
+              _buildTopBar(settings, isDark, titleColor, borderColor),
+              const SizedBox(height: 18),
+
+              // 2. Main Profile Hero Card (Cover + Avatar + Stats)
+              _buildHeroCard(
+                settings: settings,
+                name: displayName,
+                initials: userInitials,
+                photoUrl: appUser.photoUrl,
+                isDark: isDark,
+                cardBg: cardBg,
+                borderColor: borderColor,
+                titleColor: titleColor,
+                subColor: subColor,
               ),
-              const Divider(height: 1, color: AppColors.borderLight),
-              _buildListTile(
-                icon: Icons.verified_user_outlined,
-                title: 'Identity verification',
-                subtitle: 'Government ID and selfie confirmed',
-                trailing: _buildBadge(
-                  text: 'Verified',
-                  textColor: const Color(0xFF137333),
-                  bgColor: const Color(0xFFE6F4EA),
-                ),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Your identity has already been verified.'),
-                      backgroundColor: AppColors.success,
+              const SizedBox(height: 18),
+
+              // 3. Profile Readiness Progress Card
+              _buildReadinessCard(settings),
+              const SizedBox(height: 22),
+
+              // 4. Appearance & Language Section (Theme + Sinhala / Tamil / English)
+              _buildAppearanceAndLanguageCard(
+                settings: settings,
+                isDark: isDark,
+                cardBg: cardBg,
+                borderColor: borderColor,
+                titleColor: titleColor,
+                subColor: subColor,
+              ),
+              const SizedBox(height: 22),
+
+              // 5. Account & Trust Section
+              _buildSectionHeader(
+                title: settings.tr('account_trust'),
+                actionText: settings.tr('manage'),
+                titleColor: titleColor,
+                onAction: _showPersonalInformationSheet,
+              ),
+              const SizedBox(height: 10),
+              _buildCard(
+                cardBg: cardBg,
+                borderColor: borderColor,
+                isDark: isDark,
+                children: [
+                  _buildListTile(
+                    icon: Icons.person_outline_rounded,
+                    title: settings.tr('personal_info'),
+                    subtitle: settings.tr('personal_info_sub'),
+                    titleColor: titleColor,
+                    subColor: subColor,
+                    isDark: isDark,
+                    trailing: Icon(
+                      Icons.chevron_right_rounded,
+                      color: subColor,
                     ),
+                    onTap: _showPersonalInformationSheet,
+                  ),
+                  Divider(height: 1, color: borderColor),
+                  _buildListTile(
+                    icon: Icons.verified_user_outlined,
+                    title: settings.tr('identity_verification'),
+                    subtitle: settings.tr('identity_verification_sub'),
+                    titleColor: titleColor,
+                    subColor: subColor,
+                    isDark: isDark,
+                    trailing: _buildBadge(
+                      text: settings.tr('verified'),
+                      textColor: const Color(0xFF137333),
+                      bgColor: const Color(0xFFE6F4EA),
+                    ),
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(settings.tr('identity_verification_sub')),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
+
+              // 6. Payments Section
+              _buildSectionHeader(
+                title: settings.tr('payments'),
+                actionText: settings.tr('add_new'),
+                titleColor: titleColor,
+                onAction: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(settings.tr('payments'))),
                   );
                 },
               ),
+              const SizedBox(height: 10),
+              _buildCard(
+                cardBg: cardBg,
+                borderColor: borderColor,
+                isDark: isDark,
+                children: [
+                  _buildListTile(
+                    icon: Icons.credit_card_rounded,
+                    title: 'Visa •••• 4821',
+                    subtitle: settings.tr('default_payment_sub'),
+                    titleColor: titleColor,
+                    subColor: subColor,
+                    isDark: isDark,
+                    trailing: _buildBadge(
+                      text: settings.tr('default_badge'),
+                      textColor: const Color(0xFF137333),
+                      bgColor: const Color(0xFFE6F4EA),
+                    ),
+                    onTap: () {},
+                  ),
+                  Divider(height: 1, color: borderColor),
+                  _buildListTile(
+                    icon: Icons.account_balance_outlined,
+                    title: settings.tr('payout_account'),
+                    subtitle: 'Coast Capital •••• 0916',
+                    titleColor: titleColor,
+                    subColor: subColor,
+                    isDark: isDark,
+                    trailing: Icon(
+                      Icons.chevron_right_rounded,
+                      color: subColor,
+                    ),
+                    onTap: () {},
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
+
+              // 7. Rental Preferences Section
+              _buildSectionHeader(
+                title: settings.tr('rental_preferences'),
+                actionText: settings.tr('edit'),
+                titleColor: titleColor,
+                onAction: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(settings.tr('rental_preferences'))),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildRentalPreferencesCard(
+                settings: settings,
+                isDark: isDark,
+                cardBg: cardBg,
+                borderColor: borderColor,
+                titleColor: titleColor,
+                subColor: subColor,
+              ),
+              const SizedBox(height: 22),
+
+              // 8. Notifications Section
+              _buildSectionHeader(
+                title: settings.tr('notifications'),
+                titleColor: titleColor,
+              ),
+              const SizedBox(height: 10),
+              _buildCard(
+                cardBg: cardBg,
+                borderColor: borderColor,
+                isDark: isDark,
+                children: [
+                  _buildSwitchTile(
+                    icon: Icons.chat_bubble_outline_rounded,
+                    title: settings.tr('booking_updates'),
+                    subtitle: settings.tr('booking_updates_sub'),
+                    titleColor: titleColor,
+                    subColor: subColor,
+                    isDark: isDark,
+                    value: _bookingUpdates,
+                    onChanged: (v) => setState(() => _bookingUpdates = v),
+                  ),
+                  Divider(height: 1, color: borderColor),
+                  _buildSwitchTile(
+                    icon: Icons.local_offer_outlined,
+                    title: settings.tr('offers_near_you'),
+                    subtitle: settings.tr('offers_near_you_sub'),
+                    titleColor: titleColor,
+                    subColor: subColor,
+                    isDark: isDark,
+                    value: _offersNearYou,
+                    onChanged: (v) => setState(() => _offersNearYou = v),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
+
+              // 9. Help for Every Adventure Banner
+              _buildHelpBanner(settings),
+              const SizedBox(height: 24),
+
+              // 10. Sign Out Button
+              SizedBox(
+                height: 52,
+                child: OutlinedButton.icon(
+                  onPressed: widget.onSignOut,
+                  icon: const Icon(Icons.logout_rounded, size: 20, color: AppColors.error),
+                  label: Text(
+                    settings.tr('sign_out'),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.error,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+                    side: BorderSide(
+                      color: isDark ? const Color(0xFF5B2121) : const Color(0xFFF9D2D2),
+                      width: 1.3,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // 11. Footer Info
+              const Center(
+                child: Text(
+                  'GearGo 4.8.2 · Privacy · Terms',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textMutedLight,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 22),
-
-          // 5. Payments Section
-          _buildSectionHeader(
-            title: 'Payments',
-            actionText: 'Add new',
-            onAction: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Add payment method sheet')),
-              );
-            },
-          ),
-          const SizedBox(height: 10),
-          _buildCard(
-            children: [
-              _buildListTile(
-                icon: Icons.credit_card_rounded,
-                title: 'Visa •••• 4821',
-                subtitle: 'Default payment method · Expires 09/28',
-                trailing: _buildBadge(
-                  text: 'Default',
-                  textColor: const Color(0xFF137333),
-                  bgColor: const Color(0xFFE6F4EA),
-                ),
-                onTap: () {},
-              ),
-              const Divider(height: 1, color: AppColors.borderLight),
-              _buildListTile(
-                icon: Icons.account_balance_outlined,
-                title: 'Payout account',
-                subtitle: 'Coast Capital •••• 0916',
-                trailing: const Icon(
-                  Icons.chevron_right_rounded,
-                  color: AppColors.textSecondaryLight,
-                ),
-                onTap: () {},
-              ),
-            ],
-          ),
-          const SizedBox(height: 22),
-
-          // 6. Rental Preferences Section
-          _buildSectionHeader(
-            title: 'Rental preferences',
-            actionText: 'Edit',
-            onAction: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Edit preferences dialog')),
-              );
-            },
-          ),
-          const SizedBox(height: 10),
-          _buildRentalPreferencesCard(),
-          const SizedBox(height: 22),
-
-          // 7. Notifications Section
-          _buildSectionHeader(title: 'Notifications'),
-          const SizedBox(height: 10),
-          _buildCard(
-            children: [
-              _buildSwitchTile(
-                icon: Icons.chat_bubble_outline_rounded,
-                title: 'Booking updates',
-                subtitle: 'Requests, handovers and returns',
-                value: _bookingUpdates,
-                onChanged: (v) => setState(() => _bookingUpdates = v),
-              ),
-              const Divider(height: 1, color: AppColors.borderLight),
-              _buildSwitchTile(
-                icon: Icons.local_offer_outlined,
-                title: 'Offers near you',
-                subtitle: 'Price drops and new local gear',
-                value: _offersNearYou,
-                onChanged: (v) => setState(() => _offersNearYou = v),
-              ),
-            ],
-          ),
-          const SizedBox(height: 22),
-
-          // 8. Help for Every Adventure Banner
-          _buildHelpBanner(),
-          const SizedBox(height: 24),
-
-          // 9. Sign Out Button
-          SizedBox(
-            height: 52,
-            child: OutlinedButton.icon(
-              onPressed: widget.onSignOut,
-              icon: const Icon(Icons.logout_rounded, size: 20, color: AppColors.error),
-              label: const Text(
-                'Sign out',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.error,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
-                side: const BorderSide(color: Color(0xFFF9D2D2), width: 1.3),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 1,
-                shadowColor: Colors.black.withValues(alpha: 0.04),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // 10. Footer Info
-          const Center(
-            child: Text(
-              'GearGo 4.8.2 · Privacy · Terms',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textMutedLight,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  // --- Widgets ---
+  // --- UI Components ---
 
-  Widget _buildTopBar() {
+  Widget _buildTopBar(
+    AppSettingsService settings,
+    bool isDark,
+    Color titleColor,
+    Color borderColor,
+  ) {
     return Row(
       children: [
         Container(
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: kNavy,
+            color: isDark ? AppColors.surfaceDark : kNavy,
             borderRadius: BorderRadius.circular(12),
+            border: isDark ? Border.all(color: borderColor) : null,
           ),
           child: const Icon(
             Icons.landscape_rounded,
@@ -411,10 +496,10 @@ class _ProfileTabState extends State<ProfileTab> {
           ),
         ),
         const SizedBox(width: 12),
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'GEARGO',
               style: TextStyle(
                 fontSize: 11,
@@ -424,11 +509,11 @@ class _ProfileTabState extends State<ProfileTab> {
               ),
             ),
             Text(
-              'Your profile',
+              settings.tr('your_profile'),
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: kNavy,
+                color: titleColor,
                 height: 1.1,
               ),
             ),
@@ -439,13 +524,21 @@ class _ProfileTabState extends State<ProfileTab> {
         _buildCircularIconButton(
           icon: Icons.notifications_none_rounded,
           showBadge: true,
-          onTap: _showNotificationSettings,
+          isDark: isDark,
+          borderColor: borderColor,
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(settings.tr('notifications'))),
+            );
+          },
         ),
         const SizedBox(width: 10),
-        // Settings button
+        // Settings button opens Appearance & Language sheet
         _buildCircularIconButton(
           icon: Icons.settings_outlined,
-          onTap: _showPersonalInformationSheet,
+          isDark: isDark,
+          borderColor: borderColor,
+          onTap: () => AppearanceLanguageSheet.show(context),
         ),
       ],
     );
@@ -454,6 +547,8 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget _buildCircularIconButton({
     required IconData icon,
     bool showBadge = false,
+    required bool isDark,
+    required Color borderColor,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -463,12 +558,12 @@ class _ProfileTabState extends State<ProfileTab> {
         width: 42,
         height: 42,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? AppColors.surfaceDark : Colors.white,
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.borderLight, width: 1.2),
+          border: Border.all(color: borderColor, width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -477,7 +572,11 @@ class _ProfileTabState extends State<ProfileTab> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Icon(icon, size: 20, color: kNavy),
+            Icon(
+              icon,
+              size: 20,
+              color: isDark ? AppColors.textPrimaryDark : kNavy,
+            ),
             if (showBadge)
               Positioned(
                 top: 10,
@@ -497,15 +596,25 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  Widget _buildHeroCard(String name, String initials, String? photoUrl) {
+  Widget _buildHeroCard({
+    required AppSettingsService settings,
+    required String name,
+    required String initials,
+    required String? photoUrl,
+    required bool isDark,
+    required Color cardBg,
+    required Color borderColor,
+    required Color titleColor,
+    required Color subColor,
+  }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.8)),
+        border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: kNavy.withValues(alpha: 0.06),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -543,25 +652,25 @@ class _ProfileTabState extends State<ProfileTab> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.55),
+                    color: Colors.black.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.25),
                       width: 0.8,
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.local_fire_department_rounded,
                         size: 14,
                         color: AppColors.secondary,
                       ),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Text(
-                        'TRAIL MEMBER',
-                        style: TextStyle(
+                        settings.tr('trail_member'),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10.5,
                           fontWeight: FontWeight.w800,
@@ -589,10 +698,13 @@ class _ProfileTabState extends State<ProfileTab> {
                       Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3.5),
+                          border: Border.all(
+                            color: isDark ? AppColors.surfaceDark : Colors.white,
+                            width: 3.5,
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.12),
+                              color: Colors.black.withValues(alpha: 0.15),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -600,7 +712,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         ),
                         child: CircleAvatar(
                           radius: 34,
-                          backgroundColor: const Color(0xFFE2E8F0),
+                          backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
                           backgroundImage: photoUrl != null
                               ? NetworkImage(photoUrl)
                               : null,
@@ -631,10 +743,10 @@ class _ProfileTabState extends State<ProfileTab> {
                                       name,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 19,
                                         fontWeight: FontWeight.w800,
-                                        color: kNavy,
+                                        color: titleColor,
                                       ),
                                     ),
                                   ),
@@ -647,11 +759,11 @@ class _ProfileTabState extends State<ProfileTab> {
                                 ],
                               ),
                               const SizedBox(height: 2),
-                              const Text(
-                                'Vancouver, BC · Member since 2022',
+                              Text(
+                                'Vancouver, BC · ${settings.tr('member_since')}',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.textSecondaryLight,
+                                  color: subColor,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -669,7 +781,7 @@ class _ProfileTabState extends State<ProfileTab> {
                             width: 38,
                             height: 38,
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
+                              color: AppColors.primary.withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -690,9 +802,9 @@ class _ProfileTabState extends State<ProfileTab> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                     decoration: BoxDecoration(
-                      color: kBg,
+                      color: isDark ? const Color(0xFF0F172A) : kBg,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.borderLight),
+                      border: Border.all(color: borderColor),
                     ),
                     child: Row(
                       children: [
@@ -700,21 +812,27 @@ class _ProfileTabState extends State<ProfileTab> {
                           icon: Icons.star_rounded,
                           iconColor: const Color(0xFFFFB400),
                           title: '4.9',
-                          subtitle: '32 reviews',
+                          subtitle: '32 ${settings.tr('reviews')}',
+                          titleColor: titleColor,
+                          subColor: subColor,
                         ),
-                        _buildStatDivider(),
+                        _buildStatDivider(borderColor),
                         _buildStatColumn(
                           icon: Icons.verified_outlined,
                           iconColor: AppColors.primary,
-                          title: 'Verified',
-                          subtitle: 'Trusted renter',
+                          title: settings.tr('verified'),
+                          subtitle: settings.tr('trusted_renter'),
+                          titleColor: titleColor,
+                          subColor: subColor,
                         ),
-                        _buildStatDivider(),
+                        _buildStatDivider(borderColor),
                         _buildStatColumn(
                           icon: Icons.hiking_rounded,
                           iconColor: const Color(0xFF0284C7),
                           title: '18',
-                          subtitle: 'Trips completed',
+                          subtitle: settings.tr('trips_completed'),
+                          titleColor: titleColor,
+                          subColor: subColor,
                         ),
                       ],
                     ),
@@ -733,6 +851,8 @@ class _ProfileTabState extends State<ProfileTab> {
     required Color iconColor,
     required String title,
     required String subtitle,
+    required Color titleColor,
+    required Color subColor,
   }) {
     return Expanded(
       child: Column(
@@ -742,12 +862,16 @@ class _ProfileTabState extends State<ProfileTab> {
             children: [
               Icon(icon, size: 16, color: iconColor),
               const SizedBox(width: 4),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: kNavy,
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: titleColor,
+                  ),
                 ),
               ),
             ],
@@ -756,9 +880,11 @@ class _ProfileTabState extends State<ProfileTab> {
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.textSecondaryLight,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 10.5,
+              color: subColor,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -767,15 +893,15 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  Widget _buildStatDivider() {
+  Widget _buildStatDivider(Color borderColor) {
     return Container(
       width: 1,
       height: 28,
-      color: AppColors.borderLight,
+      color: borderColor,
     );
   }
 
-  Widget _buildReadinessCard() {
+  Widget _buildReadinessCard(AppSettingsService settings) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -792,18 +918,20 @@ class _ProfileTabState extends State<ProfileTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Your profile is almost trail-ready',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
+              Expanded(
+                child: Text(
+                  settings.tr('profile_ready_title'),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
-              Text(
+              const Text(
                 '85%',
                 style: TextStyle(
                   color: AppColors.secondary,
@@ -814,22 +942,22 @@ class _ProfileTabState extends State<ProfileTab> {
             ],
           ),
           const SizedBox(height: 5),
-          const Text(
-            'Add an emergency contact to reach 100%',
-            style: TextStyle(
+          Text(
+            settings.tr('profile_ready_sub'),
+            style: const TextStyle(
               color: Color(0xFFB0C4DE),
-              fontSize: 12.5,
+              fontSize: 12,
               fontWeight: FontWeight.w400,
             ),
           ),
           const SizedBox(height: 14),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
+            child: const LinearProgressIndicator(
               value: 0.85,
               minHeight: 8,
-              backgroundColor: Colors.white.withValues(alpha: 0.15),
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.secondary),
+              backgroundColor: Colors.white24,
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.secondary),
             ),
           ),
         ],
@@ -837,9 +965,278 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
+  /// Interactive Appearance & Language Card directly accessible on Profile
+  Widget _buildAppearanceAndLanguageCard({
+    required AppSettingsService settings,
+    required bool isDark,
+    required Color cardBg,
+    required Color borderColor,
+    required Color titleColor,
+    required Color subColor,
+  }) {
+    final currentTheme = settings.themeMode;
+    final currentLang = settings.languageCode;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.palette_rounded, color: AppColors.primary, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      settings.tr('preferences_display'),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: titleColor,
+                      ),
+                    ),
+                    Text(
+                      'Dark Mode & Language selector',
+                      style: TextStyle(fontSize: 11.5, color: subColor),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // 1. Theme Mode Segmented Controller
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                settings.tr('theme_mode'),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: titleColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0B0F19) : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: borderColor),
+            ),
+            child: Row(
+              children: [
+                _buildThemeTab(
+                  label: settings.tr('theme_light'),
+                  icon: Icons.wb_sunny_rounded,
+                  selected: currentTheme == ThemeMode.light,
+                  isDark: isDark,
+                  onTap: () => settings.setThemeMode(ThemeMode.light),
+                ),
+                _buildThemeTab(
+                  label: settings.tr('theme_dark'),
+                  icon: Icons.dark_mode_rounded,
+                  selected: currentTheme == ThemeMode.dark,
+                  isDark: isDark,
+                  onTap: () => settings.setThemeMode(ThemeMode.dark),
+                ),
+                _buildThemeTab(
+                  label: settings.tr('theme_system'),
+                  icon: Icons.brightness_auto_rounded,
+                  selected: currentTheme == ThemeMode.system,
+                  isDark: isDark,
+                  onTap: () => settings.setThemeMode(ThemeMode.system),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Divider(height: 1, color: borderColor),
+          const SizedBox(height: 16),
+
+          // 2. Language Selector Pills (English / Sinhala / Tamil)
+          Text(
+            settings.tr('language'),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: titleColor,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _buildLanguageTab(
+                code: 'en',
+                flag: '🇬🇧',
+                name: 'English',
+                selected: currentLang == 'en',
+                isDark: isDark,
+                borderColor: borderColor,
+                onTap: () => settings.setLanguage('en'),
+              ),
+              const SizedBox(width: 8),
+              _buildLanguageTab(
+                code: 'si',
+                flag: '🇱🇰',
+                name: 'සිංහල',
+                selected: currentLang == 'si',
+                isDark: isDark,
+                borderColor: borderColor,
+                onTap: () => settings.setLanguage('si'),
+              ),
+              const SizedBox(width: 8),
+              _buildLanguageTab(
+                code: 'ta',
+                flag: '🇱🇰',
+                name: 'தமிழ்',
+                selected: currentLang == 'ta',
+                isDark: isDark,
+                borderColor: borderColor,
+                onTap: () => settings.setLanguage('ta'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeTab({
+    required String label,
+    required IconData icon,
+    required bool selected,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: selected
+                ? (isDark ? AppColors.surfaceDark : Colors.white)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 15,
+                color: selected
+                    ? AppColors.primary
+                    : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  color: selected
+                      ? AppColors.primary
+                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageTab({
+    required String code,
+    required String flag,
+    required String name,
+    required bool selected,
+    required bool isDark,
+    required Color borderColor,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.08)
+                : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected ? AppColors.primary : borderColor,
+              width: selected ? 1.6 : 1.0,
+            ),
+          ),
+          child: Column(
+            children: [
+              Text(flag, style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 3),
+              Text(
+                name,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  color: selected
+                      ? AppColors.primary
+                      : (isDark ? AppColors.textPrimaryDark : kNavy),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSectionHeader({
     required String title,
     String? actionText,
+    required Color titleColor,
     VoidCallback? onAction,
   }) {
     return Row(
@@ -847,10 +1244,10 @@ class _ProfileTabState extends State<ProfileTab> {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w800,
-            color: kNavy,
+            color: titleColor,
           ),
         ),
         if (actionText != null && onAction != null)
@@ -873,15 +1270,20 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  Widget _buildCard({required List<Widget> children}) {
+  Widget _buildCard({
+    required Color cardBg,
+    required Color borderColor,
+    required bool isDark,
+    required List<Widget> children,
+  }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.8)),
+        border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: kNavy.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -895,6 +1297,9 @@ class _ProfileTabState extends State<ProfileTab> {
     required IconData icon,
     required String title,
     required String subtitle,
+    required Color titleColor,
+    required Color subColor,
+    required bool isDark,
     required Widget trailing,
     required VoidCallback onTap,
   }) {
@@ -909,10 +1314,10 @@ class _ProfileTabState extends State<ProfileTab> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFFF3F6FA),
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF3F6FA),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, size: 20, color: kNavy),
+              child: Icon(icon, size: 20, color: isDark ? Colors.white : kNavy),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -921,18 +1326,18 @@ class _ProfileTabState extends State<ProfileTab> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: kNavy,
+                      color: titleColor,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12.5,
-                      color: AppColors.textSecondaryLight,
+                      color: subColor,
                     ),
                   ),
                 ],
@@ -950,6 +1355,9 @@ class _ProfileTabState extends State<ProfileTab> {
     required IconData icon,
     required String title,
     required String subtitle,
+    required Color titleColor,
+    required Color subColor,
+    required bool isDark,
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
@@ -961,10 +1369,10 @@ class _ProfileTabState extends State<ProfileTab> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFFF3F6FA),
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF3F6FA),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 20, color: kNavy),
+            child: Icon(icon, size: 20, color: isDark ? Colors.white : kNavy),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -973,18 +1381,18 @@ class _ProfileTabState extends State<ProfileTab> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: kNavy,
+                    color: titleColor,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12.5,
-                    color: AppColors.textSecondaryLight,
+                    color: subColor,
                   ),
                 ),
               ],
@@ -1023,16 +1431,23 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  Widget _buildRentalPreferencesCard() {
+  Widget _buildRentalPreferencesCard({
+    required AppSettingsService settings,
+    required bool isDark,
+    required Color cardBg,
+    required Color borderColor,
+    required Color titleColor,
+    required Color subColor,
+  }) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.8)),
+        border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: kNavy.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -1041,13 +1456,13 @@ class _ProfileTabState extends State<ProfileTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'FAVORITE ACTIVITIES',
+          Text(
+            settings.tr('favorite_activities'),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.8,
-              color: AppColors.textSecondaryLight,
+              color: subColor,
             ),
           ),
           const SizedBox(height: 12),
@@ -1055,35 +1470,50 @@ class _ProfileTabState extends State<ProfileTab> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildActivityChip('Hiking', Icons.hiking_rounded),
-              _buildActivityChip('Cycling', Icons.directions_bike_rounded),
-              _buildActivityChip('Camping', Icons.terrain_rounded),
+              _buildActivityChip(
+                label: settings.tr('activity_hiking'),
+                keyName: 'Hiking',
+                icon: Icons.hiking_rounded,
+                isDark: isDark,
+              ),
+              _buildActivityChip(
+                label: settings.tr('activity_cycling'),
+                keyName: 'Cycling',
+                icon: Icons.directions_bike_rounded,
+                isDark: isDark,
+              ),
+              _buildActivityChip(
+                label: settings.tr('activity_camping'),
+                keyName: 'Camping',
+                icon: Icons.terrain_rounded,
+                isDark: isDark,
+              ),
             ],
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Divider(height: 1, color: AppColors.borderLight),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Divider(height: 1, color: borderColor),
           ),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Pickup radius',
+                    settings.tr('pickup_radius'),
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondaryLight,
+                      color: subColor,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     '15 km',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: kNavy,
+                      color: titleColor,
                     ),
                   ),
                 ],
@@ -1092,19 +1522,19 @@ class _ProfileTabState extends State<ProfileTab> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'Preferred handover',
+                    settings.tr('preferred_handover'),
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondaryLight,
+                      color: subColor,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    'Weekends',
+                    settings.tr('weekends'),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: kNavy,
+                      color: titleColor,
                     ),
                   ),
                 ],
@@ -1116,15 +1546,20 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  Widget _buildActivityChip(String label, IconData icon) {
-    final selected = _selectedActivities.contains(label);
+  Widget _buildActivityChip({
+    required String label,
+    required String keyName,
+    required IconData icon,
+    required bool isDark,
+  }) {
+    final selected = _selectedActivities.contains(keyName);
     return InkWell(
       onTap: () {
         setState(() {
           if (selected) {
-            _selectedActivities.remove(label);
+            _selectedActivities.remove(keyName);
           } else {
-            _selectedActivities.add(label);
+            _selectedActivities.add(keyName);
           }
         });
       },
@@ -1134,8 +1569,8 @@ class _ProfileTabState extends State<ProfileTab> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: selected
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : const Color(0xFFF1F5F9),
+              ? AppColors.primary.withValues(alpha: 0.12)
+              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: selected ? AppColors.primary : Colors.transparent,
@@ -1148,7 +1583,9 @@ class _ProfileTabState extends State<ProfileTab> {
             Icon(
               icon,
               size: 16,
-              color: selected ? AppColors.primary : kNavy,
+              color: selected
+                  ? AppColors.primary
+                  : (isDark ? AppColors.textPrimaryDark : kNavy),
             ),
             const SizedBox(width: 6),
             Text(
@@ -1156,7 +1593,9 @@ class _ProfileTabState extends State<ProfileTab> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: selected ? AppColors.primary : kNavy,
+                color: selected
+                    ? AppColors.primary
+                    : (isDark ? AppColors.textPrimaryDark : kNavy),
               ),
             ),
           ],
@@ -1165,7 +1604,7 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  Widget _buildHelpBanner() {
+  Widget _buildHelpBanner(AppSettingsService settings) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -1173,7 +1612,7 @@ class _ProfileTabState extends State<ProfileTab> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -1199,22 +1638,22 @@ class _ProfileTabState extends State<ProfileTab> {
             ),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Help for every adventure',
-                  style: TextStyle(
+                  settings.tr('help_adventure_title'),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14.5,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                  'Safety guidance and support, whenever you need it.',
-                  style: TextStyle(
+                  settings.tr('help_adventure_sub'),
+                  style: const TextStyle(
                     color: Color(0xFF94A3B8),
                     fontSize: 11.5,
                   ),
@@ -1236,9 +1675,9 @@ class _ProfileTabState extends State<ProfileTab> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'Get help',
-              style: TextStyle(
+            child: Text(
+              settings.tr('get_help'),
+              style: const TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 12.5,
               ),
