@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../models/gear_item.dart';
+import '../filter_screen.dart';
 import 'home_tab.dart';
 
 class SearchTab extends StatefulWidget {
@@ -16,6 +17,21 @@ class _SearchTabState extends State<SearchTab> {
   bool _distance = true;
   bool _rating = false;
   bool _availableNow = false;
+  GearFilters _filters = const GearFilters(
+    distanceKm: GearFilters.maxDistance,
+  );
+
+  Future<void> _openFilters() async {
+    final result = await Navigator.of(context).push<GearFilters>(
+      MaterialPageRoute(builder: (_) => FilterScreen(initial: _filters)),
+    );
+    if (result != null) {
+      setState(() {
+        _filters = result;
+        _availableNow = result.availableNow;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -30,7 +46,15 @@ class _SearchTabState extends State<SearchTab> {
           g.name.toLowerCase().contains(q) ||
           g.category.toLowerCase().contains(q) ||
           (q.contains('bike') && g.category == 'Cycling');
-      return match && (!_availableNow || g.available);
+      final inCategory =
+          _filters.categories.isEmpty || _filters.categories.contains(g.category);
+      final inPrice = g.pricePerDay >= _filters.price.start &&
+          (_filters.priceUnbounded || g.pricePerDay <= _filters.price.end);
+      return match &&
+          inCategory &&
+          inPrice &&
+          g.distanceKm <= _filters.distanceKm &&
+          (!_availableNow || g.available);
     }).toList();
     if (_rating) {
       list.sort((a, b) => b.rating.compareTo(a.rating));
@@ -50,6 +74,8 @@ class _SearchTabState extends State<SearchTab> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Row(children: [
+              Expanded(
             child: Container(
               height: 54,
               decoration: BoxDecoration(
@@ -86,6 +112,28 @@ class _SearchTabState extends State<SearchTab> {
                 ),
               ),
             ),
+              ),
+              const SizedBox(width: 12),
+              InkWell(
+                onTap: _openFilters,
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 14,
+                          offset: const Offset(0, 5)),
+                    ],
+                  ),
+                  child: const Icon(Icons.tune_rounded, color: Colors.white),
+                ),
+              ),
+            ]),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
