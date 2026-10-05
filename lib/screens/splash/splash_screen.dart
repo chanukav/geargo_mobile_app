@@ -88,29 +88,41 @@ class _SplashScreenState extends State<SplashScreen>
                     child: ScaleTransition(
                       scale: _scale,
                       child: Container(
-                        width: 220,
-                        height: 220,
+                        width: 170,
+                        height: 170,
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(44),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.18),
+                              color: AppColors.primary.withValues(alpha: 0.28),
                               blurRadius: 50,
-                              spreadRadius: 6,
+                              offset: const Offset(0, 20),
                             ),
                           ],
                         ),
-                        child: ClipOval(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(44),
                           child: Image.asset(
-                            'assets/images/logo.jpg',
+                            'assets/images/logo_icon.jpg',
                             fit: BoxFit.cover,
                           ),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 26),
+                  FadeTransition(
+                    opacity: _fade,
+                    child: const Text(
+                      'GearGo',
+                      style: TextStyle(
+                        fontSize: 38,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0F2A4A),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   FadeTransition(
                     opacity: _fade,
                     child: const Text(
