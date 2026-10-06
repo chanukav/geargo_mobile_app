@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/app_user.dart';
 import '../../services/auth_service.dart';
+import '../owner/add_edit_equipment_screen.dart';
+import '../owner/manage_listings_screen.dart';
+import '../owner/owner_dashboard_screen.dart';
 import 'widgets/account_details_card.dart';
 import 'widgets/quick_action_card.dart';
 import 'widgets/user_profile_header.dart';
@@ -152,6 +155,95 @@ class HomeScreen extends StatelessWidget {
 
               // Authentication Metadata Card
               AccountDetailsCard(user: user),
+              const SizedBox(height: 20),
+
+              // Owner & Equipment Management Hub (CRUD 01)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Owner & Lender Hub',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.deepNavy,
+                        ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.orange.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'CRUD 01',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.orange,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Manage Listings Card
+              QuickActionCard(
+                title: 'Manage Listings',
+                subtitle:
+                    'View your gear, adjust daily prices, toggle availability & edit photos',
+                icon: Icons.inventory_2_rounded,
+                iconColor: AppColors.blue,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ManageListingsScreen(
+                        ownerId: user.uid,
+                        ownerName: appUser.displayTitle,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+
+              // Owner Dashboard Card
+              QuickActionCard(
+                title: 'Owner Dashboard',
+                subtitle:
+                    'Overview of active listings, daily revenue & inventory stats',
+                icon: Icons.dashboard_customize_rounded,
+                iconColor: AppColors.deepNavy,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => OwnerDashboardScreen(user: user),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+
+              // Add New Equipment Card
+              QuickActionCard(
+                title: '+ Add New Equipment',
+                subtitle:
+                    'List bikes, kayaks, camping kits, drones, or tools for rent',
+                icon: Icons.add_circle_rounded,
+                iconColor: AppColors.orange,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          AddEditEquipmentScreen(ownerId: user.uid),
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 20),
 
               // GearGo Sample Quick Actions
