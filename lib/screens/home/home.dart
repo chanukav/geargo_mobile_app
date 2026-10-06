@@ -6,6 +6,7 @@ import '../../services/auth_service.dart';
 import '../owner/add_edit_equipment_screen.dart';
 import '../owner/manage_listings_screen.dart';
 import '../owner/owner_dashboard_screen.dart';
+import '../owner/view_owner_profile_screen.dart';
 import 'widgets/account_details_card.dart';
 import 'widgets/quick_action_card.dart';
 import 'widgets/user_profile_header.dart';
@@ -190,6 +191,25 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
+
+              // Owner Profile Card
+              QuickActionCard(
+                title: 'Owner Profile',
+                subtitle: 'Manage your owner identity and business details',
+                icon: Icons.person_outline_rounded,
+                iconColor: AppColors.primary,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ViewOwnerProfileScreen(
+                        userId: user.uid,
+                        userEmail: user.email,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
 
               // Manage Listings Card
               QuickActionCard(
