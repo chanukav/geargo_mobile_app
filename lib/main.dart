@@ -14,6 +14,7 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: const FirebaseOptions(
         apiKey: 'AIzaSyC72StYLf5ECEmohXZda84IqOREoWS6F6I',
+        authDomain: 'geargo-e0035.firebaseapp.com',
         appId: '1:813025681886:android:9990a176c39fb6db267d4f', // Using your provided App ID
         messagingSenderId: '813025681886',
         projectId: 'geargo-e0035',

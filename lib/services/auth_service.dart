@@ -80,6 +80,11 @@ class AuthService {
   /// Sign in using Google OAuth.
   Future<UserCredential?> signInWithGoogle() async {
     try {
+      if (kIsWeb) {
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        return await _auth.signInWithPopup(googleProvider);
+      }
+
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         // User cancelled the Google sign-in prompt
@@ -112,10 +117,14 @@ class AuthService {
   /// Sign out current user from all providers.
   Future<void> signOut() async {
     try {
-      await Future.wait([
-        _auth.signOut(),
-        _googleSignIn.signOut(),
-      ]);
+      if (kIsWeb) {
+        await _auth.signOut();
+      } else {
+        await Future.wait([
+          _auth.signOut(),
+          _googleSignIn.signOut(),
+        ]);
+      }
     } catch (e) {
       debugPrint('AuthService.signOut error: $e');
       rethrow;
