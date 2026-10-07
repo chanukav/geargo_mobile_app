@@ -16,6 +16,7 @@ import 'package:geargo/member4/widgets.dart';
 class TestRepository implements Member4Repository {
   bool failSend = false;
   int adminReads = 0;
+  int rentalReads = 0;
   String? sent;
   final record = RentalRecord('rental', {
     'equipmentName': 'Test bicycle',
@@ -63,7 +64,10 @@ class TestRepository implements Member4Repository {
   }
 
   @override
-  Stream<RentalRecord?> rental(String id) => Stream.value(record);
+  Stream<RentalRecord?> rental(String id) {
+    rentalReads++;
+    return Stream.value(record);
+  }
   @override
   Stream<List<Map<String, dynamic>>> messages(String id) => Stream.value([]);
   @override
@@ -123,6 +127,20 @@ Future<void> app(
 }
 
 void main() {
+  testWidgets('saving focused condition notes preserves the form subscription', (t) async {
+    final repo = TestRepository();
+    await app(t, ConditionScreen(repo: repo, rentalId: 'rental', phase: 'pickup'));
+    await t.scrollUntilVisible(find.byType(TextField), 250,
+        scrollable: find.byType(Scrollable).first);
+    await t.enterText(find.byType(TextField), 'Small scratch on the frame');
+    await t.ensureVisible(find.text('Save notes'));
+    await t.tap(find.text('Save notes'));
+    await t.pumpAndSettle();
+    expect(find.text('Condition notes saved.'), findsOneWidget);
+    expect(find.text('Small scratch on the frame'), findsOneWidget);
+    expect(repo.rentalReads, 1);
+    expect(t.takeException(), isNull);
+  });
   testWidgets('M4-TC-17 direct admin evidence screen denies nonadmin access', (
     t,
   ) async {

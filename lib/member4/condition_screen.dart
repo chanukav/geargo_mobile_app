@@ -55,7 +55,7 @@ class _ConditionScreenState extends State<ConditionScreen> {
   }
 
   Future<void> run(Future<void> Function() operation) async {
-    if (busy) {
+    if (!mounted || busy) {
       return;
     }
     setState(() {
@@ -224,16 +224,19 @@ class _ConditionScreenState extends State<ConditionScreen> {
                   '${photos[angle] == null ? 'Capture' : 'Retake'} ${photoAngles[angle]} View',
                 ),
               ),
+              const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: busy ? null : () => capture(ImageSource.gallery, r),
                 icon: const Icon(Icons.photo_library_outlined),
                 label: Text('Upload ${photoAngles[angle]} View'),
               ),
-              if (pending != null)
+              if (pending != null) ...[
+                const SizedBox(height: 12),
                 OutlinedButton(
                   onPressed: busy ? null : () => run(() => upload(r)),
                   child: const Text('Retry upload'),
                 ),
+              ],
             ],
             if (widget.phase == 'return' && r.photos('pickup')[angle] != null)
               ExpansionTile(
@@ -287,6 +290,7 @@ class _ConditionScreenState extends State<ConditionScreen> {
                 liveRegion: true,
                 child: Text(error!, style: const TextStyle(color: Colors.red)),
               ),
+            const SizedBox(height: 12),
             if (!locked)
               FilledButton(
                 onPressed: busy || photos.length != 4
@@ -329,6 +333,7 @@ class _ConditionScreenState extends State<ConditionScreen> {
               const Panel(
                 child: Text('Condition evidence is confirmed and read-only.'),
               ),
+            const SizedBox(height: 12),
             TextButton.icon(
               onPressed: () => openMember4(
                 context,
