@@ -12,6 +12,10 @@ const Color kBg = Color(0xFFF6F8FB);
 
 IconData categoryIcon(String c) {
   switch (c) {
+    case 'Cricket':
+      return Icons.sports_cricket_rounded;
+    case 'Badminton':
+      return Icons.sports_tennis_rounded;
     case 'Cycling':
       return Icons.directions_bike_rounded;
     case 'Surfing':

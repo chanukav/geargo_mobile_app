@@ -25,9 +25,53 @@ class GearItem {
   });
 }
 
-const List<String> gearCategories = ['All', 'Cycling', 'Surfing', 'Hiking', 'Skiing'];
+const List<String> gearCategories = [
+  'All',
+  'Cricket',
+  'Badminton',
+  'Cycling',
+  'Surfing',
+  'Hiking',
+  'Skiing',
+];
 
 const List<GearItem> sampleGear = [
+  GearItem(
+    name: 'Kookaburra Pro Cricket Kit',
+    owner: 'Kasun M.',
+    category: 'Cricket',
+    image: 'assets/images/gear_cricket_kit.jpg',
+    rating: 4.9,
+    reviews: 46,
+    distanceKm: 1.8,
+    pricePerDay: 35,
+    available: true,
+    verified: true,
+  ),
+  GearItem(
+    name: 'Yonex Astrox Badminton Set',
+    owner: 'Shanuka P.',
+    category: 'Badminton',
+    image: 'assets/images/gear_badminton_set.jpg',
+    rating: 4.9,
+    reviews: 32,
+    distanceKm: 1.4,
+    pricePerDay: 20,
+    available: true,
+    verified: true,
+  ),
+  GearItem(
+    name: 'Kingsley Reserve Cricket Bat',
+    owner: 'Mahesh D.',
+    category: 'Cricket',
+    image: 'assets/images/gear_cricket_bat.jpg',
+    rating: 5.0,
+    reviews: 28,
+    distanceKm: 2.2,
+    pricePerDay: 25,
+    available: true,
+    verified: true,
+  ),
   GearItem(
     name: 'Specialized Stumpjumper',
     owner: 'Marcus V.',

@@ -19,6 +19,21 @@ class GearImagePreset {
 
   static const List<GearImagePreset> presets = [
     GearImagePreset(
+      title: 'Kookaburra Pro Cricket Kit',
+      categoryId: 'cricket',
+      imageUrl: 'assets/images/gear_cricket_kit.jpg',
+    ),
+    GearImagePreset(
+      title: 'Yonex Astrox Badminton Set',
+      categoryId: 'badminton',
+      imageUrl: 'assets/images/gear_badminton_set.jpg',
+    ),
+    GearImagePreset(
+      title: 'Kingsley Reserve Cricket Bat',
+      categoryId: 'cricket',
+      imageUrl: 'assets/images/gear_cricket_bat.jpg',
+    ),
+    GearImagePreset(
       title: 'Trek Fuel Mountain Bike',
       categoryId: 'mountain_bikes',
       imageUrl:

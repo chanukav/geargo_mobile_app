@@ -26,6 +26,8 @@ class GearFilters {
 }
 
 const List<String> filterCategories = [
+  'Cricket',
+  'Badminton',
   'Cycling',
   'Surfing',
   'Hiking',
