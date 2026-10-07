@@ -199,6 +199,14 @@ class EquipmentImageViewer extends StatelessWidget {
         },
         errorBuilder: (_, _, _) => _buildPlaceholder(),
       );
+    } else if (trimmed.startsWith('assets/')) {
+      content = Image.asset(
+        trimmed,
+        fit: fit,
+        width: width,
+        height: height,
+        errorBuilder: (_, _, _) => _buildPlaceholder(),
+      );
     } else if (!kIsWeb && File(trimmed).existsSync()) {
       content = Image.file(
         File(trimmed),

@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../models/gear_item.dart';
+import '../../renter/create_rental_request_sheet.dart';
+import '../../renter/renter_equipment_details_screen.dart';
+import '../../renter/saved_equipment_screen.dart';
+import '../../renter/widgets/favorite_toggle_button.dart';
 import '../filter_screen.dart';
 import 'home_tab.dart';
 
@@ -113,12 +117,12 @@ class _SearchTabState extends State<SearchTab> {
               ),
             ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               InkWell(
                 onTap: _openFilters,
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
-                  width: 54,
+                  width: 50,
                   height: 54,
                   decoration: BoxDecoration(
                     color: AppColors.primary,
@@ -130,7 +134,32 @@ class _SearchTabState extends State<SearchTab> {
                           offset: const Offset(0, 5)),
                     ],
                   ),
-                  child: const Icon(Icons.tune_rounded, color: Colors.white),
+                  child: const Icon(Icons.tune_rounded, color: Colors.white, size: 22),
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SavedEquipmentScreen()),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: 50,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.borderLight, width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4)),
+                    ],
+                  ),
+                  child: const Icon(Icons.favorite_rounded, color: AppColors.error, size: 22),
                 ),
               ),
             ]),
@@ -237,7 +266,7 @@ class _ResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 128,
+      height: 136,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -248,133 +277,163 @@ class _ResultCard extends StatelessWidget {
               offset: const Offset(0, 6)),
         ],
       ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius:
-                const BorderRadius.horizontal(left: Radius.circular(20)),
-            child: SizedBox(
-              width: 118,
-              height: double.infinity,
-              child: Image.asset(item.image, fit: BoxFit.cover),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(item.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15.5,
-                          color: kNavy)),
-                  const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text('by ${item.owner}',
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                fontSize: 12.5,
-                                color: AppColors.textSecondaryLight)),
-                      ),
-                      if (item.verified) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.check_rounded,
-                                  size: 11, color: AppColors.primary),
-                              SizedBox(width: 2),
-                              Text('VERIFIED',
-                                  style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.primary)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 5),
-                  Row(
-                    children: [
-                      const Icon(Icons.star_rounded,
-                          size: 17, color: Color(0xFFFFB400)),
-                      const SizedBox(width: 3),
-                      Text('${item.rating}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w800, color: kNavy)),
-                      Text(' (${item.reviews})',
-                          style: const TextStyle(
-                              fontSize: 12.5,
-                              color: AppColors.textSecondaryLight)),
-                      const Spacer(),
-                      Text('${item.distanceKm} km',
-                          style: const TextStyle(
-                              fontSize: 12.5,
-                              color: AppColors.textSecondaryLight)),
-                    ],
-                  ),
-                  const Spacer(),
-                  Row(
-                    children: [
-                      Text('\$${item.pricePerDay}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 17,
-                              color: AppColors.primary)),
-                      const Text('/day',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondaryLight)),
-                      const Spacer(),
-                      SizedBox(
-                        height: 36,
-                        child: ElevatedButton(
-                          onPressed: item.available
-                              ? () => ScaffoldMessenger.of(context)
-                                  .showSnackBar(SnackBar(
-                                      content:
-                                          Text('Booking ${item.name}...')))
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.secondary,
-                            foregroundColor: Colors.white,
-                            disabledBackgroundColor: AppColors.borderLight,
-                            elevation: 4,
-                            shadowColor:
-                                AppColors.secondary.withValues(alpha: 0.4),
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 14),
-                            minimumSize: const Size(0, 36),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                          ),
-                          child: Text(item.available ? 'Book Now' : 'Rented',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w800, fontSize: 13)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => RenterEquipmentDetailsScreen.fromGearItem(item),
               ),
-            ),
+            );
+          },
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius:
+                    const BorderRadius.horizontal(left: Radius.circular(20)),
+                child: SizedBox(
+                  width: 120,
+                  height: double.infinity,
+                  child: Image.asset(item.image, fit: BoxFit.cover),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 10, 12, 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                  color: kNavy),
+                            ),
+                          ),
+                          FavoriteToggleButton.fromGearItem(item, size: 18),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text('by ${item.owner}',
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondaryLight)),
+                          ),
+                          if (item.verified) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.check_rounded,
+                                      size: 11, color: AppColors.primary),
+                                  SizedBox(width: 2),
+                                  Text('VERIFIED',
+                                      style: TextStyle(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.primary)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.star_rounded,
+                              size: 16, color: Color(0xFFFFB400)),
+                          const SizedBox(width: 3),
+                          Text('${item.rating}',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w800, color: kNavy)),
+                          Text(' (${item.reviews})',
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondaryLight)),
+                          const Spacer(),
+                          Text('${item.distanceKm} km',
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondaryLight)),
+                        ],
+                      ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          Text('\$${item.pricePerDay}',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16.5,
+                                  color: AppColors.primary)),
+                          const Text('/day',
+                              style: TextStyle(
+                                  fontSize: 11.5,
+                                  color: AppColors.textSecondaryLight)),
+                          const Spacer(),
+                          SizedBox(
+                            height: 34,
+                            child: ElevatedButton(
+                              onPressed: item.available
+                                  ? () {
+                                      CreateRentalRequestSheet.show(
+                                        context,
+                                        equipmentId:
+                                            'gear_${item.name.toLowerCase().replaceAll(RegExp(r'\s+'), '_')}',
+                                        equipmentName: item.name,
+                                        equipmentCategory: item.category,
+                                        equipmentImage: item.image,
+                                        dailyPrice: item.pricePerDay.toDouble(),
+                                        ownerName: item.owner,
+                                      );
+                                    }
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.secondary,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: AppColors.borderLight,
+                                elevation: 3,
+                                shadowColor:
+                                    AppColors.secondary.withValues(alpha: 0.4),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 14),
+                                minimumSize: const Size(0, 34),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                              ),
+                              child: Text(item.available ? 'Book Now' : 'Rented',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w800, fontSize: 12.5)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

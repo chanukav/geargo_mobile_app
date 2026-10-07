@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../models/gear_item.dart';
 import '../../../services/app_settings_service.dart';
+import '../../renter/renter_equipment_details_screen.dart';
+import '../../renter/widgets/favorite_toggle_button.dart';
 import '../widgets/appearance_language_sheet.dart';
 
 const Color kNavy = Color(0xFF0F2A4A);
@@ -508,29 +510,54 @@ class _GearCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 5,
-            child: ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
-              child: SizedBox(
-                width: double.infinity,
-                child: Image.asset(item.image, fit: BoxFit.cover),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => RenterEquipmentDetailsScreen.fromGearItem(item),
               ),
-            ),
-          ),
-          Expanded(
-            flex: 5,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
+            );
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 5,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius:
+                            const BorderRadius.vertical(top: Radius.circular(20)),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Image.asset(item.image, fit: BoxFit.cover),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: FavoriteToggleButton.fromGearItem(
+                        item,
+                        size: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                flex: 5,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -591,7 +618,9 @@ class _GearCard extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 }
 

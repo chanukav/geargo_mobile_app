@@ -7,6 +7,7 @@ import '../../services/app_settings_service.dart';
 import 'tabs/home_tab.dart';
 import 'tabs/profile_tab.dart';
 import 'tabs/search_tab.dart';
+import '../renter/rental_requests_list_screen.dart';
 
 /// Main shell for GearGo: bottom navigation with Home, Search, Bookings,
 /// Messages and Profile tabs.
@@ -83,11 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final tabs = <Widget>[
       HomeTab(name: firstName, onSearchTap: () => setState(() => _index = 1)),
       const SearchTab(),
-      const EmptyTab(
-        icon: Icons.calendar_month_rounded,
-        title: 'No bookings yet',
-        subtitle: 'Rent gear from people near you and your bookings will show up here.',
-      ),
+      RentalRequestsListScreen(onExploreTap: () => setState(() => _index = 1)),
       const EmptyTab(
         icon: Icons.chat_bubble_rounded,
         title: 'No messages',

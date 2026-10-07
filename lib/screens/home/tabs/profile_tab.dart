@@ -6,6 +6,8 @@ import '../../../models/app_user.dart';
 import '../../../services/app_settings_service.dart';
 import '../widgets/account_details_card.dart';
 import '../widgets/appearance_language_sheet.dart';
+import '../../renter/rental_requests_list_screen.dart';
+import '../../renter/saved_equipment_screen.dart';
 import 'home_tab.dart';
 
 /// Simple empty-state tab (Bookings / Messages).
@@ -305,6 +307,54 @@ class _ProfileTabState extends State<ProfileTab> {
                         SnackBar(
                           content: Text(settings.tr('identity_verification_sub')),
                           backgroundColor: AppColors.success,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
+
+              // Renter Activity & Bookings Section
+              _buildSectionHeader(
+                title: 'Renter Activity & Gear',
+                titleColor: titleColor,
+              ),
+              const SizedBox(height: 10),
+              _buildCard(
+                cardBg: cardBg,
+                borderColor: borderColor,
+                isDark: isDark,
+                children: [
+                  _buildListTile(
+                    icon: Icons.calendar_month_rounded,
+                    title: 'My Rental Requests',
+                    subtitle: 'Track reservations, reschedule dates & cancellations',
+                    titleColor: titleColor,
+                    subColor: subColor,
+                    isDark: isDark,
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const RentalRequestsListScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  Divider(height: 1, color: borderColor),
+                  _buildListTile(
+                    icon: Icons.favorite_rounded,
+                    title: 'Saved / Favourite Equipment',
+                    subtitle: 'Wishlist collections, personal memos & quick rent',
+                    titleColor: titleColor,
+                    subColor: subColor,
+                    isDark: isDark,
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const SavedEquipmentScreen(),
                         ),
                       );
                     },
