@@ -51,12 +51,14 @@ class RentalRequestService {
     _notifyCacheListeners(newRequest.renterId);
 
     if (col != null) {
-      try {
-        await col.doc(docId).set(newRequest.toMap());
-        debugPrint('Rental request created in Firestore: $docId');
-      } catch (e) {
+      col.doc(docId).set(newRequest.toMap()).timeout(
+        const Duration(seconds: 1),
+        onTimeout: () {
+          debugPrint('Firestore write timed out; saved to local cache.');
+        },
+      ).catchError((e) {
         debugPrint('Firestore write warning (using cache): $e');
-      }
+      });
     }
 
     return newRequest;
@@ -141,12 +143,14 @@ class RentalRequestService {
 
     final col = _requestsCollection;
     if (col != null) {
-      try {
-        await col.doc(updated.id).update(updated.toMap());
-        debugPrint('Rental request updated in Firestore: ${updated.id}');
-      } catch (e) {
+      col.doc(updated.id).update(updated.toMap()).timeout(
+        const Duration(seconds: 1),
+        onTimeout: () {
+          debugPrint('Firestore update timed out; updated locally.');
+        },
+      ).catchError((e) {
         debugPrint('Firestore update warning (using cache): $e');
-      }
+      });
     }
 
     return updated;
@@ -183,12 +187,14 @@ class RentalRequestService {
 
     final col = _requestsCollection;
     if (col != null) {
-      try {
-        await col.doc(id).delete();
-        debugPrint('Rental request deleted from Firestore: $id');
-      } catch (e) {
+      col.doc(id).delete().timeout(
+        const Duration(seconds: 1),
+        onTimeout: () {
+          debugPrint('Firestore delete timed out; removed locally.');
+        },
+      ).catchError((e) {
         debugPrint('Firestore delete warning: $e');
-      }
+      });
     }
   }
 

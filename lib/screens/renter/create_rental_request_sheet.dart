@@ -71,6 +71,7 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
   late TextEditingController _notesController;
 
   bool _isSubmitting = false;
+  RentalRequest? _confirmedRequest;
 
   @override
   void initState() {
@@ -180,8 +181,10 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
       final created = await _service.createRequest(request);
 
       if (mounted) {
-        Navigator.of(context).pop(created);
-        _showSuccessDialog(context, created);
+        setState(() {
+          _isSubmitting = false;
+          _confirmedRequest = created;
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -196,74 +199,193 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
     }
   }
 
-  void _showSuccessDialog(BuildContext context, RentalRequest request) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_circle_rounded,
-                size: 44,
-                color: AppColors.success,
-              ),
-            ),
-            const SizedBox(height: 18),
-            const Text(
-              'Rental Request Sent!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.deepNavy,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your booking request for "${request.equipmentName}" has been submitted to ${request.ownerName}. You can track and manage it under Bookings.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 13.5,
-                color: AppColors.textSecondaryLight,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text(
-                  'Great, Got It',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-                ),
-              ),
-            ),
-          ],
-        ),
+  Widget _buildConfirmationView(BuildContext context, RentalRequest req) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? AppColors.surfaceDark : Colors.white;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.deepNavy;
+    final subText = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final borderCol = isDark ? AppColors.borderDark : AppColors.borderLight;
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.88,
       ),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 18),
+              width: 44,
+              height: 4.5,
+              decoration: BoxDecoration(
+                color: borderCol,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ),
+
+          // Animated checkmark
+          Container(
+            width: 76,
+            height: 76,
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.success.withValues(alpha: 0.3),
+                width: 2,
+              ),
+            ),
+            child: const Icon(
+              Icons.check_circle_rounded,
+              color: AppColors.success,
+              size: 48,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          Text(
+            'Rental Request Confirmed!',
+            style: TextStyle(
+              fontSize: 21,
+              fontWeight: FontWeight.w900,
+              color: textColor,
+              letterSpacing: -0.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Your booking request has been sent to ${req.ownerName}. You can track it under Bookings.',
+            style: TextStyle(fontSize: 13.5, color: subText, height: 1.4),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+
+          // Booking Summary Card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: borderCol),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        width: 58,
+                        height: 58,
+                        child: EquipmentImageViewer(imageSource: req.equipmentImage),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            req.equipmentName,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: textColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Owner: ${req.ownerName}',
+                            style: TextStyle(fontSize: 12.5, color: subText),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Divider(height: 1),
+                ),
+                _confirmDetailRow(Icons.calendar_month_rounded, 'Rental Period', req.shortDateRange, textColor, subText),
+                const SizedBox(height: 8),
+                _confirmDetailRow(
+                  req.isDelivery ? Icons.local_shipping_outlined : Icons.storefront_outlined,
+                  'Handover',
+                  req.isDelivery ? 'Delivery' : 'Self Pickup',
+                  textColor,
+                  subText,
+                ),
+                const SizedBox(height: 8),
+                _confirmDetailRow(
+                  Icons.payments_outlined,
+                  'Total Estimated',
+                  '\$${req.totalPrice.toStringAsFixed(2)}',
+                  AppColors.primary,
+                  subText,
+                  isBold: true,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Button
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              onPressed: () => Navigator.of(context).pop(req),
+              child: const Text(
+                'Great, View My Bookings',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _confirmDetailRow(IconData icon, String label, String value, Color valCol, Color subText, {bool isBold = false}) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppColors.primary),
+        const SizedBox(width: 8),
+        Text(label, style: TextStyle(fontSize: 12.5, color: subText)),
+        const Spacer(),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+            color: valCol,
+          ),
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_confirmedRequest != null) {
+      return _buildConfirmationView(context, _confirmedRequest!);
+    }
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? AppColors.surfaceDark : Colors.white;
     final textColor = isDark ? AppColors.textPrimaryDark : AppColors.deepNavy;
