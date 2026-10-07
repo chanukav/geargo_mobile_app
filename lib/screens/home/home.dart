@@ -3,16 +3,14 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/app_user.dart';
 import '../../services/auth_service.dart';
-import '../owner/add_edit_equipment_screen.dart';
-import '../owner/manage_listings_screen.dart';
-import '../owner/owner_dashboard_screen.dart';
-import '../owner/view_owner_profile_screen.dart';
-import 'widgets/account_details_card.dart';
-import 'widgets/quick_action_card.dart';
-import 'widgets/user_profile_header.dart';
+import '../../services/app_settings_service.dart';
+import 'tabs/home_tab.dart';
+import 'tabs/profile_tab.dart';
+import 'tabs/search_tab.dart';
 
-/// Sample production-grade Home Screen for GearGo.
-class HomeScreen extends StatelessWidget {
+/// Main shell for GearGo: bottom navigation with Home, Search, Bookings,
+/// Messages and Profile tabs.
+class HomeScreen extends StatefulWidget {
   final User user;
   final FirebaseAuth? auth;
 
@@ -22,22 +20,30 @@ class HomeScreen extends StatelessWidget {
     this.auth,
   });
 
-  Future<void> _handleSignOut(BuildContext context) async {
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _index = 0;
+
+  Future<void> _handleSignOut() async {
+    final settings = AppSettingsService.instance;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out of GearGo?'),
+        title: Text(settings.tr('sign_out_confirm_title')),
+        content: Text(settings.tr('sign_out_confirm_desc')),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(settings.tr('cancel')),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Sign Out'),
+            child: Text(settings.tr('sign_out')),
           ),
         ],
       ),
@@ -47,7 +53,7 @@ class HomeScreen extends StatelessWidget {
       try {
         await AuthService().signOut();
       } catch (error) {
-        if (context.mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(AuthService.getAuthErrorMessage(error)),
@@ -61,278 +67,121 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appUser = AppUser.fromFirebase(user);
+    final settings = AppSettingsService.instance;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final appUser = AppUser.fromFirebase(widget.user);
+    final firstName = appUser.displayTitle.split(' ').first;
+
+    final navItems = [
+      (Icons.home_rounded, Icons.home_outlined, settings.tr('nav_home')),
+      (Icons.search_rounded, Icons.search_rounded, settings.tr('nav_search')),
+      (Icons.calendar_month_rounded, Icons.calendar_today_outlined, settings.tr('nav_bookings')),
+      (Icons.chat_bubble_rounded, Icons.chat_bubble_outline_rounded, settings.tr('nav_messages')),
+      (Icons.person_rounded, Icons.person_outline_rounded, settings.tr('nav_profile')),
+    ];
+
+    final tabs = <Widget>[
+      HomeTab(name: firstName, onSearchTap: () => setState(() => _index = 1)),
+      const SearchTab(),
+      const EmptyTab(
+        icon: Icons.calendar_month_rounded,
+        title: 'No bookings yet',
+        subtitle: 'Rent gear from people near you and your bookings will show up here.',
+      ),
+      const EmptyTab(
+        icon: Icons.chat_bubble_rounded,
+        title: 'No messages',
+        subtitle: 'Chat with owners to arrange pickups once you book gear.',
+      ),
+      ProfileTab(user: widget.user, onSignOut: _handleSignOut),
+    ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.directions_car_filled_rounded,
-                color: AppColors.primary,
-                size: 22,
-              ),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: KeyedSubtree(key: ValueKey(_index), child: tabs[_index]),
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          border: Border(
+            top: BorderSide(
+              color: isDark ? AppColors.borderDark : AppColors.borderLight,
+              width: 0.8,
             ),
-            const SizedBox(width: 10),
-            const Text(
-              'GearGo',
-              style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Sign Out',
-            icon: const Icon(Icons.logout_rounded),
-            onPressed: () => _handleSignOut(context),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // User Profile Banner
-              UserProfileHeader(user: appUser),
-              const SizedBox(height: 16),
-
-              // Guest Mode Notice if Anonymous
-              if (appUser.isAnonymous) ...[
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withValues(alpha: 0.1),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: List.generate(navItems.length, (i) {
+                final sel = i == _index;
+                final it = navItems[i];
+                return Expanded(
+                  child: InkWell(
+                    onTap: () => setState(() => _index = i),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: AppColors.warning.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.info_outline_rounded,
-                        color: AppColors.warning,
-                        size: 22,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Guest Account Active',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 220),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: sel
+                                  ? AppColors.primary.withValues(alpha: 0.15)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Sign up or link an email account anytime to save your reservations and trip history permanently.',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.color,
-                              ),
+                            child: Icon(
+                              sel ? it.$1 : it.$2,
+                              size: 26,
+                              color: sel
+                                  ? AppColors.primary
+                                  : (isDark
+                                      ? AppColors.textMutedDark
+                                      : AppColors.textMutedLight),
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              // Authentication Metadata Card
-              AccountDetailsCard(user: user),
-              const SizedBox(height: 20),
-
-              // Owner & Equipment Management Hub (CRUD 01)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Owner & Lender Hub',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.deepNavy,
-                        ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.orange.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'CRUD 01',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.orange,
-                        letterSpacing: 0.5,
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            it.$3,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight:
+                                  sel ? FontWeight.w800 : FontWeight.w500,
+                              color: sel
+                                  ? AppColors.primary
+                                  : (isDark
+                                      ? AppColors.textMutedDark
+                                      : AppColors.textMutedLight),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Owner Profile Card
-              QuickActionCard(
-                title: 'Owner Profile',
-                subtitle: 'Manage your owner identity and business details',
-                icon: Icons.person_outline_rounded,
-                iconColor: AppColors.primary,
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ViewOwnerProfileScreen(
-                        userId: user.uid,
-                        userEmail: user.email,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-
-              // Manage Listings Card
-              QuickActionCard(
-                title: 'Manage Listings',
-                subtitle:
-                    'View your gear, adjust daily prices, toggle availability & edit photos',
-                icon: Icons.inventory_2_rounded,
-                iconColor: AppColors.blue,
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ManageListingsScreen(
-                        ownerId: user.uid,
-                        ownerName: appUser.displayTitle,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-
-              // Owner Dashboard Card
-              QuickActionCard(
-                title: 'Owner Dashboard',
-                subtitle:
-                    'Overview of active listings, daily revenue & inventory stats',
-                icon: Icons.dashboard_customize_rounded,
-                iconColor: AppColors.deepNavy,
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => OwnerDashboardScreen(user: user),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-
-              // Add New Equipment Card
-              QuickActionCard(
-                title: '+ Add New Equipment',
-                subtitle:
-                    'List bikes, kayaks, camping kits, drones, or tools for rent',
-                icon: Icons.add_circle_rounded,
-                iconColor: AppColors.orange,
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          AddEditEquipmentScreen(ownerId: user.uid),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // GearGo Sample Quick Actions
-              Text(
-                'Explore GearGo Services',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 12),
-
-              QuickActionCard(
-                title: 'Available Fleet',
-                subtitle: '18 vehicles ready for rental near your location',
-                icon: Icons.car_rental_rounded,
-                iconColor: AppColors.primary,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Fleet explorer: 18 vehicles nearby.'),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-
-              QuickActionCard(
-                title: 'My Bookings',
-                subtitle: 'No active reservations. Plan your next drive!',
-                icon: Icons.calendar_month_rounded,
-                iconColor: AppColors.secondary,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('You currently have no active bookings.'),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-
-              QuickActionCard(
-                title: 'Roadside Assistance',
-                subtitle: '24/7 dedicated support & emergency recovery',
-                icon: Icons.support_agent_rounded,
-                iconColor: AppColors.success,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Roadside hotline: 1-800-GEARGO-HELP'),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 24),
-
-              // Primary Logout Button
-              OutlinedButton.icon(
-                onPressed: () => _handleSignOut(context),
-                icon: const Icon(Icons.logout_rounded, size: 20),
-                label: const Text('Sign Out'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.error,
-                  side: const BorderSide(color: AppColors.error),
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
+                );
+              }),
+            ),
           ),
         ),
       ),

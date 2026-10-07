@@ -225,29 +225,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   // App Branding Header
                   Center(
-                    child: Container(
-                      width: 68,
-                      height: 68,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.directions_car_filled_rounded,
-                        color: AppColors.primary,
-                        size: 38,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: Image.asset(
+                        'assets/images/logo_full.jpg',
+                        width: 190,
+                        height: 190,
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'GearGo',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
+                  const SizedBox(height: 8),
                   const SizedBox(height: 6),
                   Text(
                     'Welcome back! Sign in to continue.',
