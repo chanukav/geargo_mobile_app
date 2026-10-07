@@ -24,7 +24,7 @@ class _AdminScreenState extends State<AdminScreen> {
         ? ['approved', 'rejected']
         : ['investigating', 'resolved', 'dismissed'];
     final key = GlobalKey<FormState>();
-    final confirmed = await showDialog<bool>(
+    final dialog = DialogRoute<bool>(
       context: context,
       builder: (c) => StatefulBuilder(
         builder: (c, setDialog) => AlertDialog(
@@ -79,9 +79,16 @@ class _AdminScreenState extends State<AdminScreen> {
         ),
       ),
     );
+    final confirmed = await Navigator.of(
+      context,
+      rootNavigator: true,
+    ).push(dialog);
     final text = note.text;
+    // The pop result arrives before the closing animation removes the form.
+    // Keep its controller alive until the dialog's widgets have unmounted.
+    await dialog.completed;
     note.dispose();
-    if (confirmed != true) return;
+    if (!mounted || confirmed != true) return;
     setState(() {
       busy = true;
       error = null;

@@ -68,6 +68,7 @@ class TestRepository implements Member4Repository {
     rentalReads++;
     return Stream.value(record);
   }
+
   @override
   Stream<List<Map<String, dynamic>>> messages(String id) => Stream.value([]);
   @override
@@ -113,6 +114,33 @@ class TestRepository implements Member4Repository {
   ) async {}
 }
 
+class AdminTestRepository extends TestRepository {
+  String? savedNote;
+  @override
+  Future<bool> isAdmin() async => true;
+  @override
+  Stream<List<Map<String, dynamic>>> reviews(String kind) => Stream.value(
+    kind == 'verification'
+        ? [
+            {
+              'id': 'review',
+              'summary': 'Check owner identity',
+              'status': 'pending',
+            },
+          ]
+        : [],
+  );
+  @override
+  Future<void> review(
+    String kind,
+    String id,
+    String status,
+    String note,
+  ) async {
+    savedNote = note;
+  }
+}
+
 Future<void> app(
   WidgetTester tester,
   Widget screen, {
@@ -127,20 +155,44 @@ Future<void> app(
 }
 
 void main() {
-  testWidgets('saving focused condition notes preserves the form subscription', (t) async {
-    final repo = TestRepository();
-    await app(t, ConditionScreen(repo: repo, rentalId: 'rental', phase: 'pickup'));
-    await t.scrollUntilVisible(find.byType(TextField), 250,
-        scrollable: find.byType(Scrollable).first);
-    await t.enterText(find.byType(TextField), 'Small scratch on the frame');
-    await t.ensureVisible(find.text('Save notes'));
-    await t.tap(find.text('Save notes'));
+  testWidgets('admin decision saves and closes a focused note without errors', (
+    t,
+  ) async {
+    final repo = AdminTestRepository();
+    await app(t, AdminScreen(repo: repo));
+    await t.scrollUntilVisible(find.text('Review and update'), 200);
+    await t.tap(find.text('Review and update'));
     await t.pumpAndSettle();
-    expect(find.text('Condition notes saved.'), findsOneWidget);
-    expect(find.text('Small scratch on the frame'), findsOneWidget);
-    expect(repo.rentalReads, 1);
+    await t.enterText(find.byType(TextFormField).last, 'Identity checked');
+    await t.tap(find.text('Confirm decision'));
+    await t.pumpAndSettle();
+    expect(repo.savedNote, 'Identity checked');
+    expect(find.text('Confirm decision'), findsNothing);
     expect(t.takeException(), isNull);
   });
+  testWidgets(
+    'saving focused condition notes preserves the form subscription',
+    (t) async {
+      final repo = TestRepository();
+      await app(
+        t,
+        ConditionScreen(repo: repo, rentalId: 'rental', phase: 'pickup'),
+      );
+      await t.scrollUntilVisible(
+        find.byType(TextField),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await t.enterText(find.byType(TextField), 'Small scratch on the frame');
+      await t.ensureVisible(find.text('Save notes'));
+      await t.tap(find.text('Save notes'));
+      await t.pumpAndSettle();
+      expect(find.text('Condition notes saved.'), findsOneWidget);
+      expect(find.text('Small scratch on the frame'), findsOneWidget);
+      expect(repo.rentalReads, 1);
+      expect(t.takeException(), isNull);
+    },
+  );
   testWidgets('M4-TC-17 direct admin evidence screen denies nonadmin access', (
     t,
   ) async {
@@ -207,6 +259,11 @@ void main() {
       find.widgetWithText(FilledButton, 'Confirm all four condition photos'),
     );
     expect(button.onPressed, isNull);
+    await t.scrollUntilVisible(
+      find.text('4 required views remaining.'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('4 required views remaining.'), findsOneWidget);
     expect(t.takeException(), isNull);
   });

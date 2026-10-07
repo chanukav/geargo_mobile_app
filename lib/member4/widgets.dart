@@ -89,7 +89,7 @@ class DataState extends StatelessWidget {
   );
 }
 
-class RentalView extends StatelessWidget {
+class RentalView extends StatefulWidget {
   final Member4Repository repo;
   final String id;
   final Widget Function(RentalRecord) builder;
@@ -102,19 +102,40 @@ class RentalView extends StatelessWidget {
     this.retry,
   });
   @override
+  State<RentalView> createState() => _RentalViewState();
+}
+
+class _RentalViewState extends State<RentalView> {
+  late Stream<RentalRecord?> rental = widget.repo.rental(widget.id);
+
+  @override
+  void didUpdateWidget(RentalView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.repo != widget.repo || oldWidget.id != widget.id) {
+      rental = widget.repo.rental(widget.id);
+    }
+  }
+
+  void retry() {
+    setState(() => rental = widget.repo.rental(widget.id));
+    widget.retry?.call();
+  }
+
+  @override
   Widget build(BuildContext context) => StreamBuilder<RentalRecord?>(
-    stream: repo.rental(id),
+    stream: rental,
     builder: (context, snapshot) {
       if (snapshot.hasError) {
         return DataState(member4Error(snapshot.error!), retry: retry);
       }
-      if (snapshot.connectionState == ConnectionState.waiting) {
+      if (snapshot.connectionState == ConnectionState.waiting &&
+          !snapshot.hasData) {
         return const DataState('Loading handover details…', loading: true);
       }
       if (snapshot.data == null) {
         return const DataState('Rental not found or no longer available.');
       }
-      return builder(snapshot.data!);
+      return widget.builder(snapshot.data!);
     },
   );
 }
