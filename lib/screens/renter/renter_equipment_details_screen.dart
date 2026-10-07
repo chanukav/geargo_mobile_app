@@ -307,15 +307,8 @@ class _RenterEquipmentDetailsScreenState
                                 ],
                               ),
                             ),
-                            OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 8),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              onPressed: () {
+                            InkWell(
+                              onTap: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text('Chat with ${widget.ownerName}'),
@@ -323,8 +316,23 @@ class _RenterEquipmentDetailsScreenState
                                   ),
                                 );
                               },
-                              child: const Text('Contact',
-                                  style: TextStyle(fontSize: 12)),
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: borderCol),
+                                ),
+                                child: Text(
+                                  'Contact',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: textColor,
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),

@@ -417,14 +417,8 @@ class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen>
                           ],
                         ),
                       ),
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        onPressed: () {
+                      InkWell(
+                        onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Contacting ${_request.ownerName}...'),
@@ -432,8 +426,29 @@ class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen>
                             ),
                           );
                         },
-                        icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
-                        label: const Text('Message', style: TextStyle(fontSize: 12)),
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: borderCol),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.chat_bubble_outline_rounded, size: 15, color: textColor),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Message',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: textColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -624,7 +639,7 @@ class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen>
       ),
 
       // Sticky Bottom Bar with Contextual Actions
-      bottomSheet: Container(
+      bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
         decoration: BoxDecoration(
           color: cardBg,

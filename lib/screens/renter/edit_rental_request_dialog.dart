@@ -82,6 +82,7 @@ class _EditRentalRequestDialogState extends State<EditRentalRequestDialog> {
   }
 
   Future<void> _handleSave() async {
+    if (_isSaving) return;
     setState(() => _isSaving = true);
 
     try {
@@ -375,7 +376,7 @@ class _EditRentalRequestDialogState extends State<EditRentalRequestDialog> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: FilledButton(
-                    onPressed: _isSaving ? null : _handleSave,
+                    onPressed: _handleSave,
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

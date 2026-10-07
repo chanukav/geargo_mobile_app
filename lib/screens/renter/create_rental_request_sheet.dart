@@ -137,6 +137,7 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
   }
 
   Future<void> _handleSubmit() async {
+    if (_isSubmitting) return;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSubmitting = true);
@@ -835,7 +836,7 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
                   shadowColor: AppColors.secondary.withValues(alpha: 0.35),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                onPressed: _isSubmitting ? null : _handleSubmit,
+                onPressed: _handleSubmit,
                 child: _isSubmitting
                     ? const SizedBox(
                         width: 24,
