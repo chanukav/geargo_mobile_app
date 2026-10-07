@@ -1,0 +1,147 @@
+=== PAGE 1 ===
+   BSc (Hons) in Information Technology 
+   Module Code: IT3060 
+   Year 3 Semester 2 2026 Milestone 03 
+ 
+ 
+ 
+Assignment Title 
+Learning outcomes 
+covered 
+ 
+ 
+ 
+Assignment Mode 
+Maximum Marks 
+Contribution to the 
+Final Grade 
+Date published 
+Deadline for 
+submissions 
+Mode of Submission 
+Mobile App Implementation & Final Evaluation 
+LO4: 
+             LO5: 
+LO6: 
+ 
+ 
+Take Home Assignment 
+100 
+20% 
+ 
+28.09.2026 
+ 
+09.10.2026 
+ 
+Online 
+ 
+ 
+Assignment description 
+Aim: 
+Implement a working mobile application based on the high-fidelity prototype developed in Milestone 02, 
+using a justifiable technology stack, and validate it through user testing. 
+1.1 Objectives: 
+a. Review the high-fidelity prototype and its traceability to the user requirements established in 
+Milestone 01. 
+b. Select a mobile technology stack (e.g., frontend framework, backend/API, database, 
+authentication) and justify each choice against the project's requirements and constraints. 
+c. Implement the mobile app, covering each member's assigned workload of interfaces from Milestone 
+01. 
+d. Ensure the implemented interfaces match the high-fidelity prototype in structure and intent, 
+documenting and justifying any necessary deviations. 
+e. Design and execute functional test cases covering the core features and CRUD operations of the 
+app. 
+f. Design and conduct usability testing on the working app with a representative sample of real or 
+proxy users. 
+g. Analyse the testing results, document defects/usability issues found, and record fixes or planned 
+improvements. 
+h. Compile a single consolidated report covering Milestones 01, 02, and 03. 
+ 
+ 
+ 
+=== PAGE 2 ===
+ 
+1.2  Things to Concern: 
+• The app must be a working, installable/runnable mobile application — not a clickable prototype. 
+• Each member must implement the interfaces from their own workload, with at least 2 working 
+CRUD operations per interface (consistent with Milestone 01's project requirement). 
+• Any deviation between the implemented app and the high-fidelity prototype must be explicitly 
+documented and justified in the report. 
+• Functional test cases must cover all core features; a traceability matrix linking test cases to user 
+requirements is required. 
+• A minimum of 5 participants (real or proxy users) must take part in usability testing of the working 
+app. 
+• Source code must be submitted via a version-controlled repository (e.g., GitHub) with a clear 
+README containing setup and run instructions. 
+• Plagiarism is not tolerated; zero marks will be allocated if the examiner discovers that the work 
+presented, including source code, is not the group's own. 
+1.3 Special Requirements: 
+Continue working in the same group of 4 members. The technology stack is open to the group's choice but 
+must be justified in the report; the coordinator may request a change if the choice is not feasible within 
+the project timeframe. 
+1.4 Deliverables: 
+• A single consolidated group report covering all three milestones (see template in Section 6.10). 
+• Complete, working source code (repository link) with instructions on how to build/run the app, plus 
+an installable build (e.g., APK) where applicable. 
+• A live demonstration/viva where each member must individually demonstrate and explain the 
+interfaces they implemented, the tech stack decisions, and the testing results. 
+1.5 Report Template: 
+• Maximum 35 pages including the cover page (consolidated across all milestones). 
+• PDF file name: IT3060HCI2026_Milestone03_Group<group number> 
+• Cover page content: IT3060 Human Computer Interaction, Milestones 01–03 (Final Report), Project 
+title, Group number, Group name, Group member details. 
+• Required group member details: student ID, name, workload distribution. 
+• Body of the report: 
+◦ Executive summary of the overall project 
+◦ Milestone 01 summary — problem, stakeholders, user research, and elucidated requirements 
+◦ Milestone 02 summary — sketches, wireframes, low- and high-fidelity prototypes 
+◦ Tech stack selection and justification 
+◦ System/app architecture overview 
+◦ Implementation details and screenshots of the working app 
+◦ Traceability matrix (requirements → prototype → implementation → test cases) 
+◦ Functional test cases and results 
+◦ Usability testing plan, execution, and results 
+◦ Issues identified and fixes/recommendations 
+◦ Overall time schedule (Gantt chart) 
+ 
+=== PAGE 3 ===
+◦ Conclusion and lessons learned 
+• References (Not counted into the page limit). 
+• Appendix — full test case logs, additional screenshots, session recordings/links, source code 
+excerpts, etc. (Not counted into the page limit). 
+NOTE: Max page number excludes the appendix, which you can include diagrams/descriptions/raw data 
+extracts, etc. 
+ 
+Marking Scheme 
+ 
+Component Description Marks 
+Tech Stack Selection & 
+Justification 
+Appropriateness of chosen 
+frontend/backend/database technologies for a 
+mobile app, with clear justification against 
+project needs 
+3 
+Implementation & Fidelity 
+Functional completeness of the implemented app, 
+correctness of CRUD operations, and fidelity to 
+the Milestone 02 high-fidelity prototype and 
+Milestone 01 requirements 
+8 
+Testing (Functional & 
+Usability) 
+Coverage and quality of functional test cases, 
+execution of usability testing with real/proxy 
+users, and evidence of issues found and addressed 
+5 
+Consolidated Report & 
+Demonstration/Viva 
+Quality and coherence of the final report covering 
+all milestones, and ability to demonstrate the 
+working app and defend implementation decisions 
+during the viva 
+4 
+Total  20 
+ 
+You can use AI tools, but you can’t put things the same as you take from the AI. In the 
+report, we are going to check the percentage of the AI. It needs to be less than 50%. 

@@ -1,8 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
 import '../../core/constants/app_colors.dart';
 import '../../models/app_user.dart';
 import '../../services/auth_service.dart';
+import '../../member4/hub_screen.dart';
+import '../../member4/repository.dart';
+import '../../member4/widgets.dart';
 import 'widgets/account_details_card.dart';
 import 'widgets/quick_action_card.dart';
 import 'widgets/user_profile_header.dart';
@@ -12,11 +16,7 @@ class HomeScreen extends StatelessWidget {
   final User user;
   final FirebaseAuth? auth;
 
-  const HomeScreen({
-    super.key,
-    required this.user,
-    this.auth,
-  });
+  const HomeScreen({super.key, required this.user, this.auth});
 
   Future<void> _handleSignOut(BuildContext context) async {
     final confirmed = await showDialog<bool>(
@@ -76,10 +76,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            const Text(
-              'GearGo',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            const Text('GearGo', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         actions: [
@@ -98,6 +95,17 @@ class HomeScreen extends StatelessWidget {
             children: [
               // User Profile Banner
               UserProfileHeader(user: appUser),
+              const SizedBox(height: 16),
+              QuickActionCard(
+                title: 'Equipment Handovers & Messages',
+                subtitle: 'Coordinate sports gear pickup, condition checks and returns',
+                icon: Icons.sports_outlined,
+                iconColor: AppColors.primary,
+                onTap: () => openMember4(
+                  context,
+                  Member4Hub(repo: FirebaseMember4Repository()),
+                ),
+              ),
               const SizedBox(height: 16),
 
               // Guest Mode Notice if Anonymous
@@ -157,9 +165,8 @@ class HomeScreen extends StatelessWidget {
               // GearGo Sample Quick Actions
               Text(
                 'Explore GearGo Services',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
 

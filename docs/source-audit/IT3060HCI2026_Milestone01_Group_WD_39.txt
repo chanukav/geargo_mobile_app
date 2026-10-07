@@ -1,0 +1,767 @@
+=== PAGE 1 ===
+1 | P a g e  
+ 
+  
+ 
+ 
+ 
+Sri Lanka Institute of Information Technology  
+Human Computer Interaction (IT3060) 
+Milestone 1 
+Sports Equipment Rental and Exchange App 
+2026-WD-39  
+ 
+ 
+ 
+ 
+Table of Contents 
+1.Problem statement and justification for selection ............................................. 3 
+1.1 Problem statement ............................................................................................. 3 
+2.Stakeholder identification and categorization ................................................... 4 
+Student ID Name Workload distribution 
+IT23840928 G.A.S Deshan Problem statement, justification, 
+stakeholder identification, research plan 
+IT23825314 NVCTD Vithanage Google Form, participants, data 
+collection, quantitative/qualitative 
+analysis 
+It23831636 S P S E De Silva Data analysis, personas and empathy 
+maps, user stories 
+IT23827776 DRIBURG D T User journey map, How Might We 
+statements, user requirements, Gantt 
+chart, appendix 
+
+=== PAGE 2 ===
+2 | P a g e  
+ 
+3. User Research Plan and Rationale ..................................................................... 5 
+4. Participants and Data Collection Process .......................................................... 6 
+5. Data Analysis ........................................................................................................ 7 
+5.1 Analysis Method ................................................................................................. 7 
+5.2 Findings ............................................................................................................... 7 
+Demand and willingness to participate .................................................................. 7 
+Concerns and barriers ............................................................................................. 7 
+What builds trust ..................................................................................................... 8 
+Feature priorities ...................................................................................................... 8 
+5.3 Themes ................................................................................................................ 8 
+5.4 Pain Points, Ranked ........................................................................................... 9 
+6. Persona and Empathy Maps ............................................................................... 9 
+7. User Stories Derived from Research ................................................................11 
+8. User Journey Maps ............................................................................................11 
+8.1 Journey Map — Renter booking equipment for weekend use ....................11 
+8.2 Journey Map — Owner/Lender listing and handing off equipment ..........12 
+9. How Might We (HMW) Statements .................................................................12 
+10. User Requirements and Traceability .............................................................14 
+11.References ..........................................................................................................16 
+12.Appendix ............................................................................................................16 
+ 
+ 
+ 
+  
+=== PAGE 3 ===
+3 | P a g e  
+ 
+ 
+1.Problem statement and justification for selection  
+1.1 Problem statement  
+ 
+Accessing sports equipment can be difficult for people who participate in sports occasionally or 
+need equipment only for a short period. Purchasing sports equipment can be expensive and 
+inconvenient, while informal methods such as borrowing from friends or  family may not always 
+provide the required equipment when needed. The primary user research conducted through 
+Google Form indicates that respondents have experienced difficulties related to obtaining suitable 
+sports equipment, particularly when equipment is not readily available. The research also 
+highlights concerns when obtaining equipment from other people, including possible equipment 
+damage, cleanliness and hygiene, payment or fraud risks, and uncertainty about the reliability of 
+equipment providers. Respondents also showed interest in features such as location -based 
+equipment searching, ratings and reviews, identity verification, deposits or damage protection, 
+secure online transactions, communication, and delivery or pickup options. 
+The research therefore indicates a user's need for a more convenient and trustworthy way to 
+discover, rent, borrow, or exchange sports equipment. From the equipment owner's perspective, 
+there is also a need for a safer way to make unused sports equipment available to other users while 
+reducing concerns about damage, loss, and unreliable renters. 
+Proposed problem scope – The project focuses on a mobile application that allows users to search 
+for available sports equipment, view equipment details and condition, identify equipment based 
+on location, request rentals or exchanges, communicate with equipment owners, and comp lete 
+transactions through a secure process. The application will also support equipment owners in 
+listing unused equipment, managing rental or exchange requests, and protecting their equipment 
+through suitable trust and safety mechani sms such as ratings, verification, deposits, or damage 
+protection. The scope is focused on improving the discovery, rental, and exchange experience 
+rather than developing a general sports management platform.  
+=== PAGE 4 ===
+4 | P a g e  
+ 
+2.Stakeholder identification and categorization  
+ 
+Category Stakeholder Role and Rationale 
+Primary Sports Equipment Renter 
+/ Borrower 
+ 
+ 
+The renter is a main user of the proposed sports equipment 
+rental and exchange platform. They use the platform to 
+search for suitable sports equipment, check availability and 
+location, compare available options, request or book 
+equipment, make payments, and arrange collection or 
+delivery. This stakeholder is directly affected by the 
+difficulty and cost of accessing sports equipment identified 
+through the user research. 
+Secondary Sports Equipment owner 
+or Shop / Rental Business 
+Sports equipment shops or existing rental businesses can 
+use the platform to list equipment, manage rental requests, 
+provide equipment to customers, and reach a wider group 
+of potential renters. Their involvement can also increase 
+the range and availability of equipment offered through the 
+platform. 
+Tertiary Platform Administrator / 
+Operations Manager 
+The administrator manages and monitors the overall 
+platform. They can manage user accounts and equipment 
+listings, monitor rental activities, handle complaints or 
+disputes, support verification and trust mechanisms, and 
+monitor the overall performance of the platform through an 
+administrative interface. 
+  
+=== PAGE 5 ===
+5 | P a g e  
+ 
+3. User Research Plan and Rationale  
+ 
+Research approach. The group used a mixed method questionnaire approach with embedded open-
+ended questions, distributed as a single Google Form segmented by respondent type. A 
+questionnaire was chosen because it allows the same core questions to be asked across multiple 
+stakeholder groups (renters, owne rs, and rental businesses) at once, supporting frequency -based 
+comparison of concerns, pricing expectations, and feature preferences. The "Which best describes 
+you?" filter question was used to separate respo nses by stakeholder category during analysis, 
+allowing a single instrument to serve primary and secondary stakeholders without requiring 
+separate research rounds. (R1–R10) 
+Stakeholder Technique Purpose Output used in report 
+Primary – 
+Sports 
+Equipment 
+Renter / 
+Borrower 
+Questionnaire / 
+survey 
+Survey Identify how users 
+currently obtain sports equipment, 
+difficulties experienced, 
+willingness to rent instead of buy, 
+preferred pricing, trust concerns, 
+and useful platform features 
+Frequency findings, primary 
+persona, user stories, HMW 
+statements and user 
+requirements 
+Secondary – 
+Sports 
+Equipment 
+Owner / Shop – 
+Rental Business 
+Questionnaire / 
+Survey 
+Understand willingness to lend or 
+list equipment, concerns about 
+damage, late returns, and fraud, 
+and the conditions/features needed 
+to trust and use the platform as a 
+supplier 
+Secondary persona, pain 
+points, user stories, HMW 
+statements and supplier-
+facing requirements 
+Tertiary – 
+Platform 
+Administrator / 
+Operations 
+Manager 
+Questionnaire / 
+Survey 
+Identify platform-level 
+management needs implied by 
+user-reported issues (disputes, 
+trust/verification gaps, listing 
+quality) 
+Stakeholder analysis and 
+proposed 
+operational/administrative 
+requirements 
+ 
+Research instruments.  The questionnaire included closed (multiple -choice, scale) and open -
+ended questions covering current methods of accessing equipment, prior instances of being unable 
+to participate in an activity due to cost or access barriers, willingness to lend or rent equipment, 
+concerns about transacting with strangers, trust-building features desired (ratings, ID verification, 
+deposit/insurance, secure payment), pricing expectations, desired app features, and likelihood of 
+adoption (1–5 scale). A single instrument was used for both Primary and Secondary stakeholders, 
+=== PAGE 6 ===
+6 | P a g e  
+ 
+with the stakeholder -identification question used to segment and compare responses during 
+analysis. 
+Ethical / evidence note. This report distinguishes between source-supported findings and persona 
+synthesis. Because the Tertiary stakeholder (Administrator) was not directly surveyed, the 
+Administrator persona and associated requirements are explicitly presented as inferred from 
+Primary and Secondary research findings, rather than direct evidence, in line with the assignment's 
+requirement to keep unsupported claims separate from evidenced findings. All complete 
+questionnaire responses (raw data) are included in the appendix of this submission. 
+ 
+4. Participants and Data Collection Process 
+The method involved creating a structured online questionnaire consisting of 14 questions, 
+including both single- and multiple-choice questions, open-text questions, and a Likert scale item 
+ranging from 1 to 5, and then distributing it to peers and social contacts from 6 to 14 August 
+2026. This type of questionnaire was selected since it enables the quick and inexpensive 
+gathering of both quantitative data (such as frequency and ratings) and qualitative data (like 
+open-text comments on frustration and wish lists) from a wide range of respondents who occupy 
+different stakeholder roles, a feature that is appropriate for the exploratory nature of the research 
+question – namely, to find out whether people actually experience this problem. A total of 10 
+valid responses were obtained (this is more than the minimum required for the assignment). 
+ 
+Attribute Breakdown 
+Age group 100% aged 18–25 (student-representative sample) 
+Self-described role 
+(multi-select) 
+Owner of unused equipment: 5/10 · Wants to rent instead of buying: 4/10 · 
+Runs a rental/shop business: 1/10 · Other: 1/10 
+Activity level Weekly: 5/10 · Monthly/seasonal: 4/10 · Rarely: 1/10 
+ 
+Stakeholder categories represented in the sample: the sample deliberately spans Primary 
+users (renters/borrowers), Secondary users (equipment owners/lenders), and Tertiary 
+stakeholders (a rental business owner) satisfying the requirement that at least two stakeholder 
+categories be represented (three are represented here). 
+Data collection process: responses were collected anonymously; no personally identifying 
+information was requested. Raw response data is retained in Untitled_form.csv (Google Forms 
+export) and referenced in the Appendix. Respondents are referred to as R1–R10 in the analysis 
+below, corresponding to their row order in the CSV export. 
+=== PAGE 7 ===
+7 | P a g e  
+ 
+ 
+5. Data Analysis 
+5.1 Analysis Method 
+Closed-ended questionnaire items were analyzed descriptively using frequencies and percentages (n = 68 valid 
+responses out of 69 submissions). The two open-ended questions were analyzed thematically: responses were read 
+in full, recurring ideas were coded, and related codes were grouped into the four themes presented in Section 6.3. 
+5.2 Findings 
+Demand and willingness to participate 
+65% of respondents (44/68) said they have avoided trying a sport because buying equipment was too expensive or 
+inconvenient. On the supply side, 76% (52/68) said they would "definitely" rent out equipment they own but rarely 
+use. Demand for the app itself is strong: 91% (62/68) rated their likelihood of using it a 4 or 5 out of 5. 
+ 
+Concerns and barriers 
+62% cited damage to the item and 47% cited hygiene/cleanliness as their top concern renting from a stranger, well 
+ahead of payment/fraud risk (15%) or personal safety (12%). The one coach/club -manager respondent flagged all 
+three simultaneously — these risks compound for anyone responsible for equipment beyond personal use. 
+ 
+
+=== PAGE 8 ===
+8 | P a g e  
+ 
+What builds trust 
+User ratings/reviews dominate as the trust mechanism respondents rely on most — 81% selected this, more than 
+three times the rate of ID verification (28%), ahead of deposit/insurance (18%) and secure in -app payment (18%). 
+ 
+Feature priorities 
+Requested features are practical: online payment & booking (59%), damage protection/insurance (53%), and 
+location-based search (51%) lead, followed by in-app chat (47%) and delivery (43%). 
+ 
+5.3 Themes 
+Theme 1 — Finding the right equipment nearby, at a fair price, is the loudest complaint  
+Repeated near-identically across renters, owners, and shop/rental-business respondents: "it's difficult to find the 
+equipment I need at a reasonable price." A discovery and pricing-transparency problem shared across the whole 
+marketplace. 
+Theme 2 — Damage and hygiene define distrust of strangers 
+Damage (62%) and hygiene (47%) far outweigh fraud or safety concerns — respondents worry about physical 
+condition, not being scammed. 
+Theme 3 — Trust is earned through visible reputation, not paperwork 
+Ratings/reviews (81%) outweighs every formal verification mechanism combined — a social-proof model of trust. 
+Theme 4 — Friction is real, but it isn't a deal-breaker 
+Despite clear frustrations, 91% still rated likelihood to use 4 or 5 — these are solvable UX/trust problems, not 
+fundamental rejections. 
+ 
+
+=== PAGE 9 ===
+9 | P a g e  
+ 
+ 
+5.4 Pain Points, Ranked 
+ 
+6. Persona and Empathy Maps 
+Persona 1 — Primary Stakeholder (Renter / Equipment Seeker) 
+"I would like to rent sports equipment sometimes instead of buying." — R1, R2 
+Background: Nadeesha plays sport occasionally to seasonally and currently relies almost 
+entirely on borrowing from friends. She has skipped activities before because getting equipment 
+was too expensive or inconvenient. 
+ 
+Persona 2 — Secondary Stakeholder (Owner / Potential Lender) 
+"Maybe, depends on conditions." — R5, R7, R9, R10 (on renting out equipment) 
+Background: Dinesh owns a fair amount of gear (cricket, gym, cycling equipment) that sits 
+unused most of the time. He's open to earning income from it but is cautious. 
+ID Pain Point Severity Evidence 
+PP1 Difficulty finding the right equipment 
+nearby at a fair price 
+Critical Most repeated open-text complaint across renter, 
+owner, and shop respondents 
+PP2 Fear of item damage when renting 
+from a stranger 
+Critical 62% cited damage as top concern (n=68) 
+=== PAGE 10 ===
+10 | P a g e  
+ 
+ 
+Persona 3 — Tertiary Stakeholder (Rental Business Owner) 
+"Damage to the item; not getting the item back on time; safety of meeting a stranger." — R6 
+Background: Roshan already operates a rental business and would view a platform either as a 
+competitive threat or as a new distribution channel, depending on features. He prices higher-
+value transactions (>Rs.1500) and needs delivery/logistics support to operate at scale 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 11 ===
+11 | P a g e  
+ 
+7. User Stories Derived from Research 
+ 
+Each user story below was written directly from a specific finding in Section 6 (Data Analysis) — either a 
+quantitative result from the closed-ended survey questions or a recurring theme from the open-ended responses. No 
+story was invented from assumption; each maps to a stakeholder category (Renter, Owner/Lender, or Club 
+Coordinator) and cites the exact evidence it is traceable to. 
+  
+ID User Story Evidence 
+US-01 As a renter, I want to see verified user ratings and reviews on a listing, so that I 
+can trust the owner and the equipment's condition before booking. 
+81% of respondents cited 
+ratings/reviews as the top 
+trust factor (n=68) 
+US-02 As a renter, I want to search for equipment by location/distance, so that I can 
+find gear near me quickly and affordably. 
+51% requested location-
+based search; "difficulty 
+finding equipment at a 
+reasonable price" was the 
+most repeated open-text 
+complaint (PP1) 
+US-03 As an owner, I want damage protection or a deposit system built into each rental, 
+so that I feel financially protected before lending my equipment. 
+62% cited damage as their 
+top concern; 53% 
+requested damage 
+protection/insurance as a 
+feature 
+US-04 As an owner, I want to verify a renter's identity before approving a booking, so 
+that I feel safe lending to someone I don't personally know. 
+28% cited ID verification 
+as a trust factor; the 
+coach/club-manager 
+respondent flagged safety 
+of meeting a stranger 
+US-05 As a club coordinator, I want secure in-app payment and booking, so that I can 
+source equipment for my team without handling risky offline cash transactions.  
+Coach/club-manager 
+respondent selected 
+secure in-app payment 
+and online booking; 59% 
+of all respondents 
+requested this feature 
+  
+Together, these five stories cover all three stakeholder categories (Renter, Owner/Lender, Club Coordinator) and 
+directly address the top-ranked pain points identified in Section 6.4 (PP1–PP4), ensuring the requirements derived 
+from them in later sections remain fully evidence-based. 
+8. User Journey Maps 
+Two journey maps were developed to capture both sides of the core rental transaction — the Renter's experience 
+booking equipment, and the Owner/Lender's experience listing and handing off equipment. Pain points in both are 
+drawn directly from Section 6 (Data Analysis) and reference the ranked pain points (PP1–PP6). 
+  
+8.1 Journey Map — Renter booking equipment for weekend use 
+Stage Actions Thoughts Pain Points Opportunities 
+=== PAGE 12 ===
+12 | P a g e  
+ 
+Discover Searches app by location 
+for the item needed 
+"Is there anything 
+nearby at a fair price?" 
+Difficulty finding 
+equipment at a 
+reasonable price (PP1) 
+Location-based search + 
+transparent per-item 
+pricing 
+Book Reviews price, checks 
+ratings, pays/deposit 
+"Are these reviews 
+trustworthy? Is this 
+price fair?" 
+Price expectations vary 
+heavily by item 
+Visible ratings/reviews + 
+flexible owner-set 
+pricing 
+Pick up Verifies identity, 
+inspects item at 
+handover 
+"Does this match the 
+listing?" 
+No standard way to 
+confirm 
+condition/identity 
+In-app ID verification + 
+photo condition-check 
+Use Uses equipment for 
+activity 
+"Hope this doesn't get 
+damaged" 
+Hygiene/condition 
+concerns (PP3) 
+Visible 
+hygiene/condition rating 
+on listings 
+Return Returns item, condition 
+checked, deposit settled 
+"Will I get my deposit 
+back?" 
+Damage disputes, unclear 
+refund process (PP2) 
+Built-in damage 
+protection/deposit with 
+clear resolution 
+  
+8.2 Journey Map — Owner/Lender listing and handing off equipment 
+Stage Actions Thoughts Pain Points Opportunities 
+List item Creates a listing with 
+photos, price, and 
+availability 
+"Will this attract 
+genuine, trustworthy 
+renters?" 
+Difficulty setting a fair 
+price and getting 
+discovered (PP1) 
+Guided pricing 
+suggestions + location-
+based visibility 
+Review 
+request 
+Reviews renter's profile 
+and booking request 
+"Can I trust this person 
+with my equipment?" 
+No visibility into renter 
+reliability without 
+reviews (PP4) 
+Visible renter 
+rating/review profile 
+before accepting 
+Handover Verifies renter identity, 
+hands over item 
+"Is this renter really who 
+they say they are?" 
+No standardized 
+identity-check process 
+(PP2, safety concern) 
+In-app ID verification 
+flow at handover 
+During rental Waits with limited 
+visibility into item 
+condition/use 
+"I hope it's being taken 
+care of" 
+No tracking or 
+reassurance during the 
+rental period 
+Optional check-in 
+reminders or condition 
+photos mid-rental 
+Return Inspects returned item, 
+resolves deposit 
+"Is this deposit going to 
+cover any damage?" 
+Damage disputes over 
+deposit refund (PP2) 
+Structured return 
+checklist + automated 
+deposit resolution 
+ 
+9. How Might We (HMW) Statements 
+HMW 
+ID 
+Research pain point How Might We statement 
+HMW-01 5/10 respondents have avoided a 
+sport/activity because buying 
+equipment was too expensive or 
+inconvenient (Q6). The current default 
+is informal borrowing from 
+How might we make it fast and 
+affordable for someone to get the 
+right sports equipment without having 
+to buy it outright? 
+=== PAGE 13 ===
+13 | P a g e  
+ 
+HMW 
+ID 
+Research pain point How Might We statement 
+friends/family (9/10, Q5), and one 
+respondent noted being "not able to get 
+it when we need it" (Q7, open text). 
+HMW-02 Damage to the item was the top-rated 
+concern about renting from a stranger 
+(8/10), followed by 
+hygiene/cleanliness (5/10) and 
+payment/fraud risk (3/10) (Q9). 
+How might we help renters and 
+owners feel safe and confident when 
+exchanging equipment with someone 
+they don't know? 
+HMW-03 6/10 owners would rent out unused 
+equipment only "depending on 
+conditions" while 4/10 said "Yes, 
+definitely" — none said no (Q8). Trust 
+in a platform depends most on 
+ratings/reviews (6/10) and secure in-
+app payment (6/10), followed by ID 
+verification (5/10) and 
+deposit/insurance (4/10) (Q10). 
+How might we give equipment 
+owners enough assurance — through 
+verification, deposits, or insurance — 
+that they're willing to list their unused 
+gear? 
+HMW-04 The most-requested features were 
+search by location/distance (7/10) and 
+online payment & booking (7/10), 
+followed by delivery (6/10), in-app 
+chat (5/10) and damage protection 
+(5/10) (Q12). Open responses 
+separately asked for a "search feature 
+to quickly find what we need" and an 
+"equipment availability check" (Q14). 
+How might we combine discovery, 
+booking, communication and delivery 
+into one seamless flow so users don't 
+drop off partway through? 
+HMW-05 Willingness to pay for a mid-range 
+weekend rental was spread with no 
+dominant price point: <Rs.300 (3/10), 
+Rs.700–1500 (3/10), Rs.300–700 
+(2/10), >Rs.1500 (1/10), "depends on 
+the item" (1/10) (Q11), while secure 
+payment was a top trust factor (6/10, 
+Q10). 
+How might we present transparent, 
+item-specific pricing so renters feel 
+they're getting fair value and owners 
+feel fairly compensated? 
+Table 9.1 : HMW Statements 
+=== PAGE 14 ===
+14 | P a g e  
+ 
+10. User Requirements and Traceability 
+ID Type Requirement Evidence HMW 
+FR-
+01 
+Functional The app shall allow users to 
+search and filter equipment by 
+sport/activity type, 
+location/distance, and real-time 
+availability. 
+Q12: 7/10 chose search 
+by location; Q14 open 
+text requested a search 
+feature 
+HMW-
+01, 
+HMW-04 
+FR-
+02 
+Functional The app shall display 
+owner/renter ratings, reviews, and 
+an ID-verification badge on every 
+profile. 
+Q10: 6/10 
+ratings/reviews, 5/10 ID 
+verification 
+HMW-
+02, 
+HMW-03 
+FR-
+03 
+Functional The system shall support in-app 
+booking with secure online 
+payment, priced per item and 
+rental duration. 
+Q12: 7/10 chose online 
+payment & booking; 
+Q10: 6/10 secure 
+payment 
+HMW-05 
+FR-
+04 
+Functional The system requires a photo-
+based condition check at pickup 
+and return, linked to a 
+deposit/damage-protection 
+charge. 
+Q9: 8/10 named damage 
+as top concern; Q10: 
+4/10 want 
+deposit/insurance 
+HMW-
+02, 
+HMW-03 
+FR-
+05 
+Functional The app shall provide in-app chat 
+between renter and owner to 
+coordinate handover. 
+Q12: 5/10 chose in-app 
+chat 
+HMW-04 
+FR-
+06 
+Functional The app shall let owners list 
+unused equipment with price, 
+availability calendar, and 
+condition notes. 
+Q8: 6/10 "Maybe, 
+depends on conditions", 
+4/10 "Yes, definitely" 
+HMW-03 
+FR-
+07 
+Functional The system shall offer an optional 
+delivery/pickup service so users 
+are not required to meet a stranger 
+in person. 
+Q10: 3/10 want 
+delivery/pickup service; 
+Q12: 6/10 chose 
+delivery option 
+HMW-02 
+NFR-
+01 
+Non-
+functional 
+Search and filter results shall load 
+within 2 seconds under normal 
+network conditions. 
+Q12: search (7/10) and 
+booking (7/10) are the 
+most-used features 
+HMW-04 
+=== PAGE 15 ===
+15 | P a g e  
+ 
+ID Type Requirement Evidence HMW 
+NFR-
+02 
+Non-
+functional 
+All payment details and ID-
+verification data shall be 
+encrypted in storage and transit. 
+Q10: 6/10 secure 
+payment, 5/10 ID 
+verification 
+HMW-
+02, 
+HMW-03 
+NFR-
+03 
+Non-
+functional 
+The booking and listing flow shall 
+be simple and require no tutorial 
+for a first-time user. 
+Q7 open text: 
+"pickup/return process 
+is boring and hard"; 
+Q14: requests to "make 
+it user friendly" 
+HMW-01 
+NFR-
+04 
+Non-
+functional 
+The platform shall maintain 99% 
+uptime for booking and payment 
+services. 
+Q10: secure payment 
+rated a top trust factor 
+(6/10) 
+HMW-05 
+NFR-
+05 
+Non-
+functional 
+The rating/review system shall be 
+tamper-resistant, allowing edits 
+only within a limited post-
+transaction window. 
+Q9: damage (8/10) and 
+item not returned on 
+time (3/10) are top 
+concerns; Q10: 6/10 
+rely on ratings/reviews 
+HMW-
+02, 
+HMW-03 
+Table 10.1 : User Requirements 
+ 
+11.Time Schedule, Summary and Conclusion 
+  
+
+=== PAGE 16 ===
+16 | P a g e  
+ 
+ 
+References 
+ 
+[
+1
+]  
+"Collected Data," [Online]. Available: https://mysliit-
+my.sharepoint.com/:x:/g/personal/it23825314_my_sliit_lk/IQDsBnRd87UWQ50UlTTFowz
+XAQxNYTmlS6NaJr11DhLbC18?e=EhrCxR. 
+[
+2
+]  
+"Interview - Sport Person," [Online]. Available: https://mysliit-
+my.sharepoint.com/:v:/g/personal/it23825314_my_sliit_lk/IQD3LFWQeCh1T77AOM4FQ1g
+IARTrOfSybmgMJycDmaEpkms?e=tw0HeN. 
+[
+3
+]  
+"Google Form," [Online]. Available: 
+https://docs.google.com/forms/d/e/1FAIpQLScHGDjX_RmYR9r1rB5xmvGXbub0fi6cOOx
+OeGX0BJwGPbyalw/viewform. 
+ 
+ 
+Appendix 
+Appendix A – Sports Equipment Owner Interview 
+Participant: Sports Equipment Owner, friend of the researcher. Semi-structured interview, 
+approximately 1–2 minutes. 
+• Owns mainly cricket equipment, including bats, gloves and pads, with some equipment that is 
+not used regularly. 
+• Has previously lent sports equipment to friends and experienced issues such as late returns and 
+equipment not being properly cared for. 
+• Main concerns when giving equipment to an unknown person are equipment damage, loss, and 
+not receiving the equipment back. 
+• Ratings, reviews, identity verification and a security deposit would increase trust when renting 
+or exchanging equipment. 
+• Equipment listings would help owners make their available equipment visible to potential 
+renters. 
+• Secure payments and security deposits could provide greater financial protection for equipment 
+owners. 
+• Booking notifications would help owners stay informed about rental requests and bookings. 
+• Owners would benefit from information about equipment condition and rental terms. 
+• The platform should encourage accountability for returning equipment on time and in good 
+condition. 
+ 
