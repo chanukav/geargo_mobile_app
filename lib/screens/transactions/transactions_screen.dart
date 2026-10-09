@@ -31,7 +31,7 @@ class TransactionsScreen extends StatelessWidget {
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => BrowseEquipmentScreen()),
+            MaterialPageRoute(builder: (_) => const BrowseEquipmentScreen()),
           ),
           icon: const Icon(Icons.add),
           label: const Text('New booking'),

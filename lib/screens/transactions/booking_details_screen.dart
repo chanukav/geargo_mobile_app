@@ -6,7 +6,8 @@ import '../../models/shop_product.dart';
 import 'address_selection_screen.dart';
 import 'checkout_screen.dart';
 
-/// Booking Details: product info, rental period and fulfillment choice.
+/// Booking Details: equipment info, rental period, and fulfillment choice.
+/// Aligned with Milestone 02 design using ShopPalette colors and chips.
 class BookingDetailsScreen extends StatefulWidget {
   const BookingDetailsScreen({super.key, required this.product});
 
@@ -68,46 +69,109 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
     );
   }
 
+  Widget _placeholder(ThemeData theme) => Container(
+        color: theme.colorScheme.primaryContainer,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.sports_basketball_outlined,
+              size: 64,
+              color: theme.colorScheme.onPrimaryContainer,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No photo available',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ],
+        ),
+      );
+
   @override
   Widget build(BuildContext context) => ShopThemed(builder: _content);
 
   Widget _content(BuildContext context) {
     final theme = Theme.of(context);
     final p = widget.product;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Booking details')),
       body: ListView(
         children: [
+          // Product Image Header with fallback placeholder
           SizedBox(
-            height: 200,
+            height: 220,
             width: double.infinity,
-            child: p.imageUrl.isEmpty
+            child: p.imageUrl.trim().isEmpty
                 ? _placeholder(theme)
                 : Image.network(
-                    p.imageUrl,
+                    p.imageUrl.trim(),
                     fit: BoxFit.cover,
                     errorBuilder: (_, _, _) => _placeholder(theme),
                   ),
           ),
+
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Category Tag and Price Chip Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Chip(label: Text(p.category.toUpperCase())),
-                    Text('${money(p.pricePerDay)} /day',
-                        style: theme.textTheme.titleLarge
-                            ?.copyWith(fontWeight: FontWeight.w700)),
+                    // Milestone 02 Category Tag
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: ShopPalette.blueTint,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        p.category.toUpperCase(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: ShopPalette.navy,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+
+                    // Milestone 02 Price Chip
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: ShopPalette.orange.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                            color: ShopPalette.orange, width: 1.2),
+                      ),
+                      child: Text(
+                        '${money(p.pricePerDay)} / day',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: ShopPalette.orange,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Text(p.name,
-                    style: theme.textTheme.headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 12),
+
+                // Product Name
+                Text(
+                  p.name,
+                  style: theme.textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
                 const SizedBox(height: 20),
+
+                // Rental Period
                 Text('Rental Period', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Card(
@@ -121,6 +185,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+
+                // Fulfillment Option
                 Text('Fulfillment Option', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 SizedBox(
@@ -144,21 +210,44 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+
+                // Equipment Condition
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Equipment Condition',
                         style: theme.textTheme.titleMedium),
-                    Chip(label: Text(p.condition.toUpperCase())),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        p.condition.toUpperCase(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(p.description.isEmpty
-                    ? 'No condition notes provided by the shop.'
-                    : p.description),
-                const SizedBox(height: 4),
-                Text('Refundable deposit: ${money(p.deposit)}',
-                    style: theme.textTheme.bodySmall),
+                const SizedBox(height: 8),
+                Text(
+                  p.description.isEmpty
+                      ? 'No condition notes provided by the shop.'
+                      : p.description,
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Refundable security deposit: ${money(p.deposit)} (held until returned)',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
               ],
             ),
           ),
@@ -176,10 +265,4 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       ),
     );
   }
-
-  Widget _placeholder(ThemeData theme) => Container(
-        color: theme.colorScheme.primaryContainer,
-        child: Icon(Icons.sports_basketball_outlined,
-            size: 72, color: theme.colorScheme.onPrimaryContainer),
-      );
 }

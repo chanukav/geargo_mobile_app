@@ -124,15 +124,26 @@ class _ProductCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: 56,
+                height: 56,
                 color: theme.colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
+                child: product.imageUrl.trim().isNotEmpty
+                    ? Image.network(
+                        product.imageUrl.trim(),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Center(
+                          child: Icon(Icons.sports_basketball_outlined,
+                              color: theme.colorScheme.onPrimaryContainer),
+                        ),
+                      )
+                    : Center(
+                        child: Icon(Icons.sports_basketball_outlined,
+                            color: theme.colorScheme.onPrimaryContainer),
+                      ),
               ),
-              child: Icon(Icons.sports_basketball_outlined,
-                  color: theme.colorScheme.onPrimaryContainer),
             ),
             const SizedBox(width: 12),
             Expanded(

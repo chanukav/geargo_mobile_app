@@ -45,7 +45,7 @@ class ShopTransactionsHome extends StatelessWidget {
               'Add, edit, and remove your equipment', ShopProductsScreen()),
           const SizedBox(height: 12),
           tile(Icons.shopping_bag_outlined, 'Rent Equipment',
-              'Book equipment with delivery or pickup', BrowseEquipmentScreen()),
+              'Book equipment with delivery or pickup', const BrowseEquipmentScreen()),
           const SizedBox(height: 12),
           tile(Icons.receipt_long_outlined, 'Transactions',
               'My bookings and shop orders', const TransactionsScreen()),
