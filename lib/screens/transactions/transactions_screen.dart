@@ -59,6 +59,9 @@ class _TransactionList extends StatefulWidget {
 class _TransactionListState extends State<_TransactionList> {
   final _service = TransactionService();
   late final Stream<List<RentalTransaction>> _stream;
+  String _selectedStatus = 'All';
+
+  static const _filters = ['All', 'Confirmed', 'Completed', 'Cancelled'];
 
   @override
   void initState() {
@@ -70,46 +73,81 @@ class _TransactionListState extends State<_TransactionList> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<RentalTransaction>>(
-      stream: _stream,
-      builder: (context, snap) {
-        if (snap.hasError) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text('Could not load transactions.\n${snap.error}',
-                  textAlign: TextAlign.center),
-            ),
-          );
-        }
-        if (!snap.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final items = snap.data!;
-        if (items.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Text(
-                widget.shopView
-                    ? 'No orders for your shop yet.'
-                    : 'No bookings yet. Tap "New booking" to rent equipment.',
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        }
-        return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-          itemCount: items.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 12),
-          itemBuilder: (context, i) => _TransactionCard(
-            t: items[i],
-            shopView: widget.shopView,
-            service: _service,
+    return Column(
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Row(
+            children: _filters.map((f) {
+              final isSelected = _selectedStatus == f;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text(f),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    if (selected) setState(() => _selectedStatus = f);
+                  },
+                ),
+              );
+            }).toList(),
           ),
-        );
-      },
+        ),
+        Expanded(
+          child: StreamBuilder<List<RentalTransaction>>(
+            stream: _stream,
+            builder: (context, snap) {
+              if (snap.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text('Could not load transactions.\n${snap.error}',
+                        textAlign: TextAlign.center),
+                  ),
+                );
+              }
+              if (!snap.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final allItems = snap.data!;
+              final items = _selectedStatus == 'All'
+                  ? allItems
+                  : allItems
+                      .where((t) =>
+                          t.status.toLowerCase() ==
+                          _selectedStatus.toLowerCase())
+                      .toList();
+
+              if (items.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Text(
+                      _selectedStatus == 'All'
+                          ? (widget.shopView
+                              ? 'No orders for your shop yet.'
+                              : 'No bookings yet. Tap "New booking" to rent equipment.')
+                          : 'No ${_selectedStatus.toLowerCase()} orders found.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              }
+              return ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+                itemCount: items.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                itemBuilder: (context, i) => _TransactionCard(
+                  t: items[i],
+                  shopView: widget.shopView,
+                  service: _service,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -314,7 +352,7 @@ class _TransactionCard extends StatelessWidget {
         onPressed: () => _cancel(context),
         child: const Text('Cancel'),
       ));
-    } else if (t.status == 'cancelled' && !shopView) {
+    } else if (t.status == 'cancelled') {
       actions.add(OutlinedButton(
         onPressed: () => _delete(context),
         child: const Text('Delete'),
