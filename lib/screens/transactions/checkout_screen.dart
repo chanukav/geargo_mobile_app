@@ -213,7 +213,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text('Confirm & Pay ${money(price.total)}'),
+                : Text('Confirm & Pay ${money(price.dueNow)}'),
           ),
         ),
       ),

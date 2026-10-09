@@ -264,6 +264,10 @@ class _TransactionCard extends StatelessWidget {
                 : 'Self Pickup'),
             const SizedBox(height: 4),
             Text('Payment: ${t.paymentMethod} • $_paymentLabel'),
+            const SizedBox(height: 4),
+            Text('Due now: ${money(t.dueNow)} • Security hold: ${money(t.deposit)}',
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             PriceBreakdownCard(price: t.breakdown),
           ],
@@ -353,9 +357,11 @@ class _TransactionCard extends StatelessWidget {
               Text('${fmtDate(t.startDate)} - ${fmtDate(t.endDate)} • '
                   '${t.isDelivery ? 'Door Delivery' : 'Self Pickup'}'),
               const SizedBox(height: 4),
-              Text('${money(t.total)} • $_paymentLabel',
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w600)),
+              Text(
+                'Due now: ${money(t.dueNow)} (Hold: ${money(t.deposit)}) • $_paymentLabel',
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
               if (actions.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 Wrap(spacing: 8, runSpacing: 8, children: actions),

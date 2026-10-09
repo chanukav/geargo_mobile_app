@@ -94,6 +94,7 @@ class TransactionService {
       'serviceFee': price.serviceFee,
       'deliveryFee': price.deliveryFee,
       'deposit': price.deposit,
+      'dueNow': price.dueNow,
       'total': price.total,
       'paymentMethod': paymentMethod,
       'paymentStatus': 'paid',

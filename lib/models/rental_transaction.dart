@@ -17,7 +17,10 @@ class PriceBreakdown {
   final double deliveryFee;
   final double deposit;
 
-  double get total => rentalFee + serviceFee + deliveryFee + deposit;
+  /// Amount due immediately (rental + service + delivery).
+  double get dueNow => rentalFee + serviceFee + deliveryFee;
+
+  double get total => dueNow + deposit;
 
   factory PriceBreakdown.calculate({
     required double pricePerDay,
@@ -57,6 +60,7 @@ class RentalTransaction {
     required this.serviceFee,
     required this.deliveryFee,
     required this.deposit,
+    required this.dueNow,
     required this.total,
     required this.paymentMethod,
     required this.paymentStatus,
@@ -81,6 +85,7 @@ class RentalTransaction {
   final double serviceFee;
   final double deliveryFee;
   final double deposit;
+  final double dueNow;
   final double total;
   final String paymentMethod;
   final String paymentStatus; // paid | refunded | deposit_refunded
@@ -102,6 +107,11 @@ class RentalTransaction {
     DateTime dt(String k) => (d[k] as Timestamp?)?.toDate() ?? DateTime.now();
     String s(String k, [String fallback = '']) => (d[k] ?? fallback) as String;
 
+    final depositVal = n('deposit');
+    final totalVal = n('total');
+    // Fall back to total minus deposit for existing records missing dueNow.
+    final dueNowVal = (d['dueNow'] as num?)?.toDouble() ?? (totalVal - depositVal);
+
     return RentalTransaction(
       id: doc.id,
       bookingRef: s('bookingRef'),
@@ -119,8 +129,9 @@ class RentalTransaction {
       rentalFee: n('rentalFee'),
       serviceFee: n('serviceFee'),
       deliveryFee: n('deliveryFee'),
-      deposit: n('deposit'),
-      total: n('total'),
+      deposit: depositVal,
+      dueNow: dueNowVal,
+      total: totalVal,
       paymentMethod: s('paymentMethod'),
       paymentStatus: s('paymentStatus', 'paid'),
       status: s('status', 'confirmed'),
