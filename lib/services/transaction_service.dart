@@ -29,6 +29,9 @@ class TransactionService {
     if (uid == null) {
       throw Exception('You must be signed in to book equipment.');
     }
+    if (product.ownerId == uid) {
+      throw Exception('You cannot rent your own equipment listing.');
+    }
 
     // ---------------- DOUBLE BOOKING CHECK ----------------
     // Query by productId ONLY to ensure no Firestore composite index is needed.

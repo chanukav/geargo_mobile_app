@@ -41,24 +41,47 @@ class BrowseEquipmentScreen extends StatelessWidget {
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, i) {
               final p = items[i];
+              final isOwnListing = myUid != null && p.ownerId == myUid;
+
               return Card(
+                color: isOwnListing
+                    ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4)
+                    : Colors.white,
                 child: ListTile(
+                  enabled: !isOwnListing,
                   contentPadding: const EdgeInsets.all(14),
                   leading: Container(
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
+                      color: isOwnListing
+                          ? theme.colorScheme.surfaceContainerHighest
+                          : theme.colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(Icons.sports_basketball_outlined,
-                        color: theme.colorScheme.onPrimaryContainer),
+                        color: isOwnListing
+                            ? theme.colorScheme.onSurfaceVariant
+                            : theme.colorScheme.onPrimaryContainer),
                   ),
                   title: Text(p.name,
                       style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Text(
-                    '${p.category} • ${p.condition}'
-                    '${p.ownerId == myUid ? ' • Your listing' : ''}',
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${p.category} • ${p.condition}'),
+                      if (isOwnListing)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            'Your listing (cannot rent own item)',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.error,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   trailing: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -69,12 +92,14 @@ class BrowseEquipmentScreen extends StatelessWidget {
                       Text('/day', style: theme.textTheme.bodySmall),
                     ],
                   ),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BookingDetailsScreen(product: p),
-                    ),
-                  ),
+                  onTap: isOwnListing
+                      ? null
+                      : () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => BookingDetailsScreen(product: p),
+                            ),
+                          ),
                 ),
               );
             },
