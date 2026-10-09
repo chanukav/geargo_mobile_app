@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/shop_theme.dart';
+import '../../core/utils/product_validators.dart';
 import '../../models/shop_product.dart';
 import '../../services/shop_product_service.dart';
 
@@ -72,20 +73,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     super.dispose();
   }
 
-  String? _required(String? v) =>
-      (v == null || v.trim().isEmpty) ? 'This field is required' : null;
+  String? _required(String? v) => ProductValidators.requiredField(v);
 
-  String? _money(String? v) {
-    final n = double.tryParse((v ?? '').trim());
-    if (n == null || n < 0) return 'Enter a valid amount';
-    return null;
-  }
+  String? _money(String? v) => ProductValidators.money(v);
 
-  String? _quantityRule(String? v) {
-    final n = int.tryParse((v ?? '').trim());
-    if (n == null || n < 0) return 'Enter a whole number';
-    return null;
-  }
+  String? _quantityRule(String? v) => ProductValidators.quantity(v);
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
