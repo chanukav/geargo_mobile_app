@@ -50,9 +50,9 @@ class _SplashScreenState extends State<SplashScreen>
     final seen = prefs.getBool('onboarding_seen') ?? false;
     Navigator.of(context).pushReplacement(PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 600),
-      pageBuilder: (_, __, ___) =>
+      pageBuilder: (_, _, _) =>
           seen ? const Wrapper() : const OnboardingScreen(),
-      transitionsBuilder: (_, anim, __, child) =>
+      transitionsBuilder: (_, anim, _, child) =>
           FadeTransition(opacity: anim, child: child),
     ));
   }

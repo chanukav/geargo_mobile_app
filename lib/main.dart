@@ -1,13 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'core/theme/app_theme.dart';
 import 'member4/emulators.dart';
 import 'screens/splash/splash_screen.dart';
-import 'screens/wrapper.dart';
 import 'services/app_settings_service.dart';
 
 Future<void> main() async {
@@ -30,9 +27,6 @@ Future<void> main() async {
   }
 
   await configureMember4Emulators();
-
-  runApp(const MyApp());
-}
 
   runApp(const MyApp());
 }

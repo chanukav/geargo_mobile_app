@@ -8,6 +8,9 @@ import '../widgets/account_details_card.dart';
 import '../widgets/appearance_language_sheet.dart';
 import '../../renter/rental_requests_list_screen.dart';
 import '../../renter/saved_equipment_screen.dart';
+import '../../../member4/hub_screen.dart';
+import '../../../member4/repository.dart';
+import '../../../member4/widgets.dart';
 import 'home_tab.dart';
 
 /// Simple empty-state tab (Bookings / Messages).
@@ -353,11 +356,25 @@ class _ProfileTabState extends State<ProfileTab> {
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(
+                         MaterialPageRoute(
                           builder: (_) => const SavedEquipmentScreen(),
                         ),
                       );
                     },
+                  ),
+                  Divider(height: 1, color: borderColor),
+                  _buildListTile(
+                    icon: Icons.sports_outlined,
+                    title: 'Equipment Handovers & Messages',
+                    subtitle: 'Coordinate sports gear pickup, condition checks and returns',
+                    titleColor: titleColor,
+                    subColor: subColor,
+                    isDark: isDark,
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => openMember4(
+                      context,
+                      Member4Hub(repo: FirebaseMember4Repository()),
+                    ),
                   ),
                 ],
               ),
