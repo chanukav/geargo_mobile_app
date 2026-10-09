@@ -3,12 +3,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/shop_product.dart';
 
-/// CRUD for the `products` collection (Shop/ShopProduct Management).
+/// CRUD for the `shop_products` collection (Shop/Product Management).
 class ShopProductService {
-  final CollectionReference<Map<String, dynamic>> _col =
-      FirebaseFirestore.instance.collection('shop_products');
+  ShopProductService({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  })  : _db = firestore ?? FirebaseFirestore.instance,
+        _auth = auth ?? FirebaseAuth.instance;
 
-  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
+  final FirebaseFirestore _db;
+  final FirebaseAuth _auth;
+
+  CollectionReference<Map<String, dynamic>> get _col =>
+      _db.collection('shop_products');
+
+  String? get _uid => _auth.currentUser?.uid;
 
   // ---------------- CREATE ----------------
   Future<void> addProduct(ShopProduct p) async {

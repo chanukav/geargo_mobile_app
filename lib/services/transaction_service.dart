@@ -6,13 +6,25 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/shop_product.dart';
 import '../models/rental_transaction.dart';
 
-/// CRUD for the `transactions` collection (Transaction/Payment Management).
+/// CRUD for the `rental_transactions` collection (Transaction/Payment Management).
 /// Payment is simulated: no real gateway is called, the record is stored as paid.
 class TransactionService {
-  final CollectionReference<Map<String, dynamic>> _col =
-      FirebaseFirestore.instance.collection('rental_transactions');
+  TransactionService({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  })  : _db = firestore ?? FirebaseFirestore.instance,
+        _auth = auth ?? FirebaseAuth.instance;
 
-  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
+  final FirebaseFirestore _db;
+  final FirebaseAuth _auth;
+
+  CollectionReference<Map<String, dynamic>> get _col =>
+      _db.collection('rental_transactions');
+
+  CollectionReference<Map<String, dynamic>> get _productsCol =>
+      _db.collection('shop_products');
+
+  String? get _uid => _auth.currentUser?.uid;
 
   // ---------------- CREATE ----------------
   Future<RentalTransaction> createBooking({
@@ -37,12 +49,8 @@ class TransactionService {
     // Query by productId ONLY to ensure no Firestore composite index is needed.
     // Filter status and date range overlaps in Dart.
     //
-    // RACE CONDITION LIMITATION NOTE:
-    // This client-side check queries existing bookings prior to document creation.
-    // Under concurrent bookings for the last available item, two users could both
-    // evaluate overlaps < product.quantity at the same time and both proceed to write.
-    // In production, an atomic Firestore transaction or Cloud Function with server-side
-    // locks/counters should be used to eliminate this race condition.
+    // In addition to this check, the Firestore transaction below atomically
+    // validates and decrements physical stock quantity to prevent race conditions.
     final existingSnap = await _col
         .where('productId', isEqualTo: product.id)
         .get();
@@ -80,7 +88,8 @@ class TransactionService {
     final rand = math.Random();
     final ref = 'GG-${1000 + rand.nextInt(9000)}-${10 + rand.nextInt(90)}';
 
-    final doc = await _col.add({
+    final newBookingRef = _col.doc();
+    final bookingData = {
       'bookingRef': ref,
       'renterId': uid,
       'shopId': product.ownerId,
@@ -103,8 +112,37 @@ class TransactionService {
       'paymentStatus': 'paid',
       'status': 'confirmed',
       'createdAt': FieldValue.serverTimestamp(),
+    };
+
+    // Task F: Atomic stock decrement inside a Firestore transaction.
+    // If quantity is 0 or doc doesn't exist, transaction rejects the booking.
+    await _db.runTransaction((transaction) async {
+      final productRef = _productsCol.doc(product.id);
+      final productSnap = await transaction.get(productRef);
+
+      if (!productSnap.exists) {
+        throw Exception('Equipment listing no longer exists.');
+      }
+
+      final currentQty =
+          (productSnap.data()?['quantity'] as num?)?.toInt() ?? 0;
+      if (currentQty <= 0) {
+        throw Exception(
+          'Equipment is currently out of stock. Cannot complete booking.',
+        );
+      }
+
+      final newQty = currentQty - 1;
+      transaction.update(productRef, {
+        'quantity': newQty,
+        'isAvailable': newQty > 0,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      transaction.set(newBookingRef, bookingData);
     });
-    return RentalTransaction.fromDoc(await doc.get());
+
+    return RentalTransaction.fromDoc(await newBookingRef.get());
   }
 
   // ---------------- READ ----------------
@@ -150,11 +188,45 @@ class TransactionService {
   }
 
   /// Cancels a booking and marks the payment as refunded.
-  Future<void> cancelBooking(String id) {
-    return _col.doc(id).update({
-      'status': 'cancelled',
-      'paymentStatus': 'refunded',
-      'updatedAt': FieldValue.serverTimestamp(),
+  /// Task F: Restores product inventory quantity atomically via runTransaction.
+  Future<void> cancelBooking(String id) async {
+    await _db.runTransaction((transaction) async {
+      final bookingRef = _col.doc(id);
+      final bookingSnap = await transaction.get(bookingRef);
+
+      if (!bookingSnap.exists) {
+        throw Exception('Booking record not found.');
+      }
+
+      final bookingData = bookingSnap.data()!;
+      final currentStatus = (bookingData['status'] ?? '') as String;
+      if (currentStatus == 'cancelled') {
+        // Already cancelled, do not increment quantity again
+        return;
+      }
+
+      transaction.update(bookingRef, {
+        'status': 'cancelled',
+        'paymentStatus': 'refunded',
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Restore equipment inventory stock
+      final productId = (bookingData['productId'] ?? '') as String;
+      if (productId.isNotEmpty) {
+        final productRef = _productsCol.doc(productId);
+        final productSnap = await transaction.get(productRef);
+        if (productSnap.exists) {
+          final currentQty =
+              (productSnap.data()?['quantity'] as num?)?.toInt() ?? 0;
+          final newQty = currentQty + 1;
+          transaction.update(productRef, {
+            'quantity': newQty,
+            'isAvailable': true,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+      }
     });
   }
 
