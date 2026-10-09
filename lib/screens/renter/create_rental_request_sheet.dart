@@ -4,7 +4,9 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/image_helper.dart';
 import '../../models/rental_request.dart';
+import '../../services/payment_service.dart';
 import '../../services/rental_request_service.dart';
+import '../../widgets/checkout_price_summary.dart';
 
 /// Interactive modal sheet to submit a new Rental Request (CRUD 01 - Create).
 class CreateRentalRequestSheet extends StatefulWidget {
@@ -103,8 +105,10 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
 
   double get _subtotal => widget.dailyPrice * _totalDays;
   double get _serviceFee => (_subtotal * 0.05).clamp(4.0, 50.0);
+  double get _deliveryFee => _deliveryMethod == 'delivery' ? 12.0 : 0.0;
   double get _depositAmount => (widget.dailyPrice * 0.8).clamp(25.0, 150.0);
-  double get _totalPrice => _subtotal + _serviceFee + _depositAmount;
+  double get _dueNow => _subtotal + _serviceFee + _deliveryFee;
+  double get _totalPrice => _dueNow + _depositAmount;
 
   Future<void> _selectDateRange() async {
     final now = DateTime.now();
@@ -167,6 +171,7 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
         endDate: _endDate,
         totalDays: _totalDays,
         serviceFee: _serviceFee,
+        deliveryFee: _deliveryFee,
         depositAmount: _depositAmount,
         totalPrice: _totalPrice,
         deliveryMethod: _deliveryMethod,
@@ -180,11 +185,17 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
       );
 
       final created = await _service.createRequest(request);
+      final holdId = await PaymentService().authorizeDepositHold(
+        depositAmount: _depositAmount,
+        rentalRequestId: created.id,
+      );
+      final withHold = created.copyWith(depositHoldId: holdId);
+      await _service.updateRequest(withHold);
 
       if (mounted) {
         setState(() {
           _isSubmitting = false;
-          _confirmedRequest = created;
+          _confirmedRequest = withHold;
         });
       }
     } catch (e) {
@@ -216,9 +227,10 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
         color: bg,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
           // Drag handle
           Center(
             child: Container(
@@ -328,17 +340,17 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
                   textColor,
                   subText,
                 ),
-                const SizedBox(height: 8),
-                _confirmDetailRow(
-                  Icons.payments_outlined,
-                  'Total Estimated',
-                  '\$${req.totalPrice.toStringAsFixed(2)}',
-                  AppColors.primary,
-                  subText,
-                  isBold: true,
-                ),
               ],
             ),
+          ),
+          const SizedBox(height: 16),
+          CheckoutPriceSummary(
+            rentalSubtotal: req.rentalSubtotal,
+            serviceFee: req.serviceFee,
+            deliveryFee: req.deliveryFee,
+            depositAmount: req.depositAmount,
+            isDark: isDark,
+            textColor: textColor,
           ),
           const SizedBox(height: 24),
 
@@ -358,7 +370,8 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
               ),
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -743,64 +756,41 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
                     ),
                     const SizedBox(height: 10),
 
-                    // Cost Breakdown Card
+                    CheckoutPriceSummary(
+                      rentalSubtotal: _subtotal,
+                      serviceFee: _serviceFee,
+                      deliveryFee: _deliveryFee,
+                      depositAmount: _depositAmount,
+                      isDark: isDark,
+                      textColor: textColor,
+                    ),
+                    const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(16),
+                        color: AppColors.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.25),
+                        ),
                       ),
-                      child: Column(
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Estimated Price Summary',
-                            style: TextStyle(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w800,
-                              color: textColor,
+                          const Icon(Icons.credit_card_outlined,
+                              size: 20, color: AppColors.primary),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Submitting authorizes a sandbox deposit hold (SetupIntent-style) '
+                              'for \$${_depositAmount.toStringAsFixed(2)} on your saved payment method. '
+                              'Rental fees are charged separately as Due Now.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                height: 1.35,
+                                color: textColor,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          _priceRow(
-                            'Rental rate (\$${widget.dailyPrice.toStringAsFixed(0)} × $_totalDays days)',
-                            '\$${_subtotal.toStringAsFixed(2)}',
-                            textColor,
-                          ),
-                          const SizedBox(height: 6),
-                          _priceRow(
-                            'GearGo Platform fee (5%)',
-                            '\$${_serviceFee.toStringAsFixed(2)}',
-                            textColor,
-                          ),
-                          const SizedBox(height: 6),
-                          _priceRow(
-                            'Refundable security deposit',
-                            '\$${_depositAmount.toStringAsFixed(2)}',
-                            textColor,
-                            isSub: true,
-                          ),
-                          const Divider(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Total Estimated Cost',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                  color: textColor,
-                                ),
-                              ),
-                              Text(
-                                '\$${_totalPrice.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ],
                           ),
                         ],
                       ),
@@ -852,7 +842,7 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
                           const Icon(Icons.send_rounded, size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            'Submit Request (\$${_totalPrice.toStringAsFixed(2)})',
+                            'Submit Request · Due Now \$${_dueNow.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
@@ -924,26 +914,4 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
     );
   }
 
-  Widget _priceRow(String label, String value, Color textColor, {bool isSub = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            color: isSub ? AppColors.textSecondaryLight : textColor,
-          ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13.5,
-            fontWeight: FontWeight.w700,
-            color: textColor,
-          ),
-        ),
-      ],
-    );
-  }
 }

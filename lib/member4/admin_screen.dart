@@ -102,6 +102,43 @@ class _AdminScreenState extends State<AdminScreen> {
     }
   }
 
+  Future<void> _depositDecision(String rentalId, String status) async {
+    final note = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(status == 'released' ? 'Release deposit' : 'Claim deposit'),
+        content: TextField(
+          controller: note,
+          maxLines: 2,
+          decoration: const InputDecoration(
+            labelText: 'Administrator note (required)',
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Confirm')),
+        ],
+      ),
+    );
+    if (confirmed != true || note.text.trim().isEmpty) {
+      note.dispose();
+      return;
+    }
+    setState(() {
+      busy = true;
+      error = null;
+    });
+    try {
+      await widget.repo.adminDepositAction(rentalId, status, note.text.trim());
+    } catch (e) {
+      if (mounted) setState(() => error = member4Error(e));
+    } finally {
+      note.dispose();
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
   Widget reviews(String kind) => StreamBuilder<List<Map<String, dynamic>>>(
     stream: widget.repo.reviews(kind),
     builder: (context, s) {
@@ -187,6 +224,45 @@ class _AdminScreenState extends State<AdminScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             const Text(
+              'Flagged accounts',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            StreamBuilder<List<Map<String, dynamic>>>(
+              stream: widget.repo.flaggedUsers(),
+              builder: (context, f) {
+                if (f.hasError) {
+                  return DataState(member4Error(f.error!));
+                }
+                if (!f.hasData) {
+                  return const DataState('Loading flagged accounts…', loading: true);
+                }
+                if (f.data!.isEmpty) {
+                  return const DataState('No flagged user accounts.');
+                }
+                return Column(
+                  children: [
+                    for (final u in f.data!)
+                      Panel(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              u['display_name']?.toString() ??
+                                  u['email']?.toString() ??
+                                  u['id'] as String,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text('User ${u['id']} · role ${u['role'] ?? 'unknown'}'),
+                            if (u['flag_reason'] != null)
+                              Text('Reason: ${u['flag_reason']}'),
+                          ],
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+            const Text(
               'Rental monitoring',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
@@ -243,6 +319,31 @@ class _AdminScreenState extends State<AdminScreen> {
                             Text(
                               'Deposit: ${depositLabel(rental.deposit['status'] as String)}',
                             ),
+                            if (['reviewRequired', 'releasePending']
+                                .contains(rental.deposit['status']))
+                              Wrap(
+                                spacing: 8,
+                                children: [
+                                  OutlinedButton(
+                                    onPressed: busy
+                                        ? null
+                                        : () => _depositDecision(
+                                              rental.id,
+                                              'released',
+                                            ),
+                                    child: const Text('Release deposit hold'),
+                                  ),
+                                  OutlinedButton(
+                                    onPressed: busy
+                                        ? null
+                                        : () => _depositDecision(
+                                              rental.id,
+                                              'claimed',
+                                            ),
+                                    child: const Text('Claim contested hold'),
+                                  ),
+                                ],
+                              ),
                           ],
                         ),
                       ),

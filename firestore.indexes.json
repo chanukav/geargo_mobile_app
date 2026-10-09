@@ -1,1 +1,28 @@
-{"indexes": [], "fieldOverrides": []}
+{
+  "indexes": [
+    {
+      "collectionGroup": "equipment_reviews",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "equipment_id", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "equipment_reviews",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "rental_request_id", "order": "ASCENDING" },
+        { "fieldPath": "author_id", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "flagged", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

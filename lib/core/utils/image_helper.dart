@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -141,6 +142,46 @@ class ImageHelper {
     final bytes = await file.readAsBytes();
     final base64String = base64Encode(bytes);
     return 'data:image/jpeg;base64,$base64String';
+  }
+
+  /// Uploads listing photo to Cloud Storage; returns public download URL only.
+  static Future<String> uploadEquipmentPhoto(
+    String equipmentId,
+    Uint8List bytes,
+  ) async {
+    if (bytes.isEmpty || bytes.length > 4 * 1024 * 1024) {
+      throw StateError('Equipment photo must be under 4 MB.');
+    }
+    final ref =
+        FirebaseStorage.instance.ref('equipment_photos/$equipmentId.jpg');
+    await ref.putData(
+      bytes,
+      SettableMetadata(contentType: 'image/jpeg'),
+    );
+    return ref.getDownloadURL();
+  }
+
+  /// Converts base64 data URLs / local paths to a Storage download URL when needed.
+  static Future<String> resolveEquipmentImageUrl(
+    String equipmentId,
+    String imageSource,
+  ) async {
+    final trimmed = imageSource.trim();
+    if (trimmed.isEmpty) return trimmed;
+    if (trimmed.startsWith('http://') ||
+        trimmed.startsWith('https://') ||
+        trimmed.startsWith('assets/')) {
+      return trimmed;
+    }
+
+    Uint8List? bytes;
+    if (trimmed.startsWith('data:image/') && trimmed.contains('base64,')) {
+      bytes = base64Decode(trimmed.split('base64,').last);
+    } else if (!kIsWeb && File(trimmed).existsSync()) {
+      bytes = await File(trimmed).readAsBytes();
+    }
+    if (bytes == null) return trimmed;
+    return uploadEquipmentPhoto(equipmentId, bytes);
   }
 }
 

@@ -4,6 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/utils/image_helper.dart';
 import '../../models/equipment.dart';
 import '../../services/equipment_service.dart';
+import '../../widgets/equipment_reviews_section.dart';
 import 'add_edit_equipment_screen.dart';
 import 'widgets/delete_confirmation_dialog.dart';
 
@@ -552,6 +553,24 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                                 ),
                               ],
                             ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          const Text(
+                            'Renter reviews',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.deepNavy,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          EquipmentReviewsSection(
+                            equipmentId: _equipment.id,
+                            textColor: AppColors.deepNavy,
+                            subColor: AppColors.textSecondaryLight,
+                            cardBg: AppColors.white,
+                            borderColor: AppColors.borderLight,
                           ),
                           const SizedBox(height: 16),
 

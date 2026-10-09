@@ -2,12 +2,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 enum UserRole {
   renter,
-  owner;
+  owner,
+  commercialShop,
+  admin;
 
   String get displayName {
     switch (this) {
       case UserRole.owner:
         return 'Gear Owner & Lender';
+      case UserRole.commercialShop:
+        return 'Commercial Rental Shop';
+      case UserRole.admin:
+        return 'Platform Administrator';
       case UserRole.renter:
         return 'Renter';
     }
@@ -16,9 +22,23 @@ enum UserRole {
   static UserRole fromString(String? val) {
     if (val == null) return UserRole.renter;
     final clean = val.toLowerCase().trim();
-    if (clean == 'owner') return UserRole.owner;
-    return UserRole.renter;
+    switch (clean) {
+      case 'owner':
+        return UserRole.owner;
+      case 'commercial_shop':
+      case 'commercialshop':
+        return UserRole.commercialShop;
+      case 'admin':
+        return UserRole.admin;
+      default:
+        return UserRole.renter;
+    }
   }
+
+  String get storageValue => switch (this) {
+        UserRole.commercialShop => 'commercial_shop',
+        _ => name,
+      };
 }
 
 /// Clean domain model representing an authenticated user in GearGo.
@@ -42,15 +62,18 @@ class AppUser {
   });
 
   bool get isOwner => role == UserRole.owner;
+  bool get isCommercialShop => role == UserRole.commercialShop;
+  bool get isPlatformAdmin => role == UserRole.admin;
   bool get isRenter => role == UserRole.renter;
+  bool get canManageListings => isOwner || isCommercialShop;
 
   /// Factory constructor to map from a Firebase [User].
   factory AppUser.fromFirebase(User user, {UserRole role = UserRole.renter}) {
-    // If the email explicitly starts with 'owner', default to owner role
     final emailLower = user.email?.toLowerCase().trim() ?? '';
-    final resolvedRole = role == UserRole.owner || emailLower.contains('owner')
-        ? UserRole.owner
-        : role;
+    var resolvedRole = role;
+    if (role == UserRole.renter && emailLower.contains('owner')) {
+      resolvedRole = UserRole.owner;
+    }
 
     return AppUser(
       uid: user.uid,
@@ -89,7 +112,7 @@ class AppUser {
       'email': email ?? '',
       'display_name': displayName ?? '',
       'photo_url': photoUrl ?? '',
-      'role': role.name,
+      'role': role.storageValue,
       'is_anonymous': isAnonymous,
       'updated_at': DateTime.now().toIso8601String(),
     };

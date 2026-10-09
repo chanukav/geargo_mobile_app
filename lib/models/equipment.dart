@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import 'gear_item.dart';
+
 /// Equipment category definition with display metadata.
 class EquipmentCategory {
   final String id;
@@ -110,6 +112,14 @@ class Equipment {
   final double rating;
   final int reviewsCount;
 
+  /// Commercial shop persona: optional tiered rates and logistics.
+  final double? priceWeekly;
+  final double? priceMonthly;
+  final int stockUnits;
+  final String? shopPickupLocation;
+  final String? shopOpeningHours;
+  final String? deliveryWindow;
+
   const Equipment({
     required this.id,
     required this.ownerId,
@@ -125,6 +135,12 @@ class Equipment {
     this.location = 'Denver, CO',
     this.rating = 4.9,
     this.reviewsCount = 12,
+    this.priceWeekly,
+    this.priceMonthly,
+    this.stockUnits = 1,
+    this.shopPickupLocation,
+    this.shopOpeningHours,
+    this.deliveryWindow,
   });
 
   /// Category metadata resolved from [categoryId].
@@ -150,6 +166,12 @@ class Equipment {
       'location': location,
       'rating': rating,
       'reviews_count': reviewsCount,
+      if (priceWeekly != null) 'price_weekly': priceWeekly,
+      if (priceMonthly != null) 'price_monthly': priceMonthly,
+      'stock_units': stockUnits,
+      if (shopPickupLocation != null) 'shop_pickup_location': shopPickupLocation,
+      if (shopOpeningHours != null) 'shop_opening_hours': shopOpeningHours,
+      if (deliveryWindow != null) 'delivery_window': deliveryWindow,
     };
   }
 
@@ -202,6 +224,18 @@ class Equipment {
       reviewsCount: (map['reviews_count'] is num)
           ? (map['reviews_count'] as num).toInt()
           : 0,
+      priceWeekly: map['price_weekly'] != null
+          ? parsePrice(map['price_weekly'])
+          : null,
+      priceMonthly: map['price_monthly'] != null
+          ? parsePrice(map['price_monthly'])
+          : null,
+      stockUnits: (map['stock_units'] is num)
+          ? (map['stock_units'] as num).toInt()
+          : 1,
+      shopPickupLocation: map['shop_pickup_location']?.toString(),
+      shopOpeningHours: map['shop_opening_hours']?.toString(),
+      deliveryWindow: map['delivery_window']?.toString(),
     );
   }
 
@@ -221,6 +255,12 @@ class Equipment {
     String? location,
     double? rating,
     int? reviewsCount,
+    double? priceWeekly,
+    double? priceMonthly,
+    int? stockUnits,
+    String? shopPickupLocation,
+    String? shopOpeningHours,
+    String? deliveryWindow,
   }) {
     return Equipment(
       id: id ?? this.id,
@@ -237,6 +277,34 @@ class Equipment {
       location: location ?? this.location,
       rating: rating ?? this.rating,
       reviewsCount: reviewsCount ?? this.reviewsCount,
+      priceWeekly: priceWeekly ?? this.priceWeekly,
+      priceMonthly: priceMonthly ?? this.priceMonthly,
+      stockUnits: stockUnits ?? this.stockUnits,
+      shopPickupLocation: shopPickupLocation ?? this.shopPickupLocation,
+      shopOpeningHours: shopOpeningHours ?? this.shopOpeningHours,
+      deliveryWindow: deliveryWindow ?? this.deliveryWindow,
+    );
+  }
+
+  /// Maps a Firestore listing into discovery UI model.
+  GearItem toGearItem({
+    String ownerDisplay = 'GearGo Host',
+    bool ownerVerified = false,
+  }) {
+    return GearItem(
+      name: name,
+      owner: ownerDisplay,
+      category: category.name,
+      image: image,
+      rating: rating,
+      reviews: reviewsCount,
+      distanceKm: 2.0,
+      pricePerDay: price.round(),
+      available: availability,
+      verified: ownerVerified,
+      listingId: id,
+      ownerId: ownerId,
+      description: description,
     );
   }
 }

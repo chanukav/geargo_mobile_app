@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../models/gear_item.dart';
 import '../../services/app_settings_service.dart';
+import 'gear_filter_logic.dart';
 import 'tabs/home_tab.dart';
 
 /// Filter values chosen by the user on the [FilterScreen].
@@ -40,7 +42,15 @@ const List<String> filterCategories = [
 
 class FilterScreen extends StatefulWidget {
   final GearFilters initial;
-  const FilterScreen({super.key, required this.initial});
+  final List<GearItem> catalog;
+  final String searchQuery;
+
+  const FilterScreen({
+    super.key,
+    required this.initial,
+    this.catalog = const [],
+    this.searchQuery = '',
+  });
 
   @override
   State<FilterScreen> createState() => _FilterScreenState();
@@ -65,6 +75,17 @@ class _FilterScreenState extends State<FilterScreen> {
         price: _price,
         availableNow: _available,
       ));
+
+  int get _resultCount => countFilteredGear(
+        catalog: widget.catalog,
+        filters: GearFilters(
+          distanceKm: _distance,
+          categories: _cats,
+          price: _price,
+          availableNow: _available,
+        ),
+        query: widget.searchQuery,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -237,43 +258,60 @@ class _FilterScreenState extends State<FilterScreen> {
                     ],
                   ),
                 ),
-                Divider(height: 1, color: borderColor),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 14, 24, 8),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: _apply,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.secondary,
-                        foregroundColor: Colors.white,
-                        elevation: 6,
-                        shadowColor:
-                            AppColors.secondary.withValues(alpha: 0.4),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14)),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, -4),
                       ),
-                      child: Text(
-                        settings.tr('apply_filters'),
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w700),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Divider(height: 1, color: borderColor),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 14, 24, 8),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton(
+                            onPressed: _apply,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.secondary,
+                              foregroundColor: Colors.white,
+                              elevation: 6,
+                              shadowColor:
+                                  AppColors.secondary.withValues(alpha: 0.4),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14)),
+                            ),
+                            child: Text(
+                              'Show $_resultCount Results',
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                      TextButton(
+                        onPressed: _reset,
+                        child: Text(
+                          settings.tr('reset_filters'),
+                          style: TextStyle(
+                            color: subColor,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 ),
-                TextButton(
-                  onPressed: _reset,
-                  child: Text(
-                    settings.tr('reset_filters'),
-                    style: TextStyle(
-                      color: subColor,
-                      fontWeight: FontWeight.w600,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
               ],
             ),
           ),

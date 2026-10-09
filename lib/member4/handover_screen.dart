@@ -67,30 +67,56 @@ class _HandoverScreenState extends State<HandoverScreen> {
             ),
           ),
           EquipmentCard(r),
-          const Text(
-            'Handover Checklist',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const Text('Walk through this checklist together at the meetup.'),
-          const SizedBox(height: 12),
-          for (final entry in checklistLabels.entries)
-            Card(
-              child: CheckboxListTile(
-                controlAffinity: ListTileControlAffinity.leading,
-                title: Text(entry.value),
-                value: r.checklist(r.phase)[entry.key] == true,
-                onChanged:
-                    busy ||
-                        r.status == 'completed' ||
-                        r.confirmedBy(widget.repo.uid)
-                    ? null
-                    : (v) => save('checklist', {
-                        'phase': r.phase,
-                        'key': entry.key,
-                        'value': v,
-                      }),
-              ),
+          Panel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Handover Checklist',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const Text('Walk through this checklist together at the meetup.'),
+                const SizedBox(height: 12),
+                for (final entry in checklistLabels.entries)
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: CheckboxListTile(
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: Text(entry.value),
+                      value: r.checklist(r.phase)[entry.key] == true,
+                      onChanged:
+                          busy ||
+                              r.status == 'completed' ||
+                              r.confirmedBy(widget.repo.uid)
+                          ? null
+                          : (v) => save('checklist', {
+                              'phase': r.phase,
+                              'key': entry.key,
+                              'value': v,
+                            }),
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                FilledButton.icon(
+                  onPressed: () => openMember4(
+                    context,
+                    ChatScreen(repo: widget.repo, rentalId: r.id),
+                  ),
+                  icon: const Icon(Icons.chat_bubble_outline),
+                  label: Text('Message ${r.counterpart(widget.repo.uid)}'),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: () => openMember4(
+                    context,
+                    MeetupScreen(repo: widget.repo, rentalId: r.id),
+                  ),
+                  icon: const Icon(Icons.location_on_outlined),
+                  label: const Text('Navigate to Meetup'),
+                ),
+              ],
             ),
+          ),
           Card(
             child: ListTile(
               leading: Icon(
@@ -114,24 +140,6 @@ class _HandoverScreenState extends State<HandoverScreen> {
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: () => openMember4(
-              context,
-              ChatScreen(repo: widget.repo, rentalId: r.id),
-            ),
-            icon: const Icon(Icons.chat_bubble_outline),
-            label: Text('Message ${r.counterpart(widget.repo.uid)}'),
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: () => openMember4(
-              context,
-              MeetupScreen(repo: widget.repo, rentalId: r.id),
-            ),
-            icon: const Icon(Icons.location_on_outlined),
-            label: const Text('Navigate to Meetup'),
           ),
           const SizedBox(height: 16),
           FilledButton(

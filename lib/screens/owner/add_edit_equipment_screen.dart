@@ -29,8 +29,14 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
   late final TextEditingController _priceController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _locationController;
+  late final TextEditingController _priceWeeklyController;
+  late final TextEditingController _priceMonthlyController;
+  late final TextEditingController _stockUnitsController;
+  late final TextEditingController _shopPickupController;
+  late final TextEditingController _shopHoursController;
 
   late String _selectedCategoryId;
+  String _deliveryWindow = 'Morning';
   late bool _availability;
   late String _imageUrl;
   late String _condition;
@@ -51,6 +57,22 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
         TextEditingController(text: item?.description ?? '');
     _locationController =
         TextEditingController(text: item?.location ?? 'Denver, CO');
+    _priceWeeklyController = TextEditingController(
+      text: item?.priceWeekly?.toStringAsFixed(0) ?? '',
+    );
+    _priceMonthlyController = TextEditingController(
+      text: item?.priceMonthly?.toStringAsFixed(0) ?? '',
+    );
+    _stockUnitsController = TextEditingController(
+      text: item != null ? '${item.stockUnits}' : '1',
+    );
+    _shopPickupController = TextEditingController(
+      text: item?.shopPickupLocation ?? '',
+    );
+    _shopHoursController = TextEditingController(
+      text: item?.shopOpeningHours ?? '',
+    );
+    _deliveryWindow = item?.deliveryWindow ?? 'Morning';
 
     _selectedCategoryId = item?.categoryId ?? 'mountain_bikes';
     _availability = item?.availability ?? true;
@@ -64,7 +86,18 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
     _priceController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
+    _priceWeeklyController.dispose();
+    _priceMonthlyController.dispose();
+    _stockUnitsController.dispose();
+    _shopPickupController.dispose();
+    _shopHoursController.dispose();
     super.dispose();
+  }
+
+  double? _optionalPrice(TextEditingController c) {
+    final t = c.text.trim();
+    if (t.isEmpty) return null;
+    return double.tryParse(t);
   }
 
   Future<void> _handleSave() async {
@@ -102,6 +135,17 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
         location: _locationController.text.trim(),
         rating: widget.equipment?.rating ?? 5.0,
         reviewsCount: widget.equipment?.reviewsCount ?? 0,
+        priceWeekly: _optionalPrice(_priceWeeklyController),
+        priceMonthly: _optionalPrice(_priceMonthlyController),
+        stockUnits: int.tryParse(_stockUnitsController.text.trim()) ?? 1,
+        shopPickupLocation: _shopPickupController.text.trim().isEmpty
+            ? null
+            : _shopPickupController.text.trim(),
+        shopOpeningHours: _shopHoursController.text.trim().isEmpty
+            ? null
+            : _shopHoursController.text.trim(),
+        deliveryWindow:
+            _shopPickupController.text.trim().isEmpty ? null : _deliveryWindow,
       );
 
       Equipment result;
@@ -348,6 +392,93 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                   label: 'Pickup Location',
                   hint: 'e.g. Denver, CO (Capitol Hill)',
                   prefixIcon: Icons.location_on_rounded,
+                ),
+                const SizedBox(height: 16),
+
+                ExpansionTile(
+                  tilePadding: EdgeInsets.zero,
+                  title: const Text(
+                    'Commercial shop options (optional)',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.deepNavy,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    'Tiered weekly/monthly rates, stock count, shop hours',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _priceWeeklyController,
+                            label: 'Weekly rate (\$)',
+                            hint: '140',
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _priceMonthlyController,
+                            label: 'Monthly rate (\$)',
+                            hint: '480',
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTextField(
+                      controller: _stockUnitsController,
+                      label: 'Units in stock',
+                      hint: '1',
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTextField(
+                      controller: _shopPickupController,
+                      label: 'Shop pickup address',
+                      hint: 'De Silva Sports — Colombo 03',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTextField(
+                      controller: _shopHoursController,
+                      label: 'Opening hours',
+                      hint: 'Mon–Sat 8:00–18:00',
+                    ),
+                    const SizedBox(height: 8),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Preferred delivery window',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.deepNavy,
+                        ),
+                      ),
+                    ),
+                    Wrap(
+                      spacing: 8,
+                      children: ['Morning', 'Afternoon', 'Evening']
+                          .map(
+                            (w) => ChoiceChip(
+                              label: Text(w),
+                              selected: _deliveryWindow == w,
+                              onSelected: (_) =>
+                                  setState(() => _deliveryWindow = w),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                 ),
                 const SizedBox(height: 16),
 

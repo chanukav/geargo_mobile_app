@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/image_helper.dart';
 import '../../../models/gear_item.dart';
+import '../../../services/gear_catalog_service.dart';
 import '../../renter/create_rental_request_sheet.dart';
 import '../../renter/renter_equipment_details_screen.dart';
 import '../../renter/saved_equipment_screen.dart';
@@ -24,10 +26,25 @@ class _SearchTabState extends State<SearchTab> {
   GearFilters _filters = const GearFilters(
     distanceKm: GearFilters.maxDistance,
   );
+  List<GearItem> _catalog = sampleGear;
+
+  @override
+  void initState() {
+    super.initState();
+    GearCatalogService().discoveryStream().listen((items) {
+      if (mounted) setState(() => _catalog = items);
+    });
+  }
 
   Future<void> _openFilters() async {
     final result = await Navigator.of(context).push<GearFilters>(
-      MaterialPageRoute(builder: (_) => FilterScreen(initial: _filters)),
+      MaterialPageRoute(
+        builder: (_) => FilterScreen(
+          initial: _filters,
+          catalog: _catalog,
+          searchQuery: _ctrl.text,
+        ),
+      ),
     );
     if (result != null) {
       setState(() {
@@ -45,20 +62,27 @@ class _SearchTabState extends State<SearchTab> {
 
   List<GearItem> get _results {
     final q = _ctrl.text.trim().toLowerCase();
-    var list = sampleGear.where((g) {
+    final activeFilters = GearFilters(
+      distanceKm: _filters.distanceKm,
+      categories: _filters.categories,
+      price: _filters.price,
+      availableNow: _availableNow,
+    );
+    var list = _catalog.where((g) {
       final match = q.isEmpty ||
           g.name.toLowerCase().contains(q) ||
           g.category.toLowerCase().contains(q) ||
           (q.contains('bike') && g.category == 'Cycling');
-      final inCategory =
-          _filters.categories.isEmpty || _filters.categories.contains(g.category);
-      final inPrice = g.pricePerDay >= _filters.price.start &&
-          (_filters.priceUnbounded || g.pricePerDay <= _filters.price.end);
+      final inCategory = activeFilters.categories.isEmpty ||
+          activeFilters.categories.contains(g.category);
+      final inPrice = g.pricePerDay >= activeFilters.price.start &&
+          (activeFilters.priceUnbounded ||
+              g.pricePerDay <= activeFilters.price.end);
       return match &&
           inCategory &&
           inPrice &&
-          g.distanceKm <= _filters.distanceKm &&
-          (!_availableNow || g.available);
+          g.distanceKm <= activeFilters.distanceKm &&
+          (!activeFilters.availableNow || g.available);
     }).toList();
     if (_rating) {
       list.sort((a, b) => b.rating.compareTo(a.rating));
@@ -296,7 +320,10 @@ class _ResultCard extends StatelessWidget {
                 child: SizedBox(
                   width: 120,
                   height: double.infinity,
-                  child: Image.asset(item.image, fit: BoxFit.cover),
+                  child: EquipmentImageViewer(
+                    imageSource: item.image,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               Expanded(

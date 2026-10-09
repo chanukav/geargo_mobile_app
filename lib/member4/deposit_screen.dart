@@ -31,22 +31,23 @@ class _DepositScreenState extends State<DepositScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Cost Breakdown',
+                  'Due Now',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                 ),
                 Text(
                   'Rental charge: ${r.money(r.data['rentalCharge'] as num)}',
                 ),
                 Text('Service fee: ${r.money(r.data['serviceFee'] as num)}'),
+                if (r.data['deliveryFee'] != null)
+                  Text(
+                    'Delivery fee: ${r.money(r.data['deliveryFee'] as num)}',
+                  ),
                 const Divider(),
                 Text(
                   'Amount Paid: ${r.money(r.data['amountPaid'] as num)}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text('Payment record: ${r.data['paymentStatus']}'),
-                const Text(
-                  'The refundable security deposit is excluded from this rental payment.',
-                ),
               ],
             ),
           ),

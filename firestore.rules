@@ -2,36 +2,126 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function admin() { return signedIn() && request.auth.token.get('admin', false) == true; }
-    function member(data) { return signedIn() && request.auth.uid in data.participantIds; }
+    function admin() {
+      return signedIn() && (
+        request.auth.token.get('admin', false) == true ||
+        userRole() == 'admin'
+      );
+    }
+    function userRole() {
+      return signedIn()
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'renter')
+        : '';
+    }
+    function member(data) {
+      return signedIn() && request.auth.uid in data.participantIds;
+    }
+    function rentalParticipant(data) {
+      return signedIn() && (
+        request.auth.uid == data.renter_id ||
+        request.auth.uid == data.owner_id
+      );
+    }
+    function handoverParticipant(data) {
+      return signedIn() && (
+        request.auth.uid == data.renter_id ||
+        request.auth.uid == data.owner_id
+      );
+    }
+
     match /rentals/{id} {
       allow read: if admin() || member(resource.data);
-      // Server commands validate relationships, evidence and state transitions.
       allow write: if false;
       match /messages/{messageId} {
         allow read: if member(get(/databases/$(database)/documents/rentals/$(id)).data);
         allow write: if false;
       }
     }
+
     match /users/{userId} {
-      allow read: if signedIn();
-      allow write: if signedIn() && request.auth.uid == userId;
+      allow read: if signedIn() && (request.auth.uid == userId || admin());
+      allow write: if signedIn() && (request.auth.uid == userId || admin());
     }
+
     match /owner_profile/{userId} {
       allow read: if signedIn();
-      allow write: if signedIn() && request.auth.uid == userId;
+      allow write: if signedIn() && (
+        request.auth.uid == userId ||
+        admin() ||
+        (userRole() == 'owner' && request.auth.uid == userId)
+      );
     }
+
     match /equipment/{id} {
       allow read: if true;
-      allow write: if signedIn();
+      allow create: if signedIn() && request.auth.uid == request.resource.data.owner_id;
+      allow update, delete: if signedIn() && (
+        request.auth.uid == resource.data.owner_id ||
+        admin()
+      );
     }
+
     match /rental_requests/{id} {
-      allow read, write: if signedIn();
+      allow create: if signedIn()
+        && request.auth.uid == request.resource.data.renter_id;
+      allow read: if signedIn() && (
+        rentalParticipant(resource.data) || admin()
+      );
+      allow update: if signedIn() && (
+        rentalParticipant(resource.data) || admin()
+      );
+      allow delete: if admin();
     }
+
     match /saved_equipment/{id} {
       allow read, write: if signedIn();
     }
-    match /verifications/{id} { allow read: if admin(); allow write: if false; }
+
+    match /condition_verifications/{id} {
+      allow read: if signedIn() && (
+        handoverParticipant(resource.data) || admin()
+      );
+      allow create: if signedIn() && handoverParticipant(request.resource.data);
+      allow update: if signedIn() && (
+        handoverParticipant(resource.data) || admin()
+      );
+    }
+
+    match /handover_records/{id} {
+      allow read: if signedIn() && (
+        handoverParticipant(resource.data) || admin()
+      );
+      allow create: if signedIn() && handoverParticipant(request.resource.data);
+      allow update: if signedIn() && (
+        handoverParticipant(resource.data) || admin()
+      );
+    }
+
+    match /equipment_reviews/{id} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.auth.uid == request.resource.data.author_id
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5;
+      allow update: if signedIn() && (
+        request.auth.uid == resource.data.author_id || admin()
+      );
+      allow delete: if admin();
+    }
+
+    match /payment_holds/{id} {
+      allow read: if signedIn() && (
+        request.auth.uid == resource.data.uid || admin()
+      );
+      allow create: if signedIn() && request.auth.uid == request.resource.data.uid;
+      allow update: if admin();
+    }
+
+    match /verifications/{id} {
+      allow read: if admin() || (signedIn() && request.auth.uid == id);
+      allow write: if false;
+    }
     match /disputes/{id} { allow read: if admin(); allow write: if false; }
     match /audit/{id} { allow read: if admin(); allow write: if false; }
     match /{document=**} { allow read, write: if false; }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'chat_screen.dart';
+import 'condition_angle_guide.dart';
 import 'models.dart';
 import 'repository.dart';
 import 'widgets.dart';
@@ -106,6 +107,18 @@ class _ConditionScreenState extends State<ConditionScreen> {
             '${photoAngles[savedAngle]} View Saved. ${remaining.isEmpty ? 'Review all four photos.' : 'Next: ${photoAngles[remaining.first]} View'}';
         if (remaining.isNotEmpty) angle = remaining.first;
       });
+      if (remaining.isNotEmpty && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Next: capture ${photoAngles[remaining.first]} view'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 700));
+        if (mounted) {
+          await capture(ImageSource.camera, rental);
+        }
+      }
     }
   }
 
@@ -140,47 +153,59 @@ class _ConditionScreenState extends State<ConditionScreen> {
             ),
             LinearProgressIndicator(value: photos.length / 4),
             const SizedBox(height: 16),
-            Container(
+            SizedBox(
               height: 280,
-              decoration: BoxDecoration(
-                color: Member4Theme.navy,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: photos[angle] == null
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.photo_camera_outlined,
-                              size: 64,
-                              color: Colors.white,
-                            ),
-                            Text(
-                              'Capture ${photoAngles[angle]} View',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Member4Theme.navy,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: photos[angle] == null
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.photo_camera_outlined,
+                                    size: 64,
+                                    color: Colors.white,
+                                  ),
+                                  Text(
+                                    'Capture ${photoAngles[angle]} View',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                  const Text(
+                                    'Follow the ghost guide. Keep the whole item in view.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ],
                               ),
                             ),
-                            const Text(
-                              'Keep the whole item in view. Use the labelled camera button below.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white),
+                          )
+                        : ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: PrivatePhoto(
+                              repo: widget.repo,
+                              path: photos[angle]!,
                             ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : ClipRRect(
+                          ),
+                  ),
+                  if (photos[angle] == null && !locked)
+                    ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: PrivatePhoto(
-                        repo: widget.repo,
-                        path: photos[angle]!,
-                      ),
+                      child: ConditionAngleGuideOverlay(angleKey: angle),
                     ),
+                ],
+              ),
             ),
             const SizedBox(height: 12),
             Wrap(

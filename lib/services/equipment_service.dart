@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import '../core/utils/image_helper.dart';
 import '../models/equipment.dart';
 
 /// Service managing all Equipment Listing CRUD operations.
@@ -41,11 +42,21 @@ class EquipmentService {
         ? equipment.id
         : (col?.doc().id ?? 'eq_${DateTime.now().millisecondsSinceEpoch}');
 
-    final finalEquipment = equipment.copyWith(
+    var finalEquipment = equipment.copyWith(
       id: docId,
       createdAt: equipment.createdAt,
       updatedAt: DateTime.now(),
     );
+
+    try {
+      final resolvedImage = await ImageHelper.resolveEquipmentImageUrl(
+        docId,
+        finalEquipment.image,
+      );
+      finalEquipment = finalEquipment.copyWith(image: resolvedImage);
+    } catch (e) {
+      debugPrint('Equipment image upload warning: $e');
+    }
 
     // Save to local cache first
     _localCache[finalEquipment.id] = finalEquipment;
@@ -114,6 +125,58 @@ class EquipmentService {
     }
   }
 
+  /// READ: All available listings for renter discovery.
+  Stream<List<Equipment>> getAvailableEquipmentStream() {
+    final col = _equipmentCollection;
+    if (col == null) {
+      final cached =
+          _localCache.values.where((e) => e.availability).toList();
+      cached.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+      return Stream.value(cached);
+    }
+
+    try {
+      return col
+          .where('availability', isEqualTo: true)
+          .snapshots()
+          .map((snapshot) {
+        final items = snapshot.docs.map((doc) {
+          final item = Equipment.fromMap(doc.data(), doc.id);
+          _localCache[item.id] = item;
+          return item;
+        }).toList();
+        items.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        return items;
+      }).handleError((error) {
+        debugPrint('Available equipment stream error: $error');
+        return _localCache.values.where((e) => e.availability).toList();
+      });
+    } catch (e) {
+      debugPrint('Error creating available equipment stream: $e');
+      final cached =
+          _localCache.values.where((e) => e.availability).toList();
+      return Stream.value(cached);
+    }
+  }
+
+  Future<List<Equipment>> getAvailableEquipment() async {
+    final col = _equipmentCollection;
+    if (col == null) {
+      return _localCache.values.where((e) => e.availability).toList();
+    }
+    try {
+      final snap = await col.where('availability', isEqualTo: true).get();
+      return snap.docs.map((doc) {
+        final item = Equipment.fromMap(doc.data(), doc.id);
+        _localCache[item.id] = item;
+        return item;
+      }).toList();
+    } catch (e) {
+      debugPrint('Available equipment fetch error: $e');
+      return _localCache.values.where((e) => e.availability).toList();
+    }
+  }
+
   /// READ: Get single equipment by ID.
   Future<Equipment?> getEquipmentById(String id) async {
     if (_localCache.containsKey(id)) {
@@ -139,9 +202,19 @@ class EquipmentService {
 
   /// UPDATE: Modifies equipment details (price, description, availability, image, etc.)
   Future<Equipment> updateEquipment(Equipment equipment) async {
-    final updatedItem = equipment.copyWith(
+    var updatedItem = equipment.copyWith(
       updatedAt: DateTime.now(),
     );
+
+    try {
+      final resolvedImage = await ImageHelper.resolveEquipmentImageUrl(
+        updatedItem.id,
+        updatedItem.image,
+      );
+      updatedItem = updatedItem.copyWith(image: resolvedImage);
+    } catch (e) {
+      debugPrint('Equipment image upload warning: $e');
+    }
 
     // Update local cache
     _localCache[updatedItem.id] = updatedItem;

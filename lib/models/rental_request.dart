@@ -95,6 +95,7 @@ class RentalRequest {
   final DateTime endDate;
   final int totalDays;
   final double serviceFee;
+  final double deliveryFee;
   final double depositAmount;
   final double totalPrice;
 
@@ -104,6 +105,8 @@ class RentalRequest {
 
   final RentalStatus status;
   final String? cancellationReason;
+  /// Sandbox Stripe SetupIntent-style hold reference (FR-03/FR-04).
+  final String? depositHoldId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -124,6 +127,7 @@ class RentalRequest {
     required this.endDate,
     required this.totalDays,
     required this.serviceFee,
+    this.deliveryFee = 0,
     required this.depositAmount,
     required this.totalPrice,
     this.deliveryMethod = 'pickup',
@@ -131,11 +135,16 @@ class RentalRequest {
     this.renterNotes = '',
     this.status = RentalStatus.pending,
     this.cancellationReason,
+    this.depositHoldId,
     required this.createdAt,
     required this.updatedAt,
   });
 
   bool get isDelivery => deliveryMethod.toLowerCase() == 'delivery';
+
+  double get rentalSubtotal => dailyPrice * totalDays;
+
+  double get dueNow => rentalSubtotal + serviceFee + deliveryFee;
   bool get canEdit => status == RentalStatus.pending;
   bool get canCancel =>
       status == RentalStatus.pending || status == RentalStatus.approved;
@@ -171,6 +180,7 @@ class RentalRequest {
     DateTime? endDate,
     int? totalDays,
     double? serviceFee,
+    double? deliveryFee,
     double? depositAmount,
     double? totalPrice,
     String? deliveryMethod,
@@ -178,6 +188,7 @@ class RentalRequest {
     String? renterNotes,
     RentalStatus? status,
     String? cancellationReason,
+    String? depositHoldId,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -198,6 +209,7 @@ class RentalRequest {
       endDate: endDate ?? this.endDate,
       totalDays: totalDays ?? this.totalDays,
       serviceFee: serviceFee ?? this.serviceFee,
+      deliveryFee: deliveryFee ?? this.deliveryFee,
       depositAmount: depositAmount ?? this.depositAmount,
       totalPrice: totalPrice ?? this.totalPrice,
       deliveryMethod: deliveryMethod ?? this.deliveryMethod,
@@ -205,6 +217,7 @@ class RentalRequest {
       renterNotes: renterNotes ?? this.renterNotes,
       status: status ?? this.status,
       cancellationReason: cancellationReason ?? this.cancellationReason,
+      depositHoldId: depositHoldId ?? this.depositHoldId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -228,6 +241,7 @@ class RentalRequest {
       'end_date': Timestamp.fromDate(endDate),
       'total_days': totalDays,
       'service_fee': serviceFee,
+      'delivery_fee': deliveryFee,
       'deposit_amount': depositAmount,
       'total_price': totalPrice,
       'delivery_method': deliveryMethod,
@@ -235,6 +249,8 @@ class RentalRequest {
       'renter_notes': renterNotes,
       'status': status.name,
       'cancellation_reason': cancellationReason,
+      if (depositHoldId != null && depositHoldId!.isNotEmpty)
+        'deposit_hold_id': depositHoldId,
       'created_at': Timestamp.fromDate(createdAt),
       'updated_at': Timestamp.fromDate(updatedAt),
     };
@@ -283,6 +299,7 @@ class RentalRequest {
       endDate: parseDate(map['end_date']),
       totalDays: parseInt(map['total_days'], 1),
       serviceFee: parseNum(map['service_fee'], 5.0),
+      deliveryFee: parseNum(map['delivery_fee']),
       depositAmount: parseNum(map['deposit_amount'], 20.0),
       totalPrice: parseNum(map['total_price']),
       deliveryMethod: map['delivery_method']?.toString() ?? 'pickup',
@@ -290,6 +307,7 @@ class RentalRequest {
       renterNotes: map['renter_notes']?.toString() ?? '',
       status: RentalStatus.fromString(map['status']?.toString()),
       cancellationReason: map['cancellation_reason']?.toString(),
+      depositHoldId: map['deposit_hold_id']?.toString(),
       createdAt: parseDate(map['created_at']),
       updatedAt: parseDate(map['updated_at']),
     );

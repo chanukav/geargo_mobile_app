@@ -164,7 +164,7 @@ class AuthService {
         await saveUserProfile(appUser);
 
         // If registered as Owner, create initial owner profile
-        if (role == UserRole.owner) {
+        if (role == UserRole.owner || role == UserRole.commercialShop) {
           try {
             await OwnerProfileService().createProfile(
               OwnerProfile(
@@ -174,7 +174,9 @@ class AuthService {
                 phone: '',
                 address: '',
                 profileImage: '',
-                businessName: '${displayName ?? "Gear"} Rentals',
+                businessName: role == UserRole.commercialShop
+                    ? '${displayName ?? "Gear"} Commercial Shop'
+                    : '${displayName ?? "Gear"} Rentals',
                 createdAt: DateTime.now(),
                 updatedAt: DateTime.now(),
                 isVerified: true,

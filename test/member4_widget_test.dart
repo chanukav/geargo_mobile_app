@@ -112,6 +112,16 @@ class TestRepository implements Member4Repository {
     String status,
     String note,
   ) async {}
+
+  @override
+  Stream<List<Map<String, dynamic>>> flaggedUsers() => Stream.value([]);
+
+  @override
+  Future<void> adminDepositAction(
+    String rentalId,
+    String status,
+    String note,
+  ) async {}
 }
 
 class AdminTestRepository extends TestRepository {
@@ -204,10 +214,16 @@ void main() {
     'M4-TC-01/03 handover shows progress and opens rental chat at phone width',
     (t) async {
       final repo = TestRepository();
-      await app(t, HandoverScreen(repo: repo, rentalId: 'rental'));
+      await app(
+        t,
+        HandoverScreen(repo: repo, rentalId: 'rental'),
+        size: const Size(390, 1200),
+      );
       expect(find.text('0 of 4 steps completed'), findsOneWidget);
-      await t.scrollUntilVisible(find.text('Message Owner'), 250);
-      await t.tap(find.text('Message Owner'));
+      final messageBtn =
+          find.widgetWithIcon(FilledButton, Icons.chat_bubble_outline);
+      await t.ensureVisible(messageBtn);
+      await t.tap(messageBtn);
       await t.pumpAndSettle();
       expect(find.text('Rental Conversation'), findsOneWidget);
       expect(t.takeException(), isNull);

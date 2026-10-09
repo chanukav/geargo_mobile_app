@@ -4,6 +4,8 @@ import '../../core/constants/app_colors.dart';
 import '../../core/utils/image_helper.dart';
 import '../../models/rental_request.dart';
 import '../../services/rental_request_service.dart';
+import '../../services/review_service.dart';
+import '../../widgets/checkout_price_summary.dart';
 import 'create_rental_request_sheet.dart';
 import 'edit_rental_request_dialog.dart';
 
@@ -22,12 +24,103 @@ class RentalRequestDetailsScreen extends StatefulWidget {
 class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen> {
   late RentalRequest _request;
   final _service = RentalRequestService();
+  final _reviewService = ReviewService();
   bool _isProcessing = false;
+  bool _canSubmitReview = false;
+  bool _canEditReview = false;
+  String? _existingReviewId;
+  bool _reviewBusy = false;
+  int _reviewRating = 5;
+  final _reviewComment = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _request = widget.request;
+    _loadReviewEligibility();
+  }
+
+  @override
+  void dispose() {
+    _reviewComment.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadReviewEligibility() async {
+    final existing = await _reviewService.findMyReviewForRental(_request.id);
+    if (existing != null) {
+      final reviewId = existing['id'] as String;
+      final canEdit = await _reviewService.canEditReview(reviewId);
+      if (mounted) {
+        setState(() {
+          _existingReviewId = reviewId;
+          _canEditReview = canEdit;
+          _canSubmitReview = false;
+          _reviewRating = (existing['rating'] as num?)?.toInt() ?? 5;
+          _reviewComment.text = existing['comment']?.toString() ?? '';
+        });
+      }
+      return;
+    }
+    final allowed = await _reviewService.canReviewRental(_request);
+    if (mounted) setState(() => _canSubmitReview = allowed);
+  }
+
+  Future<void> _submitReview() async {
+    if (_reviewComment.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Add a short comment about your rental experience.'),
+          backgroundColor: AppColors.warning,
+        ),
+      );
+      return;
+    }
+    setState(() => _reviewBusy = true);
+    try {
+      if (_existingReviewId != null && _canEditReview) {
+        await _reviewService.updateReview(
+          reviewId: _existingReviewId!,
+          rating: _reviewRating,
+          comment: _reviewComment.text,
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Review updated.'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+      } else {
+        await _reviewService.submitReview(
+          equipmentId: _request.equipmentId,
+          rentalRequestId: _request.id,
+          rating: _reviewRating,
+          comment: _reviewComment.text,
+        );
+        if (mounted) {
+          setState(() => _canSubmitReview = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Review submitted. You can edit it within 48 hours.',
+              ),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          await _loadReviewEligibility();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$e'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _reviewBusy = false);
+    }
   }
 
   Future<void> _handleEdit() async {
@@ -579,61 +672,109 @@ class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen>
               const SizedBox(height: 20),
             ],
 
+            if (_request.status == RentalStatus.completed &&
+                (_canSubmitReview || _canEditReview)) ...[
+              _buildSectionHeader(
+                _canEditReview ? 'Edit your review' : 'Rate this rental',
+                textColor,
+              ),
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: borderCol),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Reviews are only accepted for completed rentals. '
+                      'Edits close after 48 hours.',
+                      style: TextStyle(fontSize: 12.5, height: 1.35),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: List.generate(5, (i) {
+                        final star = i + 1;
+                        return IconButton(
+                          padding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                          onPressed: _reviewBusy
+                              ? null
+                              : () => setState(() => _reviewRating = star),
+                          icon: Icon(
+                            star <= _reviewRating
+                                ? Icons.star_rounded
+                                : Icons.star_outline_rounded,
+                            color: AppColors.warning,
+                          ),
+                        );
+                      }),
+                    ),
+                    TextField(
+                      controller: _reviewComment,
+                      maxLines: 3,
+                      maxLength: 500,
+                      enabled: !_reviewBusy,
+                      decoration: InputDecoration(
+                        hintText: 'How was the gear condition and handover?',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: _reviewBusy ? null : _submitReview,
+                        child: Text(
+                          _reviewBusy
+                              ? 'Saving…'
+                              : (_canEditReview ? 'Save review changes' : 'Submit review'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+            if (_request.status == RentalStatus.completed &&
+                _existingReviewId != null &&
+                !_canEditReview &&
+                !_canSubmitReview) ...[
+              _buildSectionHeader('Your review', textColor),
+              const SizedBox(height: 8),
+              Text(
+                'You reviewed this rental. The 48-hour edit window has closed.',
+                style: TextStyle(fontSize: 13, color: subText, height: 1.35),
+              ),
+              const SizedBox(height: 20),
+            ],
+
             // Payment & Financial Summary
             _buildSectionHeader('Financial Breakdown', textColor),
             const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: borderCol),
-              ),
-              child: Column(
-                children: [
-                  _priceRow(
-                    'Daily rate (\$${_request.dailyPrice.toStringAsFixed(0)} × ${_request.totalDays}d)',
-                    '\$${(_request.dailyPrice * _request.totalDays).toStringAsFixed(2)}',
-                    textColor,
-                  ),
-                  const SizedBox(height: 8),
-                  _priceRow(
-                    'GearGo Service Fee',
-                    '\$${_request.serviceFee.toStringAsFixed(2)}',
-                    textColor,
-                  ),
-                  const SizedBox(height: 8),
-                  _priceRow(
-                    'Refundable Security Deposit',
-                    '\$${_request.depositAmount.toStringAsFixed(2)}',
-                    textColor,
-                    isNote: true,
-                  ),
-                  const Divider(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total Price',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: textColor,
-                        ),
-                      ),
-                      Text(
-                        '\$${_request.totalPrice.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            CheckoutPriceSummary(
+              rentalSubtotal: _request.rentalSubtotal,
+              serviceFee: _request.serviceFee,
+              deliveryFee: _request.deliveryFee,
+              depositAmount: _request.depositAmount,
+              isDark: isDark,
+              textColor: textColor,
             ),
+            if (_request.depositHoldId != null &&
+                _request.depositHoldId!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Deposit hold reference: ${_request.depositHoldId}',
+                style: TextStyle(fontSize: 12, color: subText),
+              ),
+            ],
           ],
         ),
       ),
@@ -921,29 +1062,6 @@ class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen>
                 ),
               ),
             ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _priceRow(String label, String value, Color textColor, {bool isNote = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            color: isNote ? AppColors.textSecondaryLight : textColor,
-          ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13.5,
-            fontWeight: FontWeight.w700,
-            color: textColor,
           ),
         ),
       ],

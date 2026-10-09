@@ -13,7 +13,11 @@ import '../widgets/account_details_card.dart';
 import '../widgets/appearance_language_sheet.dart';
 import '../../renter/rental_requests_list_screen.dart';
 import '../../renter/saved_equipment_screen.dart';
+import '../../profile/identity_verification_screen.dart';
+import '../../commercial/commercial_shop_console_screen.dart';
+import '../../../member4/admin_screen.dart';
 import '../../../member4/hub_screen.dart';
+import '../../../services/identity_verification_service.dart';
 import '../../../member4/repository.dart';
 import '../../../member4/widgets.dart';
 import 'home_tab.dart';
@@ -99,17 +103,54 @@ class _ProfileTabState extends State<ProfileTab> {
   bool _offersNearYou = false;
   final Set<String> _selectedActivities = {'Hiking', 'Cycling', 'Camping'};
   UserRole _userRole = UserRole.renter;
+  VerificationStatus _verificationStatus = VerificationStatus.none;
 
   @override
   void initState() {
     super.initState();
     _loadUserRole();
+    _loadVerificationStatus();
   }
 
   Future<void> _loadUserRole() async {
     final role = await AuthService().getUserRole(widget.user.uid, email: widget.user.email);
     if (mounted) {
       setState(() => _userRole = role);
+    }
+  }
+
+  Future<void> _loadVerificationStatus() async {
+    final status =
+        await IdentityVerificationService().getStatus(widget.user.uid);
+    if (mounted) setState(() => _verificationStatus = status);
+  }
+
+  ({String text, Color textColor, Color bgColor}) _verificationBadge() {
+    switch (_verificationStatus) {
+      case VerificationStatus.approved:
+        return (
+          text: 'Verified',
+          textColor: const Color(0xFF137333),
+          bgColor: const Color(0xFFE6F4EA),
+        );
+      case VerificationStatus.pending:
+        return (
+          text: 'Under review',
+          textColor: const Color(0xFF7D4E00),
+          bgColor: const Color(0xFFFFF8E1),
+        );
+      case VerificationStatus.rejected:
+        return (
+          text: 'Resubmit',
+          textColor: const Color(0xFFB3261E),
+          bgColor: const Color(0xFFFCE8E6),
+        );
+      case VerificationStatus.none:
+        return (
+          text: 'Not verified',
+          textColor: const Color(0xFF444746),
+          bgColor: const Color(0xFFE8EAED),
+        );
     }
   }
 
@@ -255,7 +296,8 @@ class _ProfileTabState extends State<ProfileTab> {
       listenable: settings,
       builder: (context, _) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
-        final appUser = AppUser.fromFirebase(widget.user);
+        final appUser = AppUser.fromFirebase(widget.user, role: _userRole);
+        final verificationBadge = _verificationBadge();
         final displayName = appUser.displayName?.trim().isNotEmpty == true
             ? appUser.displayName!
             : 'Maya Chen';
@@ -339,17 +381,17 @@ class _ProfileTabState extends State<ProfileTab> {
                     subColor: subColor,
                     isDark: isDark,
                     trailing: _buildBadge(
-                      text: settings.tr('verified'),
-                      textColor: const Color(0xFF137333),
-                      bgColor: const Color(0xFFE6F4EA),
+                      text: verificationBadge.text,
+                      textColor: verificationBadge.textColor,
+                      bgColor: verificationBadge.bgColor,
                     ),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(settings.tr('identity_verification_sub')),
-                          backgroundColor: AppColors.success,
+                    onTap: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const IdentityVerificationScreen(),
                         ),
                       );
+                      await _loadVerificationStatus();
                     },
                   ),
                 ],
@@ -418,8 +460,39 @@ class _ProfileTabState extends State<ProfileTab> {
               ),
               const SizedBox(height: 22),
 
-              // Owner Management Section (Only visible to Owner persona)
-              if (_userRole == UserRole.owner) ...[
+              if (_userRole == UserRole.admin) ...[
+                _buildSectionHeader(
+                  title: 'Platform Administration',
+                  titleColor: titleColor,
+                ),
+                const SizedBox(height: 10),
+                _buildCard(
+                  cardBg: cardBg,
+                  borderColor: borderColor,
+                  isDark: isDark,
+                  children: [
+                    _buildListTile(
+                      icon: Icons.admin_panel_settings_outlined,
+                      title: 'Admin Console',
+                      subtitle:
+                          'Flagged accounts, ID reviews, disputes, deposit holds',
+                      titleColor: titleColor,
+                      subColor: subColor,
+                      isDark: isDark,
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => openMember4(
+                        context,
+                        AdminScreen(repo: FirebaseMember4Repository()),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+              ],
+
+              // Owner / commercial listing management
+              if (_userRole == UserRole.owner ||
+                  _userRole == UserRole.commercialShop) ...[
                 _buildSectionHeader(
                   title: 'Owner Hub & Gear Listings',
                   actionText: '+ Add Gear',
@@ -498,10 +571,30 @@ class _ProfileTabState extends State<ProfileTab> {
                         ),
                       ),
                     ),
+                    if (_userRole == UserRole.commercialShop) ...[
+                      Divider(height: 1, color: borderColor),
+                      _buildListTile(
+                        icon: Icons.warehouse_outlined,
+                        title: 'Commercial Shop Console',
+                        subtitle:
+                            'Batch inventory, tiered pricing, pickup hours & delivery windows',
+                        titleColor: titleColor,
+                        subColor: subColor,
+                        isDark: isDark,
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => CommercialShopConsoleScreen(
+                              ownerId: widget.user.uid,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 22),
-              ] else ...[
+              ] else if (_userRole != UserRole.admin) ...[
                 // Renter Persona Notice (Users can ONLY rent equipment)
                 _buildCard(
                   cardBg: cardBg,

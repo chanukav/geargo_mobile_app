@@ -275,13 +275,17 @@ class DepositCard extends StatelessWidget {
           ),
         ),
         Text('Status: ${depositLabel(rental.deposit['status'] as String)}'),
-        const SizedBox(height: 8),
-        const Text(
-          'Separate from the rental charge. Release is reviewed after both parties confirm return and condition evidence.',
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'This app records deposit review status. A payment provider must confirm any real hold or refund.',
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: Member4Theme.blue.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Text(
+            'This amount is authorized temporarily on your card and released within 48 hours after return without damage.',
+            style: TextStyle(fontSize: 12, height: 1.35),
+          ),
         ),
       ],
     ),

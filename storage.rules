@@ -3,6 +3,25 @@ service firebase.storage {
   match /b/{bucket}/o {
     function rental(id) { return firestore.get(/databases/(default)/documents/rentals/$(id)).data; }
     function member(id) { return request.auth != null && request.auth.uid in rental(id).participantIds; }
+    match /equipment_photos/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.resource.size > 0
+        && request.resource.size < 4 * 1024 * 1024
+        && request.resource.contentType.matches('image/jpeg');
+      allow delete: if request.auth != null;
+    }
+    match /identity_docs/{userId}/{fileName} {
+      allow read: if request.auth != null && (
+        request.auth.uid == userId ||
+        request.auth.token.get('admin', false) == true
+      );
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.size > 0
+        && request.resource.size < 4 * 1024 * 1024
+        && request.resource.contentType.matches('image/jpeg');
+    }
     match /condition/{rentalId}/{phase}/{uid}/{file} {
       allow read: if member(rentalId) || (request.auth != null && request.auth.token.get('admin', false) == true);
       // Immutable objects avoid overwriting confirmed evidence. Retakes use a new object.

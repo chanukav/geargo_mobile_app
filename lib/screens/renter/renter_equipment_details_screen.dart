@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/image_helper.dart';
+import '../../models/equipment.dart';
 import '../../models/gear_item.dart';
+import '../../services/equipment_service.dart';
+import '../../widgets/equipment_reviews_section.dart';
+import '../../widgets/trust_verification_badge.dart';
 import 'create_rental_request_sheet.dart';
 import 'widgets/favorite_toggle_button.dart';
 
@@ -17,8 +21,11 @@ class RenterEquipmentDetailsScreen extends StatefulWidget {
   final double rating;
   final int reviewsCount;
   final String ownerName;
+  final String ownerId;
   final double distanceKm;
   final bool available;
+  final bool ownerVerified;
+  final String? description;
 
   const RenterEquipmentDetailsScreen({
     super.key,
@@ -30,15 +37,19 @@ class RenterEquipmentDetailsScreen extends StatefulWidget {
     this.rating = 4.9,
     this.reviewsCount = 28,
     this.ownerName = 'Marcus Vance',
+    this.ownerId = 'owner_default',
     this.distanceKm = 1.4,
     this.available = true,
+    this.ownerVerified = false,
+    this.description,
   });
 
   /// Factory constructor when navigating from [GearItem].
   factory RenterEquipmentDetailsScreen.fromGearItem(GearItem item) {
-    final id = 'gear_${item.name.toLowerCase().replaceAll(RegExp(r'\s+'), '_')}';
+    final fallbackId =
+        'gear_${item.name.toLowerCase().replaceAll(RegExp(r'\s+'), '_')}';
     return RenterEquipmentDetailsScreen(
-      equipmentId: id,
+      equipmentId: item.listingId ?? fallbackId,
       name: item.name,
       category: item.category,
       image: item.image,
@@ -46,8 +57,29 @@ class RenterEquipmentDetailsScreen extends StatefulWidget {
       rating: item.rating,
       reviewsCount: item.reviews,
       ownerName: item.owner,
+      ownerId: item.ownerId ?? 'owner_default',
       distanceKm: item.distanceKm,
       available: item.available,
+      ownerVerified: item.verified,
+      description: item.description,
+    );
+  }
+
+  factory RenterEquipmentDetailsScreen.fromEquipment(Equipment equipment,
+      {String ownerDisplay = 'GearGo Host', bool ownerVerified = false}) {
+    return RenterEquipmentDetailsScreen(
+      equipmentId: equipment.id,
+      name: equipment.name,
+      category: equipment.category.name,
+      image: equipment.image,
+      dailyPrice: equipment.price,
+      rating: equipment.rating,
+      reviewsCount: equipment.reviewsCount,
+      ownerName: ownerDisplay,
+      ownerId: equipment.ownerId,
+      available: equipment.availability,
+      ownerVerified: ownerVerified,
+      description: equipment.description,
     );
   }
 
@@ -58,6 +90,34 @@ class RenterEquipmentDetailsScreen extends StatefulWidget {
 
 class _RenterEquipmentDetailsScreenState
     extends State<RenterEquipmentDetailsScreen> {
+  Equipment? _listing;
+  bool _loadingListing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadListingIfNeeded();
+  }
+
+  Future<void> _loadListingIfNeeded() async {
+    if (widget.equipmentId.startsWith('gear_')) return;
+    setState(() => _loadingListing = true);
+    final loaded =
+        await EquipmentService().getEquipmentById(widget.equipmentId);
+    if (mounted) {
+      setState(() {
+        _listing = loaded;
+        _loadingListing = false;
+      });
+    }
+  }
+
+  String get _descriptionText =>
+      _listing?.description ??
+      widget.description ??
+      'Professional-grade ${widget.name.toLowerCase()} in pristine operating condition. '
+          'Regularly inspected, thoroughly maintained and tested prior to each booking.';
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -291,18 +351,31 @@ class _RenterEquipmentDetailsScreenState
                                           color: textColor,
                                         ),
                                       ),
-                                      const SizedBox(width: 6),
-                                      const Icon(
-                                        Icons.verified_rounded,
-                                        size: 16,
-                                        color: AppColors.primary,
-                                      ),
+                                      if (widget.ownerVerified) ...[
+                                        const SizedBox(width: 6),
+                                        const Icon(
+                                          Icons.verified_rounded,
+                                          size: 16,
+                                          color: AppColors.primary,
+                                        ),
+                                      ],
                                     ],
                                   ),
                                   const SizedBox(height: 2),
-                                  Text(
-                                    'GearGo Host • Responds within 15 mins',
-                                    style: TextStyle(fontSize: 12, color: subText),
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          'GearGo Host • Responds within 15 mins',
+                                          style: TextStyle(
+                                              fontSize: 12, color: subText),
+                                        ),
+                                      ),
+                                      if (widget.ownerVerified) ...[
+                                        const SizedBox(width: 6),
+                                        const TrustVerificationBadge(compact: true),
+                                      ],
+                                    ],
                                   ),
                                 ],
                               ),
@@ -354,8 +427,10 @@ class _RenterEquipmentDetailsScreenState
                           Expanded(
                             child: _highlightBadge(
                               Icons.verified_user_outlined,
-                              'Verified Safe',
-                              'Inspection passed',
+                              widget.ownerVerified ? 'ID Verified' : 'Host Listed',
+                              widget.ownerVerified
+                                  ? 'Government ID confirmed'
+                                  : 'Platform listing',
                               cardBg,
                               borderCol,
                               textColor,
@@ -401,13 +476,95 @@ class _RenterEquipmentDetailsScreenState
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Professional-grade ${widget.name.toLowerCase()} in pristine operating condition. Regularly inspected, thoroughly maintained and tested prior to each booking. Includes standard protective case and accessories needed for immediate use.',
+                        _descriptionText,
                         style: TextStyle(
                           fontSize: 14,
                           color: textColor,
                           height: 1.5,
                         ),
                       ),
+                      if (_listing != null &&
+                          (_listing!.priceWeekly != null ||
+                              _listing!.priceMonthly != null)) ...[
+                        const SizedBox(height: 20),
+                        Text(
+                          'Duration pricing',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _priceChip(
+                                'Daily', _listing!.price, textColor, borderCol),
+                            if (_listing!.priceWeekly != null)
+                              _priceChip('Weekly', _listing!.priceWeekly!,
+                                  textColor, borderCol),
+                            if (_listing!.priceMonthly != null)
+                              _priceChip('Monthly', _listing!.priceMonthly!,
+                                  textColor, borderCol),
+                          ],
+                        ),
+                      ],
+                      if (_listing?.shopPickupLocation != null) ...[
+                        const SizedBox(height: 20),
+                        Text(
+                          'Shop pickup & delivery',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Pickup: ${_listing!.shopPickupLocation}',
+                          style: TextStyle(fontSize: 13.5, color: subText),
+                        ),
+                        if (_listing!.shopOpeningHours != null)
+                          Text(
+                            'Hours: ${_listing!.shopOpeningHours}',
+                            style: TextStyle(fontSize: 13.5, color: subText),
+                          ),
+                        if (_listing!.deliveryWindow != null)
+                          Text(
+                            'Delivery window: ${_listing!.deliveryWindow}',
+                            style: TextStyle(fontSize: 13.5, color: subText),
+                          ),
+                        if (_listing!.stockUnits > 1)
+                          Text(
+                            '${_listing!.stockUnits} units available',
+                            style: TextStyle(fontSize: 13.5, color: subText),
+                          ),
+                      ],
+                      const SizedBox(height: 24),
+                      Text(
+                        'Renter reviews',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      if (_loadingListing)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: LinearProgressIndicator(),
+                        )
+                      else
+                        EquipmentReviewsSection(
+                          equipmentId: widget.equipmentId,
+                          textColor: textColor,
+                          subColor: subText,
+                          cardBg: cardBg,
+                          borderColor: borderCol,
+                        ),
                       const SizedBox(height: 24),
 
                       // Rental Guidelines
@@ -537,6 +694,7 @@ class _RenterEquipmentDetailsScreenState
                                     equipmentCategory: widget.category,
                                     equipmentImage: widget.image,
                                     dailyPrice: widget.dailyPrice,
+                                    ownerId: widget.ownerId,
                                     ownerName: widget.ownerName,
                                   );
                                 }
@@ -576,6 +734,24 @@ class _RenterEquipmentDetailsScreenState
         constraints: const BoxConstraints.tightFor(width: 38, height: 38),
         icon: Icon(icon, color: AppColors.deepNavy),
         onPressed: onTap,
+      ),
+    );
+  }
+
+  Widget _priceChip(String label, double amount, Color textColor, Color border) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: border),
+      ),
+      child: Text(
+        '$label · \$${amount.toStringAsFixed(0)}',
+        style: TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 13,
+          color: textColor,
+        ),
       ),
     );
   }

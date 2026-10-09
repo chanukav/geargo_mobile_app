@@ -6,6 +6,11 @@ const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const d = require('./domain');
 initializeApp();
 const db = getFirestore();
+async function platformAdmin(uid, tokenAdmin) {
+  if (tokenAdmin === true) return true;
+  const user = await db.doc(`users/${uid}`).get();
+  return user.exists && user.data().role === 'admin';
+}
 function callable(handler) {
   return onCall({region: 'us-central1'}, async request => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Please sign in.');
@@ -62,14 +67,52 @@ exports.member4Message = callable(async (command, actor) => {
   return {saved: true};
 });
 exports.member4Admin = callable(async (command, actor) => {
-  d.requireThat(actor.admin, 'permission-denied', 'Administrator access is required.');
+  d.requireThat(await platformAdmin(actor.uid, actor.admin), 'permission-denied', 'Administrator access is required.');
+  const adminActor = {...actor, admin: true};
+  const now = new Date().toISOString();
+  if (command.kind === 'deposit') {
+    const rentalId = d.identifier(command.rentalId);
+    const ref = db.doc(`rentals/${rentalId}`);
+    const allowed = ['released', 'claimed'];
+    d.requireThat(allowed.includes(command.status), 'invalid-argument', 'Invalid deposit decision.');
+    await db.runTransaction(async tx => {
+      const snapshot = await tx.get(ref);
+      d.requireThat(snapshot.exists, 'not-found', 'Rental not found.');
+      const rental = snapshot.data();
+      d.requireThat(['reviewRequired', 'releasePending'].includes(rental.deposit?.status),
+        'failed-precondition', 'Deposit is not awaiting administrator action.');
+      rental.deposit.status = command.status;
+      rental.deposit.adminNote = d.text(command.note, 'Decision note');
+      rental.deposit.resolvedAt = now;
+      rental.updatedAt = now;
+      tx.set(ref, rental);
+      tx.create(db.collection('audit').doc(), {
+        recordId: ref.path, actorId: actor.uid, status: command.status,
+        note: command.note.trim(), createdAt: now,
+      });
+    });
+    return {saved: true};
+  }
   const collection = command.kind === 'verification' ? 'verifications' : command.kind === 'dispute' ? 'disputes' : null;
   d.requireThat(collection, 'invalid-argument', 'Invalid review type.');
   const ref = db.doc(`${collection}/${d.identifier(command.id)}`);
   await db.runTransaction(async tx => {
     const snapshot = await tx.get(ref); d.requireThat(snapshot.exists, 'not-found', 'Review not found.');
-    const next = d.adminUpdate(snapshot.data(), actor, command.kind, command.status, command.note, new Date().toISOString());
+    const next = d.adminUpdate(snapshot.data(), adminActor, command.kind, command.status, command.note, now);
     tx.set(ref, next);
+    if (command.kind === 'verification') {
+      const userId = snapshot.data().userId;
+      if (userId) {
+        tx.set(db.doc(`users/${userId}`), {
+          verification_status: next.status,
+          verification_reviewed_at: now,
+        }, {merge: true});
+        tx.set(db.doc(`owner_profile/${userId}`), {
+          is_verified: next.status === 'approved',
+          updated_at: now,
+        }, {merge: true});
+      }
+    }
     tx.create(db.collection('audit').doc(), {recordId: ref.path, actorId: actor.uid, status: next.status, note: command.note.trim(), createdAt: next.updatedAt});
   });
   return {saved: true};

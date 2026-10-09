@@ -10,6 +10,10 @@ class GearItem {
   final int pricePerDay;
   final bool available;
   final bool verified;
+  /// Firestore equipment document id when sourced from live listings.
+  final String? listingId;
+  final String? ownerId;
+  final String? description;
 
   const GearItem({
     required this.name,
@@ -22,6 +26,9 @@ class GearItem {
     required this.pricePerDay,
     this.available = true,
     this.verified = true,
+    this.listingId,
+    this.ownerId,
+    this.description,
   });
 }
 

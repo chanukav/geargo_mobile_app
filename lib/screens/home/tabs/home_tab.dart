@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/image_helper.dart';
 import '../../../models/gear_item.dart';
 import '../../../services/app_settings_service.dart';
+import '../../../services/gear_catalog_service.dart';
+import '../../../widgets/trust_verification_badge.dart';
 import '../../renter/renter_equipment_details_screen.dart';
 import '../../renter/widgets/favorite_toggle_button.dart';
 import '../widgets/appearance_language_sheet.dart';
@@ -63,17 +66,21 @@ class _HomeTabState extends State<HomeTab> {
         final titleColor = isDark ? AppColors.textPrimaryDark : kNavy;
         final subColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
-        final items = _category == 'All'
-            ? sampleGear.take(4).toList()
-            : sampleGear.where((g) => g.category == _category).toList();
-
         final currentLang = settings.languageCode;
         final langFlag = currentLang == 'en' ? '🇬🇧' : '🇱🇰';
         final langName = currentLang == 'en'
             ? 'EN'
             : (currentLang == 'si' ? 'සිංහල' : 'தமிழ்');
 
-        return SafeArea(
+        return StreamBuilder<List<GearItem>>(
+          stream: GearCatalogService().discoveryStream(),
+          builder: (context, catalogSnap) {
+            final catalog = catalogSnap.data ?? sampleGear;
+            final items = _category == 'All'
+                ? catalog.take(8).toList()
+                : catalog.where((g) => g.category == _category).toList();
+
+            return SafeArea(
           bottom: false,
           child: CustomScrollView(
             slivers: [
@@ -476,6 +483,8 @@ class _HomeTabState extends State<HomeTab> {
             ],
           ),
         );
+          },
+        );
       },
     );
   }
@@ -538,10 +547,19 @@ class _GearCard extends StatelessWidget {
                             const BorderRadius.vertical(top: Radius.circular(20)),
                         child: SizedBox(
                           width: double.infinity,
-                          child: Image.asset(item.image, fit: BoxFit.cover),
+                          child: EquipmentImageViewer(
+                            imageSource: item.image,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),
+                    if (item.verified)
+                      const Positioned(
+                        top: 8,
+                        left: 8,
+                        child: TrustVerificationBadge(compact: true),
+                      ),
                     Positioned(
                       top: 6,
                       right: 6,

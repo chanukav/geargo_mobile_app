@@ -30,6 +30,8 @@ abstract class Member4Repository {
   Future<void> upload(String rentalId, String phase, String angle, XFile file);
   Future<Uint8List?> photo(String path);
   Future<void> review(String kind, String id, String status, String note);
+  Stream<List<Map<String, dynamic>>> flaggedUsers();
+  Future<void> adminDepositAction(String rentalId, String status, String note);
 }
 
 class FirebaseMember4Repository implements Member4Repository {
@@ -50,8 +52,13 @@ class FirebaseMember4Repository implements Member4Repository {
   @override
   String get uid => auth.currentUser!.uid;
   @override
-  Future<bool> isAdmin() async =>
-      (await auth.currentUser!.getIdTokenResult(true)).claims?['admin'] == true;
+  Future<bool> isAdmin() async {
+    final claims =
+        (await auth.currentUser!.getIdTokenResult(true)).claims?['admin'];
+    if (claims == true) return true;
+    final userDoc = await db.collection('users').doc(uid).get();
+    return userDoc.data()?['role'] == 'admin';
+  }
   @override
   Stream<List<RentalRecord>> rentals({bool all = false}) {
     Query<Map<String, dynamic>> query = db.collection('rentals');
@@ -162,6 +169,26 @@ class FirebaseMember4Repository implements Member4Repository {
       _call('member4Admin', {
         'kind': kind,
         'id': id,
+        'status': status,
+        'note': note,
+      });
+
+  @override
+  Stream<List<Map<String, dynamic>>> flaggedUsers() => db
+      .collection('users')
+      .where('flagged', isEqualTo: true)
+      .snapshots()
+      .map((s) => s.docs.map((d) => {...d.data(), 'id': d.id}).toList());
+
+  @override
+  Future<void> adminDepositAction(
+    String rentalId,
+    String status,
+    String note,
+  ) =>
+      _call('member4Admin', {
+        'kind': 'deposit',
+        'rentalId': rentalId,
         'status': status,
         'note': note,
       });
