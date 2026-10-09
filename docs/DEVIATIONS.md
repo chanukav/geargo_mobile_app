@@ -1,0 +1,17 @@
+# UI/UX Prototype Deviations Log
+
+This document records and justifies all architectural, structural, and behavioral deviations between the Milestone 02 Figma prototype screens and the Milestone 03 Flutter implementation for the **Commercial Shop & Transaction Management** module.
+
+---
+
+## Traceability & Justifications Matrix
+
+| Screen | Prototype Element | Implemented Behaviour | Reason / Justification |
+| :--- | :--- | :--- | :--- |
+| **Fulfillment / Delivery Toggle** (`checkout-delivery-toggle`) | Standalone intermediary screen dedicated solely to toggling between pickup and delivery. | Merged directly into **Booking Details** (`BookingDetailsScreen`) and **Confirm Order** (`CheckoutScreen`) as an interactive `SegmentedButton` and custom fulfillment cards. | **HCI Usability & Efficiency**: Eliminates redundant screen transitions and navigation friction. Grouping fulfillment choice with rental dates and final payment reduces cognitive load and allows immediate recalculation of the delivery fee without screen hopping. |
+| **Checkout & Confirmation** (`checkout-modal`, `payment-confirmation`) | Single combined total line displaying the gross transaction sum ($Rental + Service + Deposit$). | Distinct itemization of **Due Now** vs. **Refundable Security Hold** on `PriceBreakdownCard` and confirmation banner. | **Resolution of Usability Issue UI-01**: During M02 usability testing, participants were confused whether the deposit was an upfront non-refundable fee. Explicitly distinguishing due amounts prevents transaction abandonment. |
+| **Address Selection** (`address-selection`) | Static mock addresses with hardcoded selection states. | Real-time cloud persistence in Firestore (`users/{uid}/addresses`) with live add and delete dialogs. | **Data Integrity & Robustness (FR-07)**: Addresses now survive app restarts and authenticate per user (`rules_version = '2'`), ensuring a persistent delivery workflow. |
+| **Browse Equipment** (`browse_equipment_screen`) | Static list of available items without search or quick filters. | Added keyword search bar and dynamic category filter pills (Mountain Bikes, Cricket, Football, Camping, etc.). | **Usability Enhancement (FR-03)**: Streamlines equipment discovery for renters in shops with large inventories, preventing excessive vertical scrolling. |
+| **Transactions History** (`transactions_screen`) | Single unsegmented list of transaction cards. | Dual tabs (**My Bookings** vs. **Shop Orders**) plus horizontal status filter chips (**All**, **Confirmed**, **Completed**, **Cancelled**). | **Role Separation & Scannability**: Clearly separates the user's renter role from their shop owner role. Status chips allow rapid filtering of active rentals versus completed/cancelled history. |
+| **Payment Flow** (`checkout_screen`) | External third-party payment gateway mock webview. | Simulated in-app instant payment with booking confirmation and atomic Firestore transaction (`runTransaction`). | **Milestone Scope**: Payment processing is simulated safely within the app sandbox without requiring external merchant accounts, while maintaining atomic stock verification. |
+| **Owner Listing Guard** (`browse_equipment_screen`) | Generic rent button on all listings. | Disabled card and contextual alert (`Your listing (cannot rent own item)`) when browsing own products. | **Business Logic Integrity**: Prevents shop owners from accidentally booking or placing transactions on their own listed equipment. |
