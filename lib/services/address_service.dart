@@ -31,13 +31,16 @@ class AddressService {
   AddressService({
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
+    String? userId,
   })  : _db = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+        _auth = auth ?? FirebaseAuth.instance,
+        _explicitUserId = userId;
 
   final FirebaseFirestore _db;
   final FirebaseAuth _auth;
+  final String? _explicitUserId;
 
-  String? get _uid => _auth.currentUser?.uid;
+  String? get _uid => _explicitUserId ?? _auth.currentUser?.uid;
 
   CollectionReference<Map<String, dynamic>>? _userAddressesCol() {
     final uid = _uid;
@@ -53,7 +56,7 @@ class AddressService {
       final now = DateTime.now();
       final list = snap.docs.map(UserAddress.fromDoc).toList();
       // Sorted in memory so no Firestore composite index is required.
-      list.sort((a, b) => (a.createdAt ?? now).compareTo(a.createdAt ?? now));
+      list.sort((a, b) => (b.createdAt ?? now).compareTo(a.createdAt ?? now));
       return list;
     });
   }

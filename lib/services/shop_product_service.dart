@@ -8,16 +8,25 @@ class ShopProductService {
   ShopProductService({
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
-  })  : _db = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+    String? userId,
+  })  : _customFirestore = firestore,
+        _customAuth = auth,
+        _explicitUserId = userId;
 
-  final FirebaseFirestore _db;
-  final FirebaseAuth _auth;
+  final FirebaseFirestore? _customFirestore;
+  final FirebaseAuth? _customAuth;
+  final String? _explicitUserId;
+
+  FirebaseFirestore get _db => _customFirestore ?? FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection('shop_products');
 
-  String? get _uid => _auth.currentUser?.uid;
+  String? get _uid =>
+      _explicitUserId ??
+      (_customAuth != null
+          ? _customAuth.currentUser?.uid
+          : FirebaseAuth.instance.currentUser?.uid);
 
   // ---------------- CREATE ----------------
   Future<void> addProduct(ShopProduct p) async {

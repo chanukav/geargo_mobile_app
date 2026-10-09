@@ -12,11 +12,16 @@ class TransactionService {
   TransactionService({
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
-  })  : _db = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+    String? userId,
+  })  : _customFirestore = firestore,
+        _customAuth = auth,
+        _explicitUserId = userId;
 
-  final FirebaseFirestore _db;
-  final FirebaseAuth _auth;
+  final FirebaseFirestore? _customFirestore;
+  final FirebaseAuth? _customAuth;
+  final String? _explicitUserId;
+
+  FirebaseFirestore get _db => _customFirestore ?? FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection('rental_transactions');
@@ -24,7 +29,11 @@ class TransactionService {
   CollectionReference<Map<String, dynamic>> get _productsCol =>
       _db.collection('shop_products');
 
-  String? get _uid => _auth.currentUser?.uid;
+  String? get _uid =>
+      _explicitUserId ??
+      (_customAuth != null
+          ? _customAuth.currentUser?.uid
+          : FirebaseAuth.instance.currentUser?.uid);
 
   // ---------------- CREATE ----------------
   Future<RentalTransaction> createBooking({
@@ -48,9 +57,6 @@ class TransactionService {
     // ---------------- DOUBLE BOOKING CHECK ----------------
     // Query by productId ONLY to ensure no Firestore composite index is needed.
     // Filter status and date range overlaps in Dart.
-    //
-    // In addition to this check, the Firestore transaction below atomically
-    // validates and decrements physical stock quantity to prevent race conditions.
     final existingSnap = await _col
         .where('productId', isEqualTo: product.id)
         .get();
@@ -205,27 +211,31 @@ class TransactionService {
         return;
       }
 
+      // Read product document before performing any writes (Firestore transaction requirement)
+      final productId = (bookingData['productId'] ?? '') as String;
+      DocumentReference<Map<String, dynamic>>? productRef;
+      DocumentSnapshot<Map<String, dynamic>>? productSnap;
+      if (productId.isNotEmpty) {
+        productRef = _productsCol.doc(productId);
+        productSnap = await transaction.get(productRef);
+      }
+
+      // Perform writes after all reads have completed
       transaction.update(bookingRef, {
         'status': 'cancelled',
         'paymentStatus': 'refunded',
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      // Restore equipment inventory stock
-      final productId = (bookingData['productId'] ?? '') as String;
-      if (productId.isNotEmpty) {
-        final productRef = _productsCol.doc(productId);
-        final productSnap = await transaction.get(productRef);
-        if (productSnap.exists) {
-          final currentQty =
-              (productSnap.data()?['quantity'] as num?)?.toInt() ?? 0;
-          final newQty = currentQty + 1;
-          transaction.update(productRef, {
-            'quantity': newQty,
-            'isAvailable': true,
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
-        }
+      if (productRef != null && productSnap != null && productSnap.exists) {
+        final currentQty =
+            (productSnap.data()?['quantity'] as num?)?.toInt() ?? 0;
+        final newQty = currentQty + 1;
+        transaction.update(productRef, {
+          'quantity': newQty,
+          'isAvailable': true,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
       }
     });
   }

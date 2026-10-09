@@ -7,10 +7,11 @@ import '../../services/shop_product_service.dart';
 
 /// Add (CREATE) or edit (UPDATE) a piece of equipment.
 class ProductFormScreen extends StatefulWidget {
-  const ProductFormScreen({super.key, this.product});
+  const ProductFormScreen({super.key, this.product, this.service});
 
   /// When null the form creates a new product, otherwise it edits this one.
   final ShopProduct? product;
+  final ShopProductService? service;
 
   @override
   State<ProductFormScreen> createState() => _ProductFormScreenState();
@@ -30,7 +31,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   static const _conditions = ['Excellent', 'Good', 'Fair'];
 
   final _formKey = GlobalKey<FormState>();
-  final _service = ShopProductService();
+  late final ShopProductService _service;
 
   late final TextEditingController _name;
   late final TextEditingController _description;
@@ -48,6 +49,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? ShopProductService();
     final p = widget.product;
     _name = TextEditingController(text: p?.name ?? '');
     _description = TextEditingController(text: p?.description ?? '');
