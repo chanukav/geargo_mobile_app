@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/shop_theme.dart';
@@ -92,8 +93,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _pay() async {
+    if (_paying) return;
     final nav = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    if (FirebaseAuth.instance.currentUser == null) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Please sign in to confirm and pay for your booking.')),
+      );
+      return;
+    }
+
     setState(() => _paying = true);
     try {
       final txn = await _service.createBooking(

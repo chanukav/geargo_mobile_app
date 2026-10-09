@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/shop_theme.dart';
@@ -20,6 +21,7 @@ class BookingDetailsScreen extends StatefulWidget {
 class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   late DateTimeRange _range;
   bool _delivery = false;
+  bool _proceeding = false;
 
   @override
   void initState() {
@@ -37,36 +39,63 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
 
   Future<void> _pickRange() async {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     final picked = await showDateRangePicker(
       context: context,
-      firstDate: DateTime(now.year, now.month, now.day),
-      lastDate: now.add(const Duration(days: 365)),
+      firstDate: today,
+      lastDate: today.add(const Duration(days: 365)),
       initialDateRange: _range,
+      helpText: 'Select Rental Period',
     );
-    if (picked != null) setState(() => _range = picked);
+    if (picked != null) {
+      if (!picked.end.isAfter(picked.start)) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Rental end date must be at least 1 day after start date.'),
+          ),
+        );
+        return;
+      }
+      setState(() => _range = picked);
+    }
   }
 
   Future<void> _proceed() async {
-    DeliveryDetails? details;
-    if (_delivery) {
-      details = await Navigator.push<DeliveryDetails>(
-        context,
-        MaterialPageRoute(builder: (_) => const AddressSelectionScreen()),
+    if (_proceeding) return;
+    final messenger = ScaffoldMessenger.of(context);
+    if (FirebaseAuth.instance.currentUser == null) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Please sign in to proceed with booking equipment.')),
       );
-      if (details == null) return;
+      return;
     }
-    if (!mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CheckoutScreen(
-          product: widget.product,
-          range: _range,
-          delivery: _delivery,
-          details: details,
+
+    setState(() => _proceeding = true);
+    try {
+      DeliveryDetails? details;
+      if (_delivery) {
+        details = await Navigator.push<DeliveryDetails>(
+          context,
+          MaterialPageRoute(builder: (_) => const AddressSelectionScreen()),
+        );
+        if (details == null) return;
+      }
+      if (!mounted) return;
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CheckoutScreen(
+            product: widget.product,
+            range: _range,
+            delivery: _delivery,
+            details: details,
+          ),
         ),
-      ),
-    );
+      );
+    } finally {
+      if (mounted) setState(() => _proceeding = false);
+    }
   }
 
   Widget _placeholder(ThemeData theme) => Container(

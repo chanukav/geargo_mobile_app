@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/shop_theme.dart';
@@ -98,6 +99,18 @@ class _TransactionListState extends State<_TransactionList> {
           child: StreamBuilder<List<RentalTransaction>>(
             stream: _stream,
             builder: (context, snap) {
+              if (FirebaseAuth.instance.currentUser == null) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Text(
+                      'You are currently signed out.\nPlease sign in to view your bookings and orders.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              }
+
               if (snap.hasError) {
                 return Center(
                   child: Padding(

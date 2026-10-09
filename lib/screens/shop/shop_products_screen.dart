@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/shop_theme.dart';
@@ -18,6 +19,32 @@ class ShopProductsScreen extends StatelessWidget {
 
   Widget _content(BuildContext context) {
     final theme = Theme.of(context);
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('My Shop Inventory')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.lock_outline,
+                    size: 56, color: theme.colorScheme.primary),
+                const SizedBox(height: 12),
+                Text('Signed Out', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 8),
+                const Text(
+                  'Please sign in to view and manage your shop inventory.',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('My Shop Inventory')),
       floatingActionButton: FloatingActionButton.extended(

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/shop_theme.dart';
@@ -104,6 +105,12 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
 
     if (!mounted) return;
     if (added == true && t.isNotEmpty) {
+      if (FirebaseAuth.instance.currentUser == null) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Please sign in to save a delivery address.')),
+        );
+        return;
+      }
       try {
         final newId = await _addressService.addAddress(
           label: l.isEmpty ? 'Address' : l,
@@ -199,7 +206,12 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
             children: [
               Text('Saved Addresses', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
-              if (snap.connectionState == ConnectionState.waiting && addresses.isEmpty)
+              if (FirebaseAuth.instance.currentUser == null)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text('Please sign in to save and sync delivery addresses.'),
+                )
+              else if (snap.connectionState == ConnectionState.waiting && addresses.isEmpty)
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.all(16),
