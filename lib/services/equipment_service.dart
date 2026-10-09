@@ -223,7 +223,9 @@ class EquipmentService {
     final col = _equipmentCollection;
     if (col != null) {
       try {
-        await col.doc(updatedItem.id).update(updatedItem.toMap());
+        await col
+            .doc(updatedItem.id)
+            .set(updatedItem.toMap(), SetOptions(merge: true));
         debugPrint('Equipment updated in Firestore: ${updatedItem.id}');
       } catch (e) {
         debugPrint('Firestore update warning (using cached data): $e');

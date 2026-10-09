@@ -96,14 +96,12 @@ class SavedEquipmentService {
     _notifyCacheListeners(finalItem.renterId);
 
     if (col != null) {
-      col.doc(docId).set(finalItem.toMap()).timeout(
-        const Duration(seconds: 1),
-        onTimeout: () {
-          debugPrint('Firestore save item timed out; stored locally.');
-        },
-      ).catchError((e) {
-        debugPrint('Firestore save item warning: $e');
-      });
+      try {
+        await col.doc(docId).set(finalItem.toMap());
+        debugPrint('Saved item synced to Firestore: $docId');
+      } catch (e) {
+        debugPrint('Firestore save item warning (cached locally): $e');
+      }
     }
 
     return finalItem;
@@ -181,14 +179,11 @@ class SavedEquipmentService {
 
     final col = _savedCollection;
     if (col != null) {
-      col.doc(id).update(updated.toMap()).timeout(
-        const Duration(seconds: 1),
-        onTimeout: () {
-          debugPrint('Firestore update timed out; updated locally.');
-        },
-      ).catchError((e) {
+      try {
+        await col.doc(id).update(updated.toMap());
+      } catch (e) {
         debugPrint('Firestore update saved warning: $e');
-      });
+      }
     }
   }
 
@@ -204,14 +199,11 @@ class SavedEquipmentService {
 
     final col = _savedCollection;
     if (col != null) {
-      col.doc(id).delete().timeout(
-        const Duration(seconds: 1),
-        onTimeout: () {
-          debugPrint('Firestore delete timed out; removed locally.');
-        },
-      ).catchError((e) {
+      try {
+        await col.doc(id).delete();
+      } catch (e) {
         debugPrint('Firestore delete saved warning: $e');
-      });
+      }
     }
   }
 

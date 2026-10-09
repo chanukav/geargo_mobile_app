@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../constants/app_colors.dart';
+import '../constants/supabase_config.dart';
+import '../../services/supabase_storage_service.dart';
 
 /// Predefined high quality gear preset images for easy selection & demo.
 class GearImagePreset {
@@ -144,21 +146,45 @@ class ImageHelper {
     return 'data:image/jpeg;base64,$base64String';
   }
 
-  /// Uploads listing photo to Cloud Storage; returns public download URL only.
+  /// Uploads listing photo to Supabase Storage; returns public download URL.
+  /// Falls back to Firebase Storage if Supabase is not yet configured.
   static Future<String> uploadEquipmentPhoto(
     String equipmentId,
     Uint8List bytes,
   ) async {
-    if (bytes.isEmpty || bytes.length > 4 * 1024 * 1024) {
-      throw StateError('Equipment photo must be under 4 MB.');
+    if (bytes.isEmpty || bytes.length > 5 * 1024 * 1024) {
+      throw StateError('Equipment photo must be under 5 MB.');
     }
-    final ref =
-        FirebaseStorage.instance.ref('equipment_photos/$equipmentId.jpg');
-    await ref.putData(
-      bytes,
-      SettableMetadata(contentType: 'image/jpeg'),
-    );
-    return ref.getDownloadURL();
+
+    // 1. Prioritize Supabase Storage for images
+    if (SupabaseConfig.isConfigured) {
+      try {
+        return await SupabaseStorageService.uploadEquipmentImage(
+          equipmentId: equipmentId,
+          bytes: bytes,
+        );
+      } catch (e) {
+        debugPrint('Supabase Storage upload error: $e. Checking fallback...');
+      }
+    } else {
+      debugPrint('Supabase is not configured yet. Add your URL and anonKey in lib/core/constants/supabase_config.dart');
+    }
+
+    // 2. Fallback to Firebase Storage if Supabase is not ready
+    try {
+      final ref =
+          FirebaseStorage.instance.ref('equipment_photos/$equipmentId.jpg');
+      await ref.putData(
+        bytes,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+      return await ref.getDownloadURL();
+    } catch (e) {
+      debugPrint('Firebase Storage fallback also failed: $e');
+      // If offline/no storage provider is configured, return the base64 URI so image still works locally
+      final base64String = base64Encode(bytes);
+      return 'data:image/jpeg;base64,$base64String';
+    }
   }
 
   /// Converts base64 data URLs / local paths to a Storage download URL when needed.
