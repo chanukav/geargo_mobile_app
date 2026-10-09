@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // 1. Shop Equipment Listings:
+    // Readable by all signed-in users so equipment can be browsed.
+    // Create/update/delete strictly restricted to the shop owner (ownerId).
+    match /shop_products/{productId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // 2. Rental Transactions:
+    // Readable and updatable only by the renter (renterId) or shop owner (shopId).
+    // Booking creation restricted to the renter (renterId).
+    // Deletion allowed for either party (e.g. removing cancelled records).
+    match /rental_transactions/{transactionId} {
+      allow read: if isSignedIn() && (
+        resource.data.renterId == request.auth.uid ||
+        resource.data.shopId == request.auth.uid
+      );
+      allow create: if isSignedIn() && request.resource.data.renterId == request.auth.uid;
+      allow update, delete: if isSignedIn() && (
+        resource.data.renterId == request.auth.uid ||
+        resource.data.shopId == request.auth.uid
+      );
+    }
+
+    // 3. Saved Delivery Addresses:
+    // Subcollection under users/{userId}/addresses, readable and writable
+    // strictly by the authenticated owner of the account.
+    match /users/{userId}/addresses/{addressId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // User profile document fallback
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}
