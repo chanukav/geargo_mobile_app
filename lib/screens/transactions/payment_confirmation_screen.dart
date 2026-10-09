@@ -18,7 +18,6 @@ class PaymentConfirmationScreen extends StatelessWidget {
 
   Widget _content(BuildContext context) {
     final t = transaction;
-    final totalPaid = t.total > 0 ? t.total : (t.dueNow + t.deposit);
     final bookingRefText = t.bookingRef.startsWith('#')
         ? t.bookingRef
         : '#${t.bookingRef}';
@@ -160,9 +159,14 @@ class PaymentConfirmationScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     _tableRow(
-                      'TOTAL AMOUNT',
-                      '${money(totalPaid)} (Paid)',
+                      'AMOUNT PAID',
+                      '${money(t.dueNow)} (Paid)',
                       highlight: true,
+                    ),
+                    const SizedBox(height: 10),
+                    _tableRow(
+                      'SECURITY HOLD',
+                      '${money(t.deposit)} (Released within 48h of return)',
                     ),
                   ],
                 ),

@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -8,9 +6,13 @@ import '../../core/theme/shop_theme.dart';
 import '../../core/utils/format.dart';
 import '../../models/rental_transaction.dart';
 import '../../models/shop_product.dart';
+import '../../services/booking_draft_service.dart';
+import '../../services/payment_service.dart';
 import '../../services/transaction_service.dart';
 import 'address_selection_screen.dart';
 import 'payment_confirmation_screen.dart';
+import 'widgets/deposit_hold_card.dart';
+import 'widgets/security_badge.dart';
 
 /// Screen 4: Confirm Order & Payment Breakdown
 /// Replicates "7.4 Commercial Rental Shop Interfaces" (Report Page 17, Screen 4).
@@ -48,14 +50,14 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
   }
 
   int get _days =>
-      math.max(1, widget.range.end.difference(widget.range.start).inDays);
+      calculateRentalDays(widget.range.start, widget.range.end);
 
-  double get _rentalFee => widget.product.pricePerDay * _days;
-  double get _serviceFee => 15.0;
-  double get _deliveryFee => widget.delivery ? 25.0 : 0.0;
-  double get _deposit => widget.product.deposit;
-  double get _totalAmount =>
-      _rentalFee + _serviceFee + _deliveryFee + _deposit;
+  PriceBreakdown get _price => PriceBreakdown.calculate(
+        pricePerDay: widget.product.pricePerDay,
+        days: _days,
+        deposit: widget.product.deposit,
+        delivery: widget.delivery,
+      );
 
   Future<void> _changeAddress() async {
     Navigator.push(
@@ -74,6 +76,19 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
     setState(() => _processing = true);
 
     try {
+      final price = _price;
+      // Satisfies NFR-02: process simulated payment through abstract payment gateway
+      const paymentService = MockPaymentService();
+      final paymentResult = await paymentService.processPayment(
+        amount: price.dueNow,
+        paymentMethod: DummyShopData.defaultPaymentMethod,
+        bookingRef: DummyShopData.sampleBookingRef,
+      );
+
+      if (!paymentResult.isSuccess) {
+        throw Exception(paymentResult.message);
+      }
+
       final user = FirebaseAuth.instance.currentUser;
       RentalTransaction txn;
 
@@ -107,18 +122,21 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
               DummyShopData.defaultInstructions,
           deliveryWindow:
               widget.deliveryWindow ?? 'Afternoon (12 PM - 5 PM)',
-          rentalFee: _rentalFee,
-          serviceFee: _serviceFee,
-          deliveryFee: _deliveryFee,
-          deposit: _deposit,
-          dueNow: _rentalFee + _serviceFee + _deliveryFee,
-          total: _totalAmount,
+          rentalFee: price.rentalFee,
+          serviceFee: price.serviceFee,
+          deliveryFee: price.deliveryFee,
+          deposit: price.deposit,
+          dueNow: price.dueNow,
+          total: price.total,
           paymentMethod: DummyShopData.defaultPaymentMethod,
           paymentStatus: 'paid',
           status: 'confirmed',
           createdAt: DateTime.now(),
         );
       }
+
+      // Satisfies NFR-04: Clear active booking draft upon completed booking
+      BookingDraftService.instance.clearDraft();
 
       if (!mounted) return;
       Navigator.pushReplacement(
@@ -399,6 +417,10 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: 10),
+
+              // Visible Security Assurance Badge (NFR-02)
+              const SecurityBadge(),
               const SizedBox(height: 20),
 
               // 4. Price Breakdown Header
@@ -423,23 +445,18 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                 child: Column(
                   children: [
                     _breakdownRow(
-                      'Rental Fee (\$${p.pricePerDay.toStringAsFixed(0)} x $_days days)',
-                      money(_rentalFee),
+                      'Rental Fee (${money(p.pricePerDay)} x $_days days)',
+                      money(_price.rentalFee),
                     ),
                     const SizedBox(height: 10),
                     _breakdownRow(
-                      'GearGo Service Fee',
-                      money(_serviceFee),
+                      'GearGo Service Fee (8%)',
+                      money(_price.serviceFee),
                     ),
                     const SizedBox(height: 10),
                     _breakdownRow(
                       'Delivery Fee',
-                      widget.delivery ? money(_deliveryFee) : 'Free',
-                    ),
-                    const SizedBox(height: 10),
-                    _breakdownRow(
-                      'Refundable Deposit',
-                      money(_deposit),
+                      widget.delivery ? money(_price.deliveryFee) : 'Free',
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 12),
@@ -449,7 +466,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Total Amount',
+                          'Total Due Now',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -457,7 +474,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                           ),
                         ),
                         Text(
-                          money(_totalAmount),
+                          money(_price.dueNow),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
@@ -469,6 +486,10 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: 14),
+
+              // Deposit Hold Card (UI-01 explicit separation)
+              DepositHoldCard(depositAmount: _price.deposit),
             ],
           ),
 
@@ -512,7 +533,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                           ),
                         )
                       : Text(
-                          'Confirm & Pay ${money(_totalAmount)}',
+                          'Confirm & Pay ${money(_price.dueNow)}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,

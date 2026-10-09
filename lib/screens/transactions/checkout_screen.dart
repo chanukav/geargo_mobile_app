@@ -1,11 +1,11 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../../core/constants/dummy_shop_data.dart';
 import '../../core/theme/shop_theme.dart';
 import '../../core/utils/format.dart';
+import '../../models/rental_transaction.dart';
 import '../../models/shop_product.dart';
+import '../../services/booking_draft_service.dart';
 import 'address_selection_screen.dart';
 import 'confirm_order_screen.dart';
 
@@ -29,23 +29,34 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   late bool _delivery;
-  static const double _deliveryFee = 15.0;
-  static const double _serviceFee = 12.0;
 
   @override
   void initState() {
     super.initState();
     _delivery = widget.delivery;
+    _autoSaveDraft();
+  }
+
+  void _autoSaveDraft() {
+    BookingDraftService.instance.saveDraft(
+      productId: widget.product.id,
+      range: widget.range,
+      isDelivery: _delivery,
+    );
   }
 
   int get _days =>
-      math.max(1, widget.range.end.difference(widget.range.start).inDays);
+      calculateRentalDays(widget.range.start, widget.range.end);
 
-  double get _rentalTotal => widget.product.pricePerDay * _days;
-  double get _currentDeliveryFee => _delivery ? _deliveryFee : 0.0;
-  double get _totalAmount => _rentalTotal + _currentDeliveryFee + _serviceFee;
+  PriceBreakdown get _price => PriceBreakdown.calculate(
+        pricePerDay: widget.product.pricePerDay,
+        days: _days,
+        deposit: widget.product.deposit,
+        delivery: _delivery,
+      );
 
   void _onContinue() {
+    _autoSaveDraft();
     if (_delivery) {
       // Navigate to Screen 3: Delivery Address
       Navigator.push(
@@ -78,6 +89,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _content(BuildContext context) {
     final p = widget.product;
+    final price = _price;
     final heroUrl = p.imageUrl.trim().isNotEmpty
         ? p.imageUrl.trim()
         : DummyShopData.defaultHeroImage;
@@ -165,7 +177,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Oct 12 - Oct 15 • $_days Days',
+                            '${fmtDate(widget.range.start)} - ${fmtDate(widget.range.end)} • $_days Day${_days == 1 ? '' : 's'}',
                             style: const TextStyle(
                               fontSize: 12,
                               color: ShopPalette.textMuted,
@@ -198,18 +210,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 subtitle: DummyShopData.pickupLocation,
                 icon: Icons.location_on_outlined,
                 selected: !_delivery,
-                onTap: () => setState(() => _delivery = false),
+                onTap: () {
+                  setState(() => _delivery = false);
+                  _autoSaveDraft();
+                },
               ),
               const SizedBox(height: 12),
 
               // Option B: GearGo Delivery
               _fulfillmentCard(
                 title: 'GearGo Delivery',
-                trailingText: '+\$15.00',
+                trailingText: '+${money(PriceBreakdown.deliveryFlatFee)}',
                 subtitle: DummyShopData.deliveryDescription,
                 icon: Icons.local_shipping_outlined,
                 selected: _delivery,
-                onTap: () => setState(() => _delivery = true),
+                onTap: () {
+                  setState(() => _delivery = true);
+                  _autoSaveDraft();
+                },
               ),
               const SizedBox(height: 24),
 
@@ -236,19 +254,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: Column(
                   children: [
                     _priceRow(
-                      'Rental (\$${p.pricePerDay.toStringAsFixed(2)} x $_days days)',
-                      money(_rentalTotal),
+                      'Rental (${money(p.pricePerDay)} x $_days days)',
+                      money(price.rentalFee),
                     ),
                     const SizedBox(height: 10),
                     _priceRow(
                       'Delivery Fee',
-                      _delivery ? money(_deliveryFee) : 'Free',
-                      valueColor: ShopPalette.blue,
+                      _delivery ? money(price.deliveryFee) : 'Free',
+                      valueColor: _delivery ? ShopPalette.blue : null,
                     ),
                     const SizedBox(height: 10),
                     _priceRow(
                       'Service Fee',
-                      money(_serviceFee),
+                      money(price.serviceFee),
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 12),
@@ -258,7 +276,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Total Amount',
+                          'Total Due Now',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -266,7 +284,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         ),
                         Text(
-                          money(_totalAmount),
+                          money(price.dueNow),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,

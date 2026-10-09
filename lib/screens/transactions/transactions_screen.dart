@@ -8,6 +8,7 @@ import '../../services/transaction_service.dart';
 import 'address_selection_screen.dart';
 import 'browse_equipment_screen.dart';
 import 'price_breakdown_card.dart';
+import 'widgets/booking_status_chip.dart';
 
 /// Transaction/Payment Management.
 /// READ: My Bookings (as renter) and Shop Orders (as shop) tabs + details sheet.
@@ -330,23 +331,6 @@ class _TransactionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-
-    Color bg;
-    Color fg;
-    switch (t.status) {
-      case 'cancelled':
-        bg = scheme.errorContainer;
-        fg = scheme.onErrorContainer;
-        break;
-      case 'completed':
-        bg = scheme.tertiaryContainer;
-        fg = scheme.onTertiaryContainer;
-        break;
-      default:
-        bg = scheme.primaryContainer;
-        fg = scheme.onPrimaryContainer;
-    }
 
     final actions = <Widget>[];
     if (t.status == 'confirmed') {
@@ -388,18 +372,7 @@ class _TransactionCard extends StatelessWidget {
                         style: theme.textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w600)),
                   ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: bg,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      t.status.toUpperCase(),
-                      style: theme.textTheme.labelSmall?.copyWith(color: fg),
-                    ),
-                  ),
+                  BookingStatusChip(status: t.status),
                 ],
               ),
               const SizedBox(height: 2),

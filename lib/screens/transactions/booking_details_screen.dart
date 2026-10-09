@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants/dummy_shop_data.dart';
 import '../../core/theme/shop_theme.dart';
+import '../../core/utils/format.dart';
 import '../../models/shop_product.dart';
+import '../../services/booking_draft_service.dart';
 import 'checkout_screen.dart';
+import 'widgets/fulfillment_toggle.dart';
 
 /// Screen 1: Equipment Detail & Booking Configuration
 /// Replicates "7.4 Commercial Rental Shop Interfaces" (Report Page 17, Screen 1).
@@ -24,12 +27,29 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // Default to the Oct 15 - Oct 19 dates from the prototype
-    final now = DateTime.now();
-    final start = DateTime(now.year, 10, 15);
-    final end = DateTime(now.year, 10, 19);
-    _range = DateTimeRange(start: start, end: end);
+    // Restore existing draft if for this product, otherwise default to prototype dates (NFR-04)
+    final draft = BookingDraftService.instance.draft;
+    if (draft != null && draft.productId == widget.product.id) {
+      _range = DateTimeRange(start: draft.startDate, end: draft.endDate);
+      _delivery = draft.isDelivery;
+    } else {
+      final now = DateTime.now();
+      final start = DateTime(now.year, 10, 15);
+      final end = DateTime(now.year, 10, 19);
+      _range = DateTimeRange(start: start, end: end);
+    }
+    _autoSaveDraft();
   }
+
+  void _autoSaveDraft() {
+    BookingDraftService.instance.saveDraft(
+      productId: widget.product.id,
+      range: _range,
+      isDelivery: _delivery,
+    );
+  }
+
+  int get _days => calculateRentalDays(_range.start, _range.end);
 
   Future<void> _pickRange() async {
     final now = DateTime.now();
@@ -46,17 +66,20 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content:
-                Text('Rental return date must be after pickup date.'),
+            content: Text('Rental return date must be after pickup date.'),
           ),
         );
         return;
       }
-      setState(() => _range = picked);
+      setState(() {
+        _range = picked;
+        _autoSaveDraft();
+      });
     }
   }
 
   void _proceedToCheckout() {
+    _autoSaveDraft();
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -71,13 +94,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
 
   String _formatDateShort(DateTime d) {
     const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
     final w = weekdays[d.weekday - 1];
-    final m = months[d.month - 1];
-    return '$w, $m ${d.day}';
+    return '$w, ${fmtDate(d)}';
   }
 
   @override
@@ -213,10 +231,10 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                             textBaseline: TextBaseline.alphabetic,
                             children: [
                               Text(
-                                '\$${p.pricePerDay.toStringAsFixed(0)}',
+                                money(p.pricePerDay),
                                 style: const TextStyle(
                                   color: ShopPalette.blue,
-                                  fontSize: 24,
+                                  fontSize: 22,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
@@ -224,7 +242,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                                 ' /day',
                                 style: TextStyle(
                                   color: ShopPalette.textMuted,
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -256,12 +274,11 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                         ),
                         child: Row(
                           children: [
-                            CircleAvatar(
+                            const CircleAvatar(
                               radius: 22,
-                              backgroundImage: const NetworkImage(
+                              backgroundImage: NetworkImage(
                                 DummyShopData.hostAvatar,
                               ),
-                              backgroundColor: ShopPalette.border,
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -269,17 +286,17 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    children: [
+                                    children: const [
                                       Text(
                                         DummyShopData.shopName,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontWeight: FontWeight.w700,
                                           fontSize: 15,
                                           color: ShopPalette.text,
                                         ),
                                       ),
-                                      const SizedBox(width: 4),
-                                      const Icon(
+                                      SizedBox(width: 4),
+                                      Icon(
                                         Icons.verified,
                                         size: 16,
                                         color: ShopPalette.blue,
@@ -457,32 +474,14 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _fulfillmentPill(
-                                label: 'Self Pickup',
-                                icon: Icons.storefront_outlined,
-                                selected: !_delivery,
-                                onTap: () => setState(() => _delivery = false),
-                              ),
-                            ),
-                            Expanded(
-                              child: _fulfillmentPill(
-                                label: 'Door Delivery',
-                                icon: Icons.local_shipping_outlined,
-                                selected: _delivery,
-                                onTap: () => setState(() => _delivery = true),
-                              ),
-                            ),
-                          ],
-                        ),
+                      FulfillmentToggle(
+                        isDelivery: _delivery,
+                        onChanged: (val) {
+                          setState(() {
+                            _delivery = val;
+                            _autoSaveDraft();
+                          });
+                        },
                       ),
                       const SizedBox(height: 20),
 
@@ -589,16 +588,16 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                   onPressed: _proceedToCheckout,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Text(
-                        'Proceed to Checkout',
-                        style: TextStyle(
+                        'Proceed to Checkout ($_days day${_days == 1 ? '' : 's'})',
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward_rounded, size: 20),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_forward_rounded, size: 20),
                     ],
                   ),
                 ),
@@ -626,53 +625,6 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
         icon: Icon(icon, color: color, size: 20),
         onPressed: onTap,
         padding: EdgeInsets.zero,
-      ),
-    );
-  }
-
-  Widget _fulfillmentPill({
-    required String label,
-    required IconData icon,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        height: 40,
-        decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 17,
-              color: selected ? ShopPalette.text : ShopPalette.textMuted,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: selected ? ShopPalette.text : ShopPalette.textMuted,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
