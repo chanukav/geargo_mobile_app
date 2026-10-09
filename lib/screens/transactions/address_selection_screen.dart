@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/shop_theme.dart';
+import '../../services/address_service.dart';
+
 /// Delivery information returned by [AddressSelectionScreen].
 class DeliveryDetails {
   const DeliveryDetails({
@@ -14,13 +16,8 @@ class DeliveryDetails {
   final String window;
 }
 
-class _SavedAddress {
-  const _SavedAddress(this.label, this.text);
-  final String label;
-  final String text;
-}
-
 /// Address Selection: choose/add an address, delivery notes and a time window.
+/// Addresses are stored in Firestore at users/{uid}/addresses.
 /// Pops with a [DeliveryDetails] when the user confirms.
 class AddressSelectionScreen extends StatefulWidget {
   const AddressSelectionScreen({super.key, this.initial});
@@ -32,8 +29,7 @@ class AddressSelectionScreen extends StatefulWidget {
 }
 
 class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
-  /// Addresses saved during this app session.
-  static final List<_SavedAddress> _saved = [];
+  final AddressService _addressService = AddressService();
 
   static const _windows = [
     'Morning (9 AM - 12 PM)',
@@ -42,7 +38,8 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   ];
 
   late final TextEditingController _instructions;
-  int? _selected;
+  String? _selectedAddressText;
+  String? _selectedId;
   String _window = _windows[1];
 
   @override
@@ -53,12 +50,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
     if (initial != null) {
       if (_windows.contains(initial.window)) _window = initial.window;
       if (initial.address.isNotEmpty) {
-        var idx = _saved.indexWhere((a) => a.text == initial.address);
-        if (idx == -1) {
-          _saved.add(_SavedAddress('Address', initial.address));
-          idx = _saved.length - 1;
-        }
-        _selected = idx;
+        _selectedAddressText = initial.address;
       }
     }
   }
@@ -70,6 +62,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   }
 
   Future<void> _addAddress() async {
+    final messenger = ScaffoldMessenger.of(context);
     final label = TextEditingController();
     final text = TextEditingController();
     final added = await showDialog<bool>(
@@ -108,18 +101,66 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
     final t = text.text.trim();
     label.dispose();
     text.dispose();
+
     if (!mounted) return;
     if (added == true && t.isNotEmpty) {
-      setState(() {
-        _saved.add(_SavedAddress(l.isEmpty ? 'Address' : l, t));
-        _selected = _saved.length - 1;
-      });
+      try {
+        final newId = await _addressService.addAddress(
+          label: l.isEmpty ? 'Address' : l,
+          text: t,
+        );
+        if (mounted) {
+          setState(() {
+            _selectedId = newId;
+            _selectedAddressText = t;
+          });
+          messenger.showSnackBar(const SnackBar(content: Text('Address saved')));
+        }
+      } catch (e) {
+        messenger.showSnackBar(SnackBar(content: Text('Could not save address: $e')));
+      }
+    }
+  }
+
+  Future<void> _confirmDelete(UserAddress address) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete address?'),
+        content: Text('Remove "${address.label}: ${address.text}" from your saved addresses?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await _addressService.deleteAddress(address.id);
+      if (mounted) {
+        if (_selectedId == address.id || _selectedAddressText == address.text) {
+          setState(() {
+            _selectedId = null;
+            _selectedAddressText = null;
+          });
+        }
+        messenger.showSnackBar(const SnackBar(content: Text('Address deleted')));
+      }
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Could not delete address: $e')));
     }
   }
 
   void _confirm() {
-    final sel = _selected;
-    if (sel == null) {
+    final addressToUse = _selectedAddressText;
+    if (addressToUse == null || addressToUse.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select or add an address')),
       );
@@ -128,7 +169,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
     Navigator.pop(
       context,
       DeliveryDetails(
-        address: _saved[sel].text,
+        address: addressToUse,
         instructions: _instructions.text.trim(),
         window: _window,
       ),
@@ -142,70 +183,110 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Delivery address')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text('Saved Addresses', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          if (_saved.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text('No saved addresses yet. Add one below.'),
-            ),
-          for (var i = 0; i < _saved.length; i++)
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: BorderSide(
-                  color: _selected == i
-                      ? theme.colorScheme.primary
-                      : Colors.transparent,
-                  width: 2,
+      body: StreamBuilder<List<UserAddress>>(
+        stream: _addressService.streamAddresses(),
+        builder: (context, snap) {
+          final addresses = snap.data ?? const <UserAddress>[];
+
+          // Auto-select first address if none selected and not explicitly cleared
+          if (_selectedAddressText == null && _selectedId == null && addresses.isNotEmpty) {
+            _selectedId = addresses.first.id;
+            _selectedAddressText = addresses.first.text;
+          }
+
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text('Saved Addresses', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              if (snap.connectionState == ConnectionState.waiting && addresses.isEmpty)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              else if (addresses.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text('No saved addresses yet. Add one below.'),
+                )
+              else
+                for (var i = 0; i < addresses.length; i++) ...[
+                  () {
+                    final addr = addresses[i];
+                    final isSelected = (_selectedId != null && _selectedId == addr.id) ||
+                        (_selectedAddressText != null && _selectedAddressText == addr.text);
+                    return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: BorderSide(
+                          color: isSelected
+                              ? theme.colorScheme.primary
+                              : Colors.transparent,
+                          width: 2,
+                        ),
+                      ),
+                      child: ListTile(
+                        onTap: () => setState(() {
+                          _selectedId = addr.id;
+                          _selectedAddressText = addr.text;
+                        }),
+                        leading: Icon(i == 0
+                            ? Icons.home_outlined
+                            : Icons.location_on_outlined),
+                        title: Text(addr.label),
+                        subtitle: Text(addr.text),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, size: 20),
+                              tooltip: 'Delete address',
+                              onPressed: () => _confirmDelete(addr),
+                            ),
+                            Icon(isSelected
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_unchecked),
+                          ],
+                        ),
+                      ),
+                    );
+                  }(),
+                ],
+              TextButton.icon(
+                onPressed: _addAddress,
+                icon: const Icon(Icons.add),
+                label: const Text('Add New Address'),
+              ),
+              const SizedBox(height: 12),
+              Text('Delivery Instructions', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _instructions,
+                decoration: const InputDecoration(
+                  hintText: 'e.g. Leave at front door, ring bell',
+                  border: OutlineInputBorder(),
                 ),
               ),
-              child: ListTile(
-                onTap: () => setState(() => _selected = i),
-                leading: Icon(i == 0
-                    ? Icons.home_outlined
-                    : Icons.location_on_outlined),
-                title: Text(_saved[i].label),
-                subtitle: Text(_saved[i].text),
-                trailing: Icon(_selected == i
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked),
+              const SizedBox(height: 20),
+              Text('Preferred Delivery Window', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: _windows
+                    .map((w) => ChoiceChip(
+                          label: Text(w),
+                          selected: _window == w,
+                          onSelected: (_) => setState(() => _window = w),
+                        ))
+                    .toList(),
               ),
-            ),
-          TextButton.icon(
-            onPressed: _addAddress,
-            icon: const Icon(Icons.add),
-            label: const Text('Add New Address'),
-          ),
-          const SizedBox(height: 12),
-          Text('Delivery Instructions', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _instructions,
-            decoration: const InputDecoration(
-              hintText: 'e.g. Leave at front door, ring bell',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text('Preferred Delivery Window', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: _windows
-                .map((w) => ChoiceChip(
-                      label: Text(w),
-                      selected: _window == w,
-                      onSelected: (_) => setState(() => _window = w),
-                    ))
-                .toList(),
-          ),
-          const SizedBox(height: 80),
-        ],
+              const SizedBox(height: 80),
+            ],
+          );
+        },
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
