@@ -1,0 +1,14 @@
+# Prototype deviations
+
+| Screen | Prototype behavior | Implemented behavior | Reason | Requirement | Usability improvement / evidence |
+| --- | --- | --- | --- | --- | --- |
+| Condition Check | Navy camera preview, ambiguous shutter and Step 2/4 alongside Photo 1/4 | Native camera/gallery launches from labelled buttons; saved preview, four labelled angles, explicit progress and next missing view | Use real camera and persistence; remove conflicting stage/photo counters | FR-04 | M2 UI-02 pp22–24; phone widget validation |
+| Handover/Meetup | Chat accessed through main Messages navigation | Inline contextual chat button | Fix documented extra navigation | FR-05 | M2 UI-04 pp22–24; navigation widget test |
+| Deposit & Payment | Card number and Confirm & Pay; release within 48 hours | Read existing payment record, separate deposit, acknowledge information, return review state | No transaction/payment provider exists; preserve Member 3 ownership and avoid pretending to charge/refund | FR-03/04 | M2 UI-01; actual provider timing must be established by transaction module |
+| Meetup | Full map image, zoom controls, distance/travel time | Honest coordinate/location card and external directions; edit/share agreed meetup | No configured map service or routing measurements; no fabricated live map/distance | FR-05 | Reported prompt explicitly permits clear location card; no map API key needed |
+| Navigation | Home/Search/Bookings/Messages/Profile bar | Existing home/auth preserved; Member 4 hub has functional Bookings/Messages tabs and back navigation | Other members' marketplace modules are absent; do not create decorative destinations or replace their work | Integration | Small additive home shortcut; UI tests |
+| Platform Operations | Section titled Administrator Interfaces contains the five handover/chat/payment screens, no operational dashboard | Compact rental monitoring, verification/dispute review with notes and audit | M1 p4 and M2 p4 explicitly describe responsibilities; extension disclosed | ADMIN | Confirmation, valid transitions and trusted role checks; domain/admin widget tests |
+| Handover confirmation | Visual single confirmation | Independent renter and owner confirmation before activation/completion | Prevent a single participant settling another's rental; retain evidence | FR-04/security | Domain transition tests; emulator integration |
+| Typography | Family/point-size/spacing tokens unspecified in PDF text | Platform system typography; existing 12/16px radii and 48/52px touch controls | Only stated palette and visible hierarchy can be faithfully extracted | NFR-03 | 360×800/390×844 widget tests; five-user sessions pending |
+
+Member 4 uses M2's #2F80ED blue, #123B5D navy, #FF8A3D orange and #F6F8FA background through a local theme. Authentication and other shared modules retain their theme.

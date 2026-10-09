@@ -1,13 +1,24 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
 import '../../core/constants/app_colors.dart';
 import '../../models/app_user.dart';
 import '../../services/auth_service.dart';
+import '../../core/constants/app_colors.dart';
+import '../../member4/hub_screen.dart';
+import '../../member4/repository.dart';
+import '../../member4/widgets.dart';
+import '../../models/app_user.dart';
 import '../../services/app_settings_service.dart';
+import '../../services/auth_service.dart';
+import '../renter/rental_requests_list_screen.dart';
 import 'tabs/home_tab.dart';
 import 'tabs/profile_tab.dart';
 import 'tabs/search_tab.dart';
-import '../renter/rental_requests_list_screen.dart';
+import 'widgets/account_details_card.dart';
+import 'widgets/quick_action_card.dart';
+import 'widgets/user_profile_header.dart';
+
 
 /// Main shell for GearGo: bottom navigation with Home, Search, Bookings,
 /// Messages and Profile tabs.
@@ -15,11 +26,7 @@ class HomeScreen extends StatefulWidget {
   final User user;
   final FirebaseAuth? auth;
 
-  const HomeScreen({
-    super.key,
-    required this.user,
-    this.auth,
-  });
+  const HomeScreen({super.key, required this.user, this.auth});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -112,26 +119,95 @@ class _HomeScreenState extends State<HomeScreen> {
               color: isDark ? AppColors.borderDark : AppColors.borderLight,
               width: 0.8,
             ),
+        appBar: AppBar(
+          title: const Row(
+            children: [
+              Icon(Icons.sports_score_rounded),
+              SizedBox(width: 10),
+              Text('GearGo', style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
-              blurRadius: 20,
-              offset: const Offset(0, -4),
+          actions: [
+            IconButton(
+              tooltip: 'Sign Out',
+              icon: const Icon(Icons.logout_rounded),
+              onPressed: () => _handleSignOut(context),
             ),
           ],
         ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              children: List.generate(navItems.length, (i) {
-                final sel = i == _index;
-                final it = navItems[i];
-                return Expanded(
-                  child: InkWell(
-                    onTap: () => setState(() => _index = i),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                UserProfileHeader(user: appUser),
+                const SizedBox(height: 16),
+                QuickActionCard(
+                  title: 'Equipment Handovers & Messages',
+                  subtitle: 'Coordinate sports gear pickup, condition checks and returns',
+                  icon: Icons.sports_outlined,
+                  iconColor: AppColors.primary,
+                  onTap: () => openMember4(
+                    context,
+                    Member4Hub(repo: FirebaseMember4Repository()),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (appUser.isAnonymous) ...[
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withValues(alpha: 0.1),
+                      border: Border.all(
+                        color: AppColors.warning.withValues(alpha: 0.3),
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.info_outline_rounded,
+                            color: AppColors.warning,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Guest Account Active',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Sign up or link an email account anytime to save your reservations and trip history permanently.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                AccountDetailsCard(user: user),
+                const SizedBox(height: 20),
+
                     borderRadius: BorderRadius.circular(14),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -176,9 +252,70 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                );
-              }),
+                Text(
+                  'Explore GearGo Services',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                QuickActionCard(
+                  title: 'Available Fleet',
+                  subtitle: '18 vehicles ready for rental near your location',
+                  icon: Icons.car_rental_rounded,
+                  iconColor: AppColors.primary,
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Fleet explorer: 18 vehicles nearby.'),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+                QuickActionCard(
+                  title: 'My Bookings',
+                  subtitle: 'No active reservations. Plan your next drive!',
+                  icon: Icons.calendar_month_rounded,
+                  iconColor: AppColors.secondary,
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('You currently have no active bookings.'),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+                QuickActionCard(
+                  title: 'Roadside Assistance',
+                  subtitle: '24/7 dedicated support & emergency recovery',
+                  icon: Icons.support_agent_rounded,
+                  iconColor: AppColors.success,
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Roadside hotline: 1-800-GEARGO-HELP'),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+                OutlinedButton.icon(
+                  onPressed: () => _handleSignOut(context),
+                  icon: const Icon(Icons.logout_rounded, size: 20),
+                  label: const Text('Sign Out'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: const BorderSide(color: AppColors.error),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
             ),
+          ),
+        ),
+
           ),
         ),
       ),

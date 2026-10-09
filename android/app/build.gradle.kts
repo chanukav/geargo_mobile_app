@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
@@ -5,10 +7,18 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val geargoLocalProperties = Properties().apply {
+    val config = rootProject.file("local.properties")
+    if (config.exists()) config.inputStream().use { load(it) }
+}
+
 android {
     namespace = "com.example.geargo"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+    // Optional local NDK path, useful when the system SDK download is incomplete.
+    (providers.gradleProperty("geargoNdkPath").orNull
+        ?: geargoLocalProperties.getProperty("geargo.ndkPath"))?.let { ndkPath = it }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

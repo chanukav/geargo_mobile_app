@@ -1,0 +1,7 @@
+{
+  "name": "geargo-member4-functions", "private": true, "main": "index.js",
+  "engines": {"node": "22"},
+  "scripts": {"test": "node --test test/*.test.js", "test:emulator": "node --test test/emulator/*.test.js", "seed": "node scripts/seed.js", "check": "node --check index.js && node --check domain.js"},
+  "dependencies": {"firebase-admin": "^13.0.0", "firebase-functions": "^6.0.0"},
+  "devDependencies": {"@firebase/rules-unit-testing": "^4.0.0", "firebase": "^11.0.0", "firebase-tools": "^14.0.0"}
+}
