@@ -26,7 +26,7 @@ class SupabaseConfig {
   /// Checks if Supabase credentials have been filled in
   static bool get isConfigured {
     return url.isNotEmpty &&
-        !url.contains('https://YOUR_SUPABASE_PROJECT_URL.supabase.co') &&
+        !url.contains('https://eiezkelexlvswihxajfe.supabase.co') &&
         anonKey.isNotEmpty &&
         !anonKey.contains(
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpZXprZWxleGx2c3dpaHhhamZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NTIwNTUsImV4cCI6MjEwNzEyODA1NX0.i0U_wllt3c4LjBfo5Ls-kvviNtmYiTt4i3uMBiZGycM',
