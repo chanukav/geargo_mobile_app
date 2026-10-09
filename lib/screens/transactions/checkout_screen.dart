@@ -113,7 +113,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
     } catch (e) {
       if (mounted) setState(() => _paying = false);
-      messenger.showSnackBar(SnackBar(content: Text('Payment failed: $e')));
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      messenger.showSnackBar(SnackBar(content: Text(msg)));
     }
   }
 

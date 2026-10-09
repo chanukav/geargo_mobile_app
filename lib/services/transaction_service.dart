@@ -29,6 +29,44 @@ class TransactionService {
     if (uid == null) {
       throw Exception('You must be signed in to book equipment.');
     }
+
+    // ---------------- DOUBLE BOOKING CHECK ----------------
+    // Query by productId ONLY to ensure no Firestore composite index is needed.
+    // Filter status and date range overlaps in Dart.
+    //
+    // RACE CONDITION LIMITATION NOTE:
+    // This client-side check queries existing bookings prior to document creation.
+    // Under concurrent bookings for the last available item, two users could both
+    // evaluate overlaps < product.quantity at the same time and both proceed to write.
+    // In production, an atomic Firestore transaction or Cloud Function with server-side
+    // locks/counters should be used to eliminate this race condition.
+    final existingSnap = await _col
+        .where('productId', isEqualTo: product.id)
+        .get();
+
+    int overlaps = 0;
+    for (final doc in existingSnap.docs) {
+      final data = doc.data();
+      final status = (data['status'] ?? '') as String;
+      if (status != 'confirmed') continue;
+
+      final existingStart = (data['startDate'] as Timestamp?)?.toDate();
+      final existingEnd = (data['endDate'] as Timestamp?)?.toDate();
+      if (existingStart != null && existingEnd != null) {
+        // Two date ranges overlap if requested start is before existing end
+        // and requested end is after existing start.
+        if (start.isBefore(existingEnd) && end.isAfter(existingStart)) {
+          overlaps++;
+        }
+      }
+    }
+
+    if (overlaps >= product.quantity) {
+      throw Exception(
+        'This equipment is fully booked for the selected dates. Please choose different dates.',
+      );
+    }
+
     final days = math.max(1, end.difference(start).inDays);
     final price = PriceBreakdown.calculate(
       pricePerDay: product.pricePerDay,
