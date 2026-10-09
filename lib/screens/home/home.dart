@@ -6,6 +6,7 @@ import '../../services/auth_service.dart';
 import 'widgets/account_details_card.dart';
 import 'widgets/quick_action_card.dart';
 import 'widgets/user_profile_header.dart';
+import '../shop_transactions_home.dart';
 
 /// Sample production-grade Home Screen for GearGo.
 class HomeScreen extends StatelessWidget {
@@ -162,6 +163,21 @@ class HomeScreen extends StatelessWidget {
                     ),
               ),
               const SizedBox(height: 12),
+
+              QuickActionCard(
+                title: 'Shop & Transactions',
+                subtitle: 'Manage commercial inventory & equipment rentals',
+                icon: Icons.storefront_rounded,
+                iconColor: AppColors.primary,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const ShopTransactionsHome(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
 
               QuickActionCard(
                 title: 'Available Fleet',
