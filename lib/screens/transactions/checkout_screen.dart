@@ -1,129 +1,75 @@
 import 'dart:math' as math;
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/constants/dummy_shop_data.dart';
 import '../../core/theme/shop_theme.dart';
 import '../../core/utils/format.dart';
 import '../../models/shop_product.dart';
-import '../../models/rental_transaction.dart';
-import '../../services/transaction_service.dart';
 import 'address_selection_screen.dart';
-import 'payment_confirmation_screen.dart';
-import 'price_breakdown_card.dart';
+import 'confirm_order_screen.dart';
 
-/// Confirm Order: fulfillment choice, address, payment method, price breakdown.
-/// Pressing "Confirm & Pay" CREATES the transaction in Firestore.
+/// Screen 2: Checkout & Fulfillment Selection
+/// Replicates "7.4 Commercial Rental Shop Interfaces" (Report Page 17, Screen 2).
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({
     super.key,
     required this.product,
     required this.range,
-    required this.delivery,
-    this.details,
+    this.delivery = true,
   });
 
   final ShopProduct product;
   final DateTimeRange range;
   final bool delivery;
-  final DeliveryDetails? details;
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  static const _methods = [
-    'Visa ending in 4242',
-    'Mastercard ending in 8890',
-    'Mobile wallet',
-  ];
-
-  final _service = TransactionService();
   late bool _delivery;
-  DeliveryDetails? _details;
-  String _payment = _methods.first;
-  bool _paying = false;
+  static const double _deliveryFee = 15.0;
+  static const double _serviceFee = 12.0;
 
   @override
   void initState() {
     super.initState();
     _delivery = widget.delivery;
-    _details = widget.details;
   }
 
   int get _days =>
       math.max(1, widget.range.end.difference(widget.range.start).inDays);
 
-  PriceBreakdown get _price => PriceBreakdown.calculate(
-        pricePerDay: widget.product.pricePerDay,
-        days: _days,
-        deposit: widget.product.deposit,
-        delivery: _delivery,
-      );
+  double get _rentalTotal => widget.product.pricePerDay * _days;
+  double get _currentDeliveryFee => _delivery ? _deliveryFee : 0.0;
+  double get _totalAmount => _rentalTotal + _currentDeliveryFee + _serviceFee;
 
-  Future<void> _chooseFulfillment(bool delivery) async {
-    if (!delivery) {
-      setState(() => _delivery = false);
-      return;
-    }
-    if (_details == null) {
-      final d = await Navigator.push<DeliveryDetails>(
+  void _onContinue() {
+    if (_delivery) {
+      // Navigate to Screen 3: Delivery Address
+      Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const AddressSelectionScreen()),
-      );
-      if (d == null || !mounted) return;
-      setState(() {
-        _delivery = true;
-        _details = d;
-      });
-    } else {
-      setState(() => _delivery = true);
-    }
-  }
-
-  Future<void> _changeAddress() async {
-    final d = await Navigator.push<DeliveryDetails>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AddressSelectionScreen(initial: _details),
-      ),
-    );
-    if (d != null && mounted) setState(() => _details = d);
-  }
-
-  Future<void> _pay() async {
-    if (_paying) return;
-    final nav = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    if (FirebaseAuth.instance.currentUser == null) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Please sign in to confirm and pay for your booking.')),
-      );
-      return;
-    }
-
-    setState(() => _paying = true);
-    try {
-      final txn = await _service.createBooking(
-        product: widget.product,
-        start: widget.range.start,
-        end: widget.range.end,
-        delivery: _delivery,
-        address: _details?.address ?? '',
-        instructions: _details?.instructions ?? '',
-        window: _details?.window ?? '',
-        paymentMethod: _payment,
-      );
-      nav.pushReplacement(
         MaterialPageRoute(
-          builder: (_) => PaymentConfirmationScreen(transaction: txn),
+          builder: (_) => AddressSelectionScreen(
+            product: widget.product,
+            range: widget.range,
+          ),
         ),
       );
-    } catch (e) {
-      if (mounted) setState(() => _paying = false);
-      final msg = e.toString().replaceFirst('Exception: ', '');
-      messenger.showSnackBar(SnackBar(content: Text(msg)));
+    } else {
+      // Navigate directly to Screen 4: Confirm Order for Self Pickup
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ConfirmOrderScreen(
+            product: widget.product,
+            range: widget.range,
+            delivery: false,
+            deliveryAddress: DummyShopData.pickupLocation,
+          ),
+        ),
+      );
     }
   }
 
@@ -131,153 +77,376 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) => ShopThemed(builder: _content);
 
   Widget _content(BuildContext context) {
-    final theme = Theme.of(context);
     final p = widget.product;
-    final price = _price;
+    final heroUrl = p.imageUrl.trim().isNotEmpty
+        ? p.imageUrl.trim()
+        : DummyShopData.defaultHeroImage;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Confirm Order')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: ShopPalette.text,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'Checkout',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: ShopPalette.text,
+          ),
+        ),
+      ),
+      body: Stack(
         children: [
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.sports_basketball_outlined),
-              title: Text(p.name,
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: Text(
-                '${fmtDate(widget.range.start)} - ${fmtDate(widget.range.end)}'
-                ' • $_days day${_days == 1 ? '' : 's'}',
+          ListView(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+            children: [
+              // 1. Equipment Summary Card
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: ShopPalette.border),
+                ),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        heroUrl,
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Container(
+                          width: 64,
+                          height: 64,
+                          color: const Color(0xFFF1F5F9),
+                          child: const Icon(Icons.directions_bike),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: ShopPalette.badgeBlue,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              p.category.toUpperCase(),
+                              style: const TextStyle(
+                                color: ShopPalette.badgeBlueText,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            p.name,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: ShopPalette.text,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Oct 12 - Oct 15 • $_days Days',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: ShopPalette.textMuted,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: 24),
+
+              // 2. Fulfillment Section Header
+              const Text(
+                'How would you like to get your gear?',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: ShopPalette.text,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Option A: Self Pickup
+              _fulfillmentCard(
+                title: 'Self Pickup',
+                trailingText: 'Free',
+                subtitle: DummyShopData.pickupLocation,
+                icon: Icons.location_on_outlined,
+                selected: !_delivery,
+                onTap: () => setState(() => _delivery = false),
+              ),
+              const SizedBox(height: 12),
+
+              // Option B: GearGo Delivery
+              _fulfillmentCard(
+                title: 'GearGo Delivery',
+                trailingText: '+\$15.00',
+                subtitle: DummyShopData.deliveryDescription,
+                icon: Icons.local_shipping_outlined,
+                selected: _delivery,
+                onTap: () => setState(() => _delivery = true),
+              ),
+              const SizedBox(height: 24),
+
+              // 3. Price Details Section Header
+              const Text(
+                'PRICE DETAILS',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: ShopPalette.textMuted,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Price Breakdown Card
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: ShopPalette.border),
+                ),
+                child: Column(
+                  children: [
+                    _priceRow(
+                      'Rental (\$${p.pricePerDay.toStringAsFixed(2)} x $_days days)',
+                      money(_rentalTotal),
+                    ),
+                    const SizedBox(height: 10),
+                    _priceRow(
+                      'Delivery Fee',
+                      _delivery ? money(_deliveryFee) : 'Free',
+                      valueColor: ShopPalette.blue,
+                    ),
+                    const SizedBox(height: 10),
+                    _priceRow(
+                      'Service Fee',
+                      money(_serviceFee),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Divider(height: 1, color: ShopPalette.border),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Total Amount',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: ShopPalette.text,
+                          ),
+                        ),
+                        Text(
+                          money(_totalAmount),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: ShopPalette.text,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          Text('How would you like to get your gear?',
-              style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          _OptionCard(
-            selected: !_delivery,
-            icon: Icons.storefront_outlined,
-            title: 'Self Pickup',
-            subtitle: 'Meet at a safe public location',
-            trailing: 'Free',
-            onTap: () => _chooseFulfillment(false),
-          ),
-          const SizedBox(height: 8),
-          _OptionCard(
-            selected: _delivery,
-            icon: Icons.local_shipping_outlined,
-            title: 'GearGo Delivery',
-            subtitle: 'Contactless drop-off & safe returns',
-            trailing: '+${money(PriceBreakdown.deliveryFlatFee)}',
-            onTap: () => _chooseFulfillment(true),
-          ),
-          if (_delivery && _details != null) ...[
-            const SizedBox(height: 8),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.location_on_outlined),
-                title: Text(_details!.address),
-                subtitle: Text(_details!.window +
-                    (_details!.instructions.isEmpty
-                        ? ''
-                        : '\n${_details!.instructions}')),
-                isThreeLine: _details!.instructions.isNotEmpty,
-                trailing: TextButton(
-                  onPressed: _changeAddress,
-                  child: const Text('CHANGE'),
+
+          // 4. Sticky Bottom Action Bar
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    offset: const Offset(0, -4),
+                    blurRadius: 16,
+                  ),
+                ],
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ShopPalette.orange,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(26),
+                    ),
+                  ),
+                  onPressed: _onContinue,
+                  child: const Text(
+                    'Continue',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ],
-          const SizedBox(height: 20),
-          Text('Payment Method', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          for (final m in _methods) ...[
-            _OptionCard(
-              selected: _payment == m,
-              icon: Icons.credit_card_outlined,
-              title: m,
-              onTap: () => setState(() => _payment = m),
-            ),
-            const SizedBox(height: 8),
-          ],
-          const SizedBox(height: 12),
-          Text('Price Breakdown', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          PriceBreakdownCard(
-            price: price,
-            rentalLabel: 'Rental fee (${money(p.pricePerDay)} x $_days days)',
           ),
-          const SizedBox(height: 80),
         ],
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: FilledButton(
-            onPressed: _paying ? null : _pay,
-            child: _paying
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text('Confirm & Pay ${money(price.dueNow)}'),
+    );
+  }
+
+  Widget _fulfillmentCard({
+    required String title,
+    required String trailingText,
+    required String subtitle,
+    required IconData icon,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: selected ? ShopPalette.blueTint : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected ? ShopPalette.blue : ShopPalette.border,
+            width: selected ? 1.5 : 1.0,
           ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: selected
+                    ? ShopPalette.blue.withValues(alpha: 0.12)
+                    : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: selected ? ShopPalette.blue : ShopPalette.textMuted,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: ShopPalette.text,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            trailingText,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: selected
+                                  ? ShopPalette.blue
+                                  : ShopPalette.textMuted,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            selected
+                                ? Icons.radio_button_checked_rounded
+                                : Icons.radio_button_unchecked_rounded,
+                            size: 18,
+                            color: selected
+                                ? ShopPalette.blue
+                                : const Color(0xFFCBD5E1),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: ShopPalette.textMuted,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-}
 
-class _OptionCard extends StatelessWidget {
-  const _OptionCard({
-    required this.selected,
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.subtitle,
-    this.trailing,
-  });
-
-  final bool selected;
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final String? trailing;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(
-          color: selected ? theme.colorScheme.primary : Colors.transparent,
-          width: 2,
+  Widget _priceRow(String label, String value, {Color? valueColor}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            color: Color(0xFF475569),
+          ),
         ),
-      ),
-      child: ListTile(
-        onTap: onTap,
-        leading: Icon(icon),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: subtitle == null ? null : Text(subtitle!),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (trailing != null)
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Text(trailing!,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
-              ),
-            Icon(selected
-                ? Icons.radio_button_checked
-                : Icons.radio_button_unchecked),
-          ],
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: valueColor ?? ShopPalette.text,
+          ),
         ),
-      ),
+      ],
     );
   }
 }

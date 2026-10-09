@@ -6,13 +6,19 @@ import 'package:flutter/material.dart';
 class ShopPalette {
   ShopPalette._();
 
-  static const Color blue = Color(0xFF2F80ED); // primary
-  static const Color navy = Color(0xFF123B5D); // headers, headings
-  static const Color orange = Color(0xFFFF8A3D); // main calls-to-action
-  static const Color background = Color(0xFFF6F8FA);
+  static const Color blue = Color(0xFF2563EB); // primary royal blue
+  static const Color navy = Color(0xFF0F2B48); // headers, headings
+  static const Color orange = Color(0xFFFF6B35); // main calls-to-action button
+  static const Color orangeLight = Color(0xFFFFF1EB);
+  static const Color background = Color(0xFFF8FAFC);
   static const Color border = Color(0xFFE2E8F0);
-  static const Color blueTint = Color(0xFFDCEBFD);
+  static const Color blueTint = Color(0xFFEFF6FF);
+  static const Color badgeBlue = Color(0xFFE0F2FE);
+  static const Color badgeBlueText = Color(0xFF0284C7);
+  static const Color green = Color(0xFF16A34A);
+  static const Color greenTint = Color(0xFFDCFCE7);
   static const Color text = Color(0xFF0F172A);
+  static const Color textMuted = Color(0xFF64748B);
 }
 
 class ShopTheme {
