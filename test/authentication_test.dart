@@ -54,5 +54,33 @@ void main() {
       expect(guestUser.displayTitle, 'Guest Driver');
       expect(guestUser.initials, 'GD');
     });
+
+    test('supports separate Renter and Owner personas', () {
+      const renter = AppUser(
+        uid: 'renter_1',
+        email: 'user@geargo.com',
+        displayName: 'Sam Wilson',
+        role: UserRole.renter,
+      );
+      expect(renter.isRenter, isTrue);
+      expect(renter.isOwner, isFalse);
+      expect(renter.role.displayName, 'Renter');
+
+      const owner = AppUser(
+        uid: 'owner_1',
+        email: 'owner@geargo.com',
+        displayName: 'Marcus Vance',
+        role: UserRole.owner,
+      );
+      expect(owner.isOwner, isTrue);
+      expect(owner.isRenter, isFalse);
+      expect(owner.role.displayName, 'Gear Owner & Lender');
+
+      // Serialization to and from Map
+      final map = owner.toMap();
+      expect(map['role'], 'owner');
+      final reconstructed = AppUser.fromMap(map, owner.uid);
+      expect(reconstructed.isOwner, isTrue);
+    });
   });
 }

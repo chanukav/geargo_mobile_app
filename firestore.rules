@@ -13,6 +13,24 @@ service cloud.firestore {
         allow write: if false;
       }
     }
+    match /users/{userId} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == userId;
+    }
+    match /owner_profile/{userId} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == userId;
+    }
+    match /equipment/{id} {
+      allow read: if true;
+      allow write: if signedIn();
+    }
+    match /rental_requests/{id} {
+      allow read, write: if signedIn();
+    }
+    match /saved_equipment/{id} {
+      allow read, write: if signedIn();
+    }
     match /verifications/{id} { allow read: if admin(); allow write: if false; }
     match /disputes/{id} { allow read: if admin(); allow write: if false; }
     match /audit/{id} { allow read: if admin(); allow write: if false; }

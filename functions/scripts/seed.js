@@ -7,8 +7,8 @@ const {getFirestore} = require('firebase-admin/firestore');
 initializeApp({projectId: process.env.GCLOUD_PROJECT || 'geargo-e0035'});
 const db = getFirestore(), auth = getAuth();
 const password = 'GearGo-demo-2026';
-async function user(uid, email, displayName, admin = false) {
-  try { await auth.getUser(uid); } catch (e) { if (e.code !== 'auth/user-not-found') throw e; await auth.createUser({uid, email, displayName, password}); }
+async function user(uid, email, displayName, userPassword = password, admin = false) {
+  try { await auth.getUser(uid); } catch (e) { if (e.code !== 'auth/user-not-found') throw e; await auth.createUser({uid, email, displayName, password: userPassword}); }
   if (admin) await auth.setCustomUserClaims(uid, {admin: true});
 }
 function blankCondition() { return {photos: {}, notes: '', damageReported: false, status: 'draft'}; }
@@ -16,8 +16,34 @@ async function create(path, data) { const ref = db.doc(path); if (!(await ref.ge
 async function main() {
   await user('demo-renter', 'renter@geargo.test', 'Nadeesha');
   await user('demo-owner', 'owner@geargo.test', 'Marcus V.');
-  await user('demo-admin', 'admin@geargo.test', 'Platform Operations', true);
+  await user('demo-admin', 'admin@geargo.test', 'Platform Operations', password, true);
   await user('demo-outsider', 'outsider@geargo.test', 'Unrelated User');
+
+  // Official Owner and Renter credentials
+  await user('official-owner', 'owner@geargo.com', 'Marcus Vance (Owner)', 'GearGoOwner2026!');
+  await user('official-renter', 'user@geargo.com', 'Sam Wilson (Renter)', 'GearGoRenter2026!');
+
+  // Seed user persona roles in Firestore
+  await create('users/official-owner', { uid: 'official-owner', email: 'owner@geargo.com', display_name: 'Marcus Vance (Owner)', role: 'owner', created_at: new Date().toISOString() });
+  await create('users/official-renter', { uid: 'official-renter', email: 'user@geargo.com', display_name: 'Sam Wilson (Renter)', role: 'renter', created_at: new Date().toISOString() });
+  await create('users/demo-owner', { uid: 'demo-owner', email: 'owner@geargo.test', display_name: 'Marcus V.', role: 'owner', created_at: new Date().toISOString() });
+  await create('users/demo-renter', { uid: 'demo-renter', email: 'renter@geargo.test', display_name: 'Nadeesha', role: 'renter', created_at: new Date().toISOString() });
+
+  // Seed Owner Profile
+  await create('owner_profile/official-owner', {
+    id: 'official-owner',
+    user_id: 'official-owner',
+    name: 'Marcus Vance (Owner)',
+    phone: '+1 (555) 234-5678',
+    address: 'Denver, Colorado',
+    business_name: 'Alpine Gear Rentals',
+    profile_image: '',
+    bio: 'Professional outdoor enthusiast offering premium mountain and winter sports gear.',
+    website: 'https://geargo.com',
+    is_verified: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
   await create('rentals/demo-rental', {
     ownerId: 'demo-owner', renterId: 'demo-renter', participantIds: ['demo-owner', 'demo-renter'],
     equipmentId: 'demo-bike', equipmentName: 'Specialized Rockhopper Comp', ownerName: 'Marcus V.', renterName: 'Nadeesha', equipmentImageUrl: '',

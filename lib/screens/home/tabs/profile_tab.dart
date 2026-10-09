@@ -4,6 +4,11 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../models/app_user.dart';
 import '../../../services/app_settings_service.dart';
+import '../../../services/auth_service.dart';
+import '../../owner/add_edit_equipment_screen.dart';
+import '../../owner/manage_listings_screen.dart';
+import '../../owner/owner_dashboard_screen.dart';
+import '../../owner/view_owner_profile_screen.dart';
 import '../widgets/account_details_card.dart';
 import '../widgets/appearance_language_sheet.dart';
 import '../../renter/rental_requests_list_screen.dart';
@@ -93,6 +98,39 @@ class _ProfileTabState extends State<ProfileTab> {
   bool _bookingUpdates = true;
   bool _offersNearYou = false;
   final Set<String> _selectedActivities = {'Hiking', 'Cycling', 'Camping'};
+  UserRole _userRole = UserRole.renter;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final role = await AuthService().getUserRole(widget.user.uid, email: widget.user.email);
+    if (mounted) {
+      setState(() => _userRole = role);
+    }
+  }
+
+  Future<void> _togglePersonaRole() async {
+    final newRole = _userRole == UserRole.owner ? UserRole.renter : UserRole.owner;
+    setState(() => _userRole = newRole);
+    final appUser = AppUser.fromFirebase(widget.user, role: newRole);
+    await AuthService().saveUserProfile(appUser);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            newRole == UserRole.owner
+                ? 'Switched to Owner Persona. You can now add and manage equipment!'
+                : 'Switched to Renter Persona. Owner listings hidden.',
+          ),
+          backgroundColor: newRole == UserRole.owner ? AppColors.orange : AppColors.primary,
+        ),
+      );
+    }
+  }
 
   void _showPersonalInformationSheet() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -379,6 +417,160 @@ class _ProfileTabState extends State<ProfileTab> {
                 ],
               ),
               const SizedBox(height: 22),
+
+              // Owner Management Section (Only visible to Owner persona)
+              if (_userRole == UserRole.owner) ...[
+                _buildSectionHeader(
+                  title: 'Owner Hub & Gear Listings',
+                  actionText: '+ Add Gear',
+                  titleColor: titleColor,
+                  onAction: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => AddEditEquipmentScreen(ownerId: widget.user.uid),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _buildCard(
+                  cardBg: cardBg,
+                  borderColor: borderColor,
+                  isDark: isDark,
+                  children: [
+                    _buildListTile(
+                      icon: Icons.dashboard_customize_rounded,
+                      title: 'Owner Dashboard',
+                      subtitle: 'Track earnings, equipment status & active rentals',
+                      titleColor: titleColor,
+                      subColor: subColor,
+                      isDark: isDark,
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => OwnerDashboardScreen(user: widget.user),
+                        ),
+                      ),
+                    ),
+                    Divider(height: 1, color: borderColor),
+                    _buildListTile(
+                      icon: Icons.inventory_2_rounded,
+                      title: 'Manage Listings',
+                      subtitle: 'View, edit prices & toggle gear availability',
+                      titleColor: titleColor,
+                      subColor: subColor,
+                      isDark: isDark,
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ManageListingsScreen(
+                            ownerId: widget.user.uid,
+                            ownerName: appUser.displayTitle,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Divider(height: 1, color: borderColor),
+                    _buildListTile(
+                      icon: Icons.add_circle_outline_rounded,
+                      title: 'List New Equipment',
+                      subtitle: 'Upload photos, description & daily rental price',
+                      titleColor: titleColor,
+                      subColor: subColor,
+                      isDark: isDark,
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AddEditEquipmentScreen(ownerId: widget.user.uid),
+                        ),
+                      ),
+                    ),
+                    Divider(height: 1, color: borderColor),
+                    _buildListTile(
+                      icon: Icons.badge_outlined,
+                      title: 'Owner Business Profile',
+                      subtitle: 'Manage lender contact details, address & credentials',
+                      titleColor: titleColor,
+                      subColor: subColor,
+                      isDark: isDark,
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ViewOwnerProfileScreen(userId: widget.user.uid),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+              ] else ...[
+                // Renter Persona Notice (Users can ONLY rent equipment)
+                _buildCard(
+                  cardBg: cardBg,
+                  borderColor: borderColor,
+                  isDark: isDark,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(Icons.sports_rounded, color: AppColors.primary, size: 20),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Renter Persona Active',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: titleColor,
+                                      ),
+                                    ),
+                                    Text(
+                                      'You can explore & rent gear from verified owners.',
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        color: subColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: _togglePersonaRole,
+                              icon: const Icon(Icons.storefront_rounded, size: 18, color: AppColors.orange),
+                              label: const Text(
+                                'Become an Owner to List Gear',
+                                style: TextStyle(color: AppColors.orange, fontWeight: FontWeight.bold),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: AppColors.orange),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+              ],
 
               // 6. Payments Section
               _buildSectionHeader(

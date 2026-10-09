@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/validators.dart';
+import '../../models/app_user.dart';
 import '../../services/auth_service.dart';
 import 'widgets/auth_text_field.dart';
 import 'widgets/social_sign_in_button.dart';
@@ -27,6 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final AuthService _authService = AuthService();
 
+  UserRole _selectedRole = UserRole.renter;
   bool _isLoading = false;
   bool _isGuestLoading = false;
   String? _errorMessage;
@@ -53,6 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         email: _emailController.text,
         password: _passwordController.text,
         displayName: _nameController.text,
+        role: _selectedRole,
       );
       // Once registered, Wrapper will automatically route to HomeScreen.
     } catch (e) {
@@ -181,6 +184,113 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // Persona / Account Role Selector
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(11),
+                                  onTap: () => setState(() => _selectedRole = UserRole.renter),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: _selectedRole == UserRole.renter
+                                          ? AppColors.primary
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(11),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.sports_rounded,
+                                          size: 20,
+                                          color: _selectedRole == UserRole.renter
+                                              ? Colors.white
+                                              : Colors.grey.shade600,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Renter Persona',
+                                          style: TextStyle(
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: _selectedRole == UserRole.renter
+                                              ? Colors.white
+                                              : Colors.grey.shade700,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Rent equipment only',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: _selectedRole == UserRole.renter
+                                              ? Colors.white.withValues(alpha: 0.85)
+                                              : Colors.grey.shade500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(11),
+                                  onTap: () => setState(() => _selectedRole = UserRole.owner),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: _selectedRole == UserRole.owner
+                                          ? AppColors.orange
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(11),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.storefront_rounded,
+                                          size: 20,
+                                          color: _selectedRole == UserRole.owner
+                                              ? Colors.white
+                                              : Colors.grey.shade600,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Owner Persona',
+                                          style: TextStyle(
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: _selectedRole == UserRole.owner
+                                              ? Colors.white
+                                              : Colors.grey.shade700,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Rent & add equipment',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: _selectedRole == UserRole.owner
+                                              ? Colors.white.withValues(alpha: 0.85)
+                                              : Colors.grey.shade500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         AuthTextField(
                           controller: _nameController,
                           labelText: 'Full Name',

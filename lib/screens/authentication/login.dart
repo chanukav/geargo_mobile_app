@@ -30,6 +30,38 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isGuestLoading = false;
   String? _errorMessage;
 
+  Future<void> _handleQuickOwnerLogin() async {
+    _emailController.text = 'owner@geargo.com';
+    _passwordController.text = 'GearGoOwner2026!';
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      await _authService.signInOrRegisterOfficialOwner();
+    } catch (e) {
+      if (mounted) setState(() => _errorMessage = AuthService.getAuthErrorMessage(e));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleQuickRenterLogin() async {
+    _emailController.text = 'user@geargo.com';
+    _passwordController.text = 'GearGoRenter2026!';
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      await _authService.signInOrRegisterOfficialRenter();
+    } catch (e) {
+      if (mounted) setState(() => _errorMessage = AuthService.getAuthErrorMessage(e));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -287,6 +319,69 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // Quick Persona Login Chips
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          margin: const EdgeInsets.only(bottom: 18),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.grey.withValues(alpha: 0.18)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(left: 4, bottom: 6),
+                                child: Text(
+                                  'QUICK DEMO CREDENTIALS',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.8,
+                                    color: AppColors.textSecondaryLight,
+                                  ),
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: isAnyLoading ? null : _handleQuickOwnerLogin,
+                                      icon: const Icon(Icons.storefront_rounded, size: 16, color: AppColors.orange),
+                                      label: const Text(
+                                        'Owner Mode',
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.orange),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        side: const BorderSide(color: AppColors.orange, width: 1.2),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: isAnyLoading ? null : _handleQuickRenterLogin,
+                                      icon: const Icon(Icons.sports_rounded, size: 16, color: AppColors.primary),
+                                      label: const Text(
+                                        'Renter Mode',
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        side: const BorderSide(color: AppColors.primary, width: 1.2),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
                         AuthTextField(
                           controller: _emailController,
                           labelText: 'Email Address',
