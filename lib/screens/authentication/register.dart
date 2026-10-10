@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/validators.dart';
+import '../../models/app_user.dart';
 import '../../services/auth_service.dart';
 import 'widgets/auth_text_field.dart';
 import 'widgets/social_sign_in_button.dart';
@@ -27,6 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final AuthService _authService = AuthService();
 
+  UserRole _selectedRole = UserRole.renter;
   bool _isLoading = false;
   bool _isGuestLoading = false;
   String? _errorMessage;
@@ -53,6 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         email: _emailController.text,
         password: _passwordController.text,
         displayName: _nameController.text,
+        role: _selectedRole,
       );
       // Once registered, Wrapper will automatically route to HomeScreen.
     } catch (e) {
@@ -68,6 +71,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
         });
       }
     }
+  }
+
+  Widget _personaTile({
+    required UserRole role,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+  }) {
+    final selected = _selectedRole == role;
+    return InkWell(
+      borderRadius: BorderRadius.circular(11),
+      onTap: () => setState(() => _selectedRole = role),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? color : Colors.transparent,
+          borderRadius: BorderRadius.circular(11),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: selected ? Colors.white : Colors.grey.shade600,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: selected ? Colors.white : Colors.grey.shade700,
+              ),
+            ),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 9.5,
+                color: selected
+                    ? Colors.white.withValues(alpha: 0.85)
+                    : Colors.grey.shade500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _handleGuestSignIn() async {
@@ -111,17 +162,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   // App Branding Header
                   Center(
-                    child: Container(
-                      width: 68,
-                      height: 68,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.directions_car_filled_rounded,
-                        color: AppColors.primary,
-                        size: 38,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: Image.asset(
+                        'assets/images/logo_full.jpg',
+                        width: 150,
+                        height: 150,
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
@@ -136,7 +183,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Join GearGo to start exploring and renting vehicles.',
+                    'Join GearGo to start renting and sharing sports gear.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.textTheme.bodySmall?.color,
@@ -185,6 +232,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // Persona / Account Role Selector
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _personaTile(
+                                      role: UserRole.renter,
+                                      title: 'Renter',
+                                      subtitle: 'Book gear',
+                                      icon: Icons.sports_rounded,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: _personaTile(
+                                      role: UserRole.owner,
+                                      title: 'Gear Owner',
+                                      subtitle: 'List & lend',
+                                      icon: Icons.storefront_rounded,
+                                      color: AppColors.orange,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _personaTile(
+                                      role: UserRole.commercialShop,
+                                      title: 'Commercial Shop',
+                                      subtitle: 'Batch inventory',
+                                      icon: Icons.warehouse_outlined,
+                                      color: const Color(0xFF6366F1),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: _personaTile(
+                                      role: UserRole.admin,
+                                      title: 'Administrator',
+                                      subtitle: 'Platform ops',
+                                      icon: Icons.admin_panel_settings_outlined,
+                                      color: const Color(0xFF123B5D),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         AuthTextField(
                           controller: _nameController,
                           labelText: 'Full Name',

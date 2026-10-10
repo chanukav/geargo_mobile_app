@@ -18,16 +18,9 @@ Firebase Authentication state.
 
 ## Other platforms
 
-The checked-in Firebase configuration currently covers Android only. Before
-running on iOS, web, macOS, Windows, or Linux, register those apps in the same
-Firebase project and configure them with the FlutterFire CLI:
-
-1. Install and authenticate the Firebase CLI.
-2. Install the FlutterFire CLI with `dart pub global activate flutterfire_cli`.
-3. Run `flutterfire configure` from the project root and select `geargo-e0035`
-   and the platforms to support.
-4. Initialize Firebase with the generated `DefaultFirebaseOptions.currentPlatform`
-   from `lib/firebase_options.dart` in `lib/main.dart`.
+The checked-in Firebase configuration covers Android, Web, and Windows platforms:
+- Configured via `lib/firebase_options.dart` using `DefaultFirebaseOptions.currentPlatform`.
+- Includes Supabase storage integration for equipment image assets.
 
 ## Run & Verification
 
@@ -35,10 +28,10 @@ Firebase project and configure them with the FlutterFire CLI:
 # Fetch dependencies
 flutter pub get
 
-# Run on Android Emulator
-flutter run -d emulator-5554
+# Run on Android Emulator or Chrome
+flutter run
 
-# Run static analysis (0 warnings/errors)
+# Run static analysis
 flutter analyze
 
 # Run complete test suite (unit and widget tests)
@@ -53,7 +46,6 @@ flutter build apk --release
 ## Commercial Shop & Transaction Management Module
 
 **Milestone:** IT3060 - Human Computer Interaction, Milestone 03  
-**Branch:** `feature/shop-transactions`  
 **Developer Component:** Commercial Shop & Transaction Management
 
 ### Functional Requirements
@@ -76,7 +68,37 @@ flutter build apk --release
 - **`users/{userId}/addresses`**: Renter delivery address book subcollection.
 
 ### Documentation & Deliverables
-- [docs/DEVIATIONS.md](file:///d:/Private/SLIIT/3rd%20year/2/IT3060%20-%20Human%20Computer%20Interaction/flutter%20apps/geargo_mobile_app/docs/DEVIATIONS.md): Architectural decisions and justified prototype deviations (integrated delivery toggle, refundable hold separation).
-- [docs/TEST_CASES.md](file:///d:/Private/SLIIT/3rd%20year/2/IT3060%20-%20Human%20Computer%20Interaction/flutter%20apps/geargo_mobile_app/docs/TEST_CASES.md): Full traceability matrix covering automated unit/widget tests and manual emulator validation.
-- [docs/VIVA_NOTES.md](file:///d:/Private/SLIIT/3rd%20year/2/IT3060%20-%20Human%20Computer%20Interaction/flutter%20apps/geargo_mobile_app/docs/VIVA_NOTES.md): Comprehensive viva defense guide, architecture breakdown, and anticipated examiner Q&A.
+- [docs/DEVIATIONS.md](file:///d:/Private/SLIIT/3rd%20year/2/IT3060%20-%20Human%20Computer%20Interaction/flutter%20apps/geargo_mobile_app/docs/DEVIATIONS.md): Architectural decisions and justified prototype deviations.
+- [docs/TEST_CASES.md](file:///d:/Private/SLIIT/3rd%20year/2/IT3060%20-%20Human%20Computer%20Interaction/flutter%20apps/geargo_mobile_app/docs/TEST_CASES.md): Full traceability matrix covering automated unit/widget tests and emulator validation.
+- [docs/VIVA_NOTES.md](file:///d:/Private/SLIIT/3rd%20year/2/IT3060%20-%20Human%20Computer%20Interaction/flutter%20apps/geargo_mobile_app/docs/VIVA_NOTES.md): Comprehensive viva defense guide, architecture breakdown, and examiner Q&A.
 - [firestore.rules](file:///d:/Private/SLIIT/3rd%20year/2/IT3060%20-%20Human%20Computer%20Interaction/flutter%20apps/geargo_mobile_app/firestore.rules): Granular security rules enforcing role-based permissions and atomic transactions.
+
+---
+
+## Member 4 — handover, condition checks, chat and operations
+
+The existing authentication/home module is preserved. Sign in and open
+**Equipment Handovers & Messages** to access your rental handovers. Member 4
+uses Firestore, Firebase Storage and three callable Functions; cloud services
+must be configured before using these features against the live Firebase project.
+Local emulator setup provides runnable, persistent synthetic workflows.
+
+### Local backend, database and synthetic data
+
+```sh
+functions/node_modules/.bin/firebase emulators:start --project geargo-e0035 --only auth,firestore,functions,storage
+```
+
+On Windows use `functions\node_modules\.bin\firebase.cmd`. Ports are Auth 9099,
+Firestore 8085, Functions 5001 and Storage 9199. Keep this terminal running.
+In a second PowerShell terminal, seed **only local emulators**:
+
+```powershell
+$env:GCLOUD_PROJECT = 'geargo-e0035'
+$env:FIRESTORE_EMULATOR_HOST = '127.0.0.1:8085'
+$env:FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099'
+npm.cmd --prefix functions run seed
+```
+
+Synthetic accounts: `renter@geargo.test`, `owner@geargo.test`, `admin@geargo.test`,
+`outsider@geargo.test`; password `GearGo-demo-2026`.

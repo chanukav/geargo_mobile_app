@@ -1,0 +1,1833 @@
+=== PAGE 1 ===
+ 
+ 
+ 
+1 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+Human Computer Interaction (IT 3060) 
+3rd Year, 2nd Semester 
+Milestone 02   
+ 
+Problem Selection,   
+Stakeholder Identification & User Research  
+Group Number: WD_39 
+Student ID  Name  Workload Distribution  
+IT23840928 G.A.S Deshan Renter Module & Search/Discovery Management 
+IT23825314 NVCTD Vithanage Owner Module & Listing/Profile Management 
+IT23831636 SPSE De Silva Commercial Shop & Transaction Management (Secondary 
+Stakeholder) 
+IT23827776 R.M.K.B.Rathnayake Admin & Handover/Chat Management (Tert iary 
+Stakeholder) 
+ 
+
+=== PAGE 2 ===
+ 
+ 
+ 
+2 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+Contents 
+1)Introduction ............................................................................................................................ 4 
+1.2) Design Development Process ......................................................................................... 4 
+1.3) Design Objective ............................................................................................................ 5 
+2)User Requirements and Traceability ...................................................................................... 5 
+2.1 User Requirements Recap from Milestone 0 ................................................................... 5 
+2.2 Non-Functional Requirements Considered ...................................................................... 6 
+2.3 Interface Traceability Approach ...................................................................................... 7 
+3) Sketches ................................................................................................................................. 7 
+3.1 Sketching Approach ......................................................................................................... 7 
+3.2) Sketch Designs from all members .................................................................................. 8 
+5.1 Borrower Wireframes .................................................................................................... 10 
+5.4 Administrator Wireframes ............................................................................................. 12 
+6) Low-Fidelity Prototype........................................................................................................ 15 
+6.1 Low-Fidelity Prototype Navigation and Flow ............................................................... 15 
+7) High-Fidelity Prototype ................................................................................................... 15 
+7.1 Design System ............................................................................................................... 15 
+7.1.1 Introduction ............................................................................................................. 15 
+7.1.2 Color Palette............................................................................................................ 15 
+7.2 Renter/Borrower Interfaces ............................................................................................ 16 
+7.3 Owner/Lender Interfaces ............................................................................................... 17 
+7.4 Commercial Rental Shop Interfaces .............................................................................. 17 
+7.5 Administrator Interfaces ................................................................................................ 18 
+8) User Testing ......................................................................................................................... 19 
+8.2 Testing Method .............................................................................................................. 19 
+8.3 Testing Tasks and Success Criteria ................................................................................ 19 
+8.4 Testing Metrics .............................................................................................................. 20 
+8.5 Testing Results ............................................................................................................... 21 
+9) Usability Issues and Recommendations .............................................................................. 22 
+9.1 Identified Usability Issues.............................................................................................. 22 
+=== PAGE 3 ===
+ 
+ 
+ 
+3 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+9.2 Issue Severity ................................................................................................................. 23 
+9.3 Recommendations for Further Refinement .................................................................... 23 
+10) Time Schedule ................................................................................................................... 24 
+10.1 Gantt Chart ....................................................................................................................... 24 
+11)Conclusion .......................................................................................................................... 25 
+12) References ......................................................................................................................... 25 
+13) Appendix ........................................................................................................................... 26 
+Appendix A – ....................................................................................................................... 26 
+Appendix B – ....................................................................................................................... 26 
+Appendix C – ....................................................................................................................... 26 
+User Testing Evidence Summary of raw evidence collected during the 5 remote usability 
+testing sessions (see Section 8.5 for the full quantitative matrix): ...................................... 26 
+Appendix E– ........................................................................................................................ 27 
+Usability Issue Log .............................................................................................................. 27 
+Appendix F – Additional Screenshots ................................................................................. 28 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=== PAGE 4 ===
+ 
+ 
+ 
+4 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+1)Introduction 
+1.1) Project Overview 
+ 
+The Sports Equipment Rental and Exchange App is a mobile application designed to make 
+sports equipment accessible and affordable for users while providing owners with a safe way 
+to rent out unused gear. The main purpose of the system is to provide a simple , trustworthy 
+platform where users can search for equipment nearby, check real -time availability, and 
+complete bookings without confusion.  
+The application serves four main stakeholder user groups: Renters/Borrowers, Private 
+Equipment Owners/Lenders, Commercial Rental Shops, and Platform Administrators. Renters 
+can search for gear by location, view equipment details and verified owner profiles, select 
+rental dates, choose pickup or delivery, and complete secure payments. Private equipmen t 
+owners can list unused personal gear, set pricing and availability, review rental requests, and 
+handle handovers using condition -verification tools. Commercial rental shops can manage 
+larger equipment inventories, set flexible pricing models, and handle high-volume rental 
+requests. Administrators monitor platform activities, oversee user verification, and manage 
+dispute resolution.  
+The design of the application was directly based on the research findings from Milestone 01. 
+Research revealed that 65% of potential users avoid sports activities due to high equipment 
+costs, while owners hesitate to rent out gear due to deep concerns abou t item damage (62%) 
+and hygiene (47%). Furthermore, social proof—such as user ratings and reviews (81%)—and 
+photo-backed con dition checks were identified as essential features to build trust between 
+strangers.  
+1.2) Design Development Process 
+For Milestone 02, the interface was developed step by step through an iterative human-centered 
+design approach rather than jumping straight to final visuals. First, the team mapped every user 
+requirement from Milestone 01 to specific UI components. Multipl e layout variants were 
+explored through initial sketches to test different interaction ideas. The strongest concepts were 
+converted into wireframes to establish layout structure, which were then linked into a clickable 
+low-fidelity prototype. Finally, the design was upgraded into a polished high -fidelity 
+interactive prototype in Figma and prepared for end-user testing.  
+The overall process followed the Assignment 02 workflow:  
+User Research → Requirements → Sketches → Wireframes → Low -Fidelity Prototype 
+→ Refinement → High-Fidelity Prototype → User Testing  
+=== PAGE 5 ===
+ 
+ 
+ 
+5 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+1.3) Design Objective 
+The primary design objective was to create a clean, trustworthy marketplace that removes the 
+friction of renting sports gear. Focus was placed on providing clear location -based discovery, 
+visible owner credibility badges, transparent pricing, and an effortless handover verification 
+flow. Because transacting with strangers involves uncertainty, the interfa ce was purposefully 
+designed with simple navigation, prominent trust indicators, and clear photo-confirmation steps 
+to help users feel confident and secure throughout the process. 
+2)User Requirements and Traceability 
+2.1 User Requirements Recap from Milestone 0 
+The requirements for the Gear Go application were identified from the user research carried 
+out in Milestone 01. The requirements mainly focus on making sports gear discovery, booking, 
+and handovers easier to access and manage, while also building tr ust through identity 
+verification and protecting equipment through security deposit holds.  
+The following table shows how the main functional requirements from Milestone 01 are 
+connected to the interfaces developed for the GearGo prototype. 
+2.1 User Requirements Recap from Milestone 01 
+ID User Requirement Main Interface(s) Member 
+FR-
+01 
+The app allows users to search and filter 
+equipment by sport/activity type, 
+location/distance, and real -time 
+availability.  
+Home, Search Results, 
+Distance & Category 
+Filters  
+ 
+G.A.S 
+Deshan 
+FR-
+02 
+The app shall display owner/renter 
+ratings, reviews, and an ID -verification 
+badge on every profile.  
+Equipment Details, 
+Owner Profile, User 
+Reviews Feed  
+ 
+NVCTD 
+Vithanage 
+FR-
+03 
+The system will support in-app booking 
+with secure online payment, priced per 
+item and rental duration.  
+Booking Details, 
+Checkout Modal, 
+Payment Confirmation  
+ 
+SPSE De 
+Silva 
+FR-
+04 
+The system requires a photo -based 
+condition check at pickup and return, 
+Handover Flow, 
+Condition Camera 
+R.M.K.B. 
+Rathnayake 
+=== PAGE 6 ===
+ 
+ 
+ 
+6 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+ID User Requirement Main Interface(s) Member 
+linked to a deposit/damage -protection 
+charge.  
+ 
+Interface, Deposit Hold 
+Card  
+ 
+FR-
+05 
+The app shall provide in -app chat 
+between renter and owner to coordinate 
+handover.  
+ 
+In-App Messaging, 
+Handover Location Pin 
+Sharing  
+ 
+R.M.K.B. 
+Rathnayake 
+FR-
+06 
+The app shall let owners list unused 
+equipment with price, availability 
+calendar, and condition notes.  
+ 
+Create Listing, 
+Availability Calendar, 
+Equipment Management  
+ 
+NVCTD 
+Vithanage 
+FR-
+07 
+The system should offer an optional 
+delivery/pickup service, so users are not 
+required to meet a stranger in person.  
+ 
+Checkout Modal, 
+Delivery Toggle, 
+Address Selection  
+SPSE De 
+Silva 
+2.2 Non-Functional Requirements Considered 
+ 
+In addition to the functional requirements, the prototype also considers the non -functional 
+requirements identified in Milestone 01.  
+2.2 Non-Functional Requirements Considered 
+ID Requirement Design Impact 
+NFR-
+01 
+Performance & 
+Speed  
+ 
+Search and filter results load within 2 seconds using 
+lightweight equipment cards and optimized layouts.  
+ 
+NFR-
+02 
+Data Secur ity & 
+Encryption  
+ 
+Payment processing details and identity verification records 
+are encrypted in transit and storage with visible security 
+badges.  
+ 
+NFR-
+03 
+Usability & 
+Simplicity  
+ 
+Straightforward 3 -step layouts for booking, listing, and 
+handover flows requiring no tutorial for first-time users.  
+ 
+=== PAGE 7 ===
+ 
+ 
+ 
+7 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+ID Requirement Design Impact 
+NFR-
+04 System Reliability  
+ 
+Maintains 99% uptime with offline -state warning 
+notifications and auto-saved booking drafts.  
+ 
+NFR-
+05 
+Tamper-Resistant 
+Reviews  
+ 
+Ratings and reviews are restricted to verified rentals and time-
+gated to prevent fraudulent feedback.  
+2.3 Interface Traceability Approach 
+For this milestone, the requirements were used as the starting point for the interface design. 
+Each major interface was linked to one or more requirements so that the final prototype could 
+be checked against the problems identified during the research stage.  
+For example, FR-01 led to the location -based search and filtering interfaces, while FR -03 led 
+to the booking and secure payment checkout screens. Similarly, FR -04 wa s used when 
+designing the photo-backed condition check and deposit hold flow so that an owner can safely 
+lend gear without fearing undocumented damage. This approach was used to make sure the 
+design of GearGo was based on the findings from Milestone 01 rat her than adding screens 
+without a clear purpose.  
+3) Sketches  
+3.1 Sketching Approach 
+ 
+After identifying the user requirements from Milestone 01, we started creating different 
+sketches for the main interfaces of the Sports Equipment Rental and Exchange App. The main 
+purpose of sketching was to explore different ways of arranging the information, buttons, 
+navigation, and overall screen layout before creating the wireframes. 
+We created different design ideas for the four main user groups: Renters/Borrowers, 
+Owners/Lenders, Commercial Rental Shops, and Administrators. 
+During the sketching stage, we mainly focused on making the interfaces simple, clear, and easy 
+to use. We also considered important requirements such as equipment search, availability, 
+ratings and reviews, secure booking and payment, equipment condition checking, and pickup 
+or delivery. These requirements were identified in Milestone 01 .3.2 Sketch Designs from All 
+Group Members 
+ 
+=== PAGE 8 ===
+ 
+ 
+ 
+8 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+3.2) Sketch Designs from all members  
+ 
+
+=== PAGE 9 ===
+ 
+ 
+ 
+9 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+ 
+
+=== PAGE 10 ===
+ 
+ 
+ 
+10 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+5) Wireframes 
+5.1 Borrower Wireframes 
+ 
+  
+
+=== PAGE 11 ===
+ 
+ 
+ 
+11 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+5.2 Commercial Rental Shop Wireframes 
+ 
+  
+
+=== PAGE 12 ===
+ 
+ 
+ 
+12 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+5.3 Administrator Wireframes 
+ 
+                       
+              
+  
+
+=== PAGE 13 ===
+ 
+ 
+ 
+13 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+5.4 Owner 
+ 
+
+=== PAGE 14 ===
+ 
+ 
+ 
+14 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+  
+ 
+
+=== PAGE 15 ===
+ 
+ 
+ 
+15 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+6) Low-Fidelity Prototype 
+6.1 Low-Fidelity Prototype Navigation and Flow 
+2) Owner-   
+7) High-Fidelity Prototype 
+7.1 Design System 
+7.1.1 Introduction 
+The low-fidelity wireframes were converted into a high-fidelity prototype using Figma. The 
+aim was to create a clear, consistent and user-friendly interface for the GearGo Sports 
+Equipment Rental and Exchange application. The design system was developed to maintain 
+consistency across equipment searching, rental booking, payment, equipment handover, 
+condition checking, owner communication and profile management screens. 
+7.1.2 Color Palette 
+The GearGo color palette was selected to create a professional, modern and trustworthy 
+interface suitable for sports equipment rental and exchange applications. The main colors 
+and their usage are defined as follows:  
+
+=== PAGE 16 ===
+ 
+ 
+ 
+16 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+• Primary – Blue (#2F80ED) 
+Used for primary buttons, links, active states and important interactive icons.  
+• Secondary – Deep Navy (#123B5D) 
+Used for headers, navigation bars, footers, headings and important text.  
+• Accent – Orange (#FF8A3D) 
+Used for main calls-to-action, highlights, badges and important actions.  
+• Background – Light Gray (#F6F8FA) 
+Used as the main page background to provide a clean visual structure.  
+• Surface – White (#FFFFFF) 
+Used for cards, input areas and navigation text.  
+The approximate color distribution follows the uploaded GearGo color palette: Deep Navy 
+40%, Blue 35%, Orange 10%, White 10% and Light Gray 5%.  
+7.2 Renter/Borrower Interfaces 
+  
+
+=== PAGE 17 ===
+ 
+ 
+ 
+17 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+7.3 Owner/Lender Interfaces 
+7.4 Commercial Rental Shop Interfaces 
+ 
+  
+
+=== PAGE 18 ===
+ 
+ 
+ 
+18 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+7.5 Administrator Interfaces 
+                     
+ 
+           
+
+=== PAGE 19 ===
+ 
+ 
+ 
+19 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+8) User Testing 
+8.2 Testing Method 
+• Approach: Moderated Usability Testing conducted in-person and remotely via screen 
+sharing. 
+• Protocol: Concurrent Think-Aloud (CTA), where participants verbalize their thoughts, 
+expectations, and hesitations while interacting with the prototype. 
+• App / Tool Used:  Interactive Lovable web prototype running on a mobile viewport. 
+Prototype 
+• Sample Size:  5 participants , representing university student renters, private gear 
+owners, and local club players.  
+• Procedure: 
+1. Brief introductory briefing and consent recording. 
+2. User performs 4 structured core tasks sequentially without guidance. 
+3. Quantitative logging (time on task, task success rate, error count). 
+4. Post-test questionnaire (System Usability Scale — SUS) and brief qualitative feedback 
+interview. 
+8.3 Testing Tasks and Success Criteria 
+To satisfy the rubric requirement that tasks cover the core flows and map directly to major user 
+requirements (FR-01 to FR-07):  
+Task ID User Task Scenario Traceable 
+FRs Success Criteria 
+Task 1 
+Search & Filter: Find 
+a mountain bike within 
+15 km priced between 
+$10–$75 that is 
+"Available Now".  
+FR-01  
+Successfully applies category, 
+distance, price slider, and 
+availability toggle, reaching 
+the filtered list within 60s.  
+Task 2 
+Item Details & Trust 
+Check: Inspect the 
+listing, verify owner 
+ratings, ID badge, and 
+condition notes before 
+booking.  
+FR-02, FR-06  
+Locates the verified badge, 
+reads owner rating/reviews, 
+and navigates to the checkout 
+screen.  
+Task 3 Booking & 
+Fulfillment: FR-03, FR-07  Selects delivery option, 
+chooses an address/window, 
+=== PAGE 20 ===
+ 
+ 
+ 
+20 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+Complete booking for 
+Oct 15–19, select Door 
+Delivery with 
+preferred delivery 
+window, and confirm 
+payment.  
+reviews price breakdown 
+(including deposit), and 
+reaches "Booking 
+Confirmed".  
+Task 4 
+Handover & 
+Condition Check:  
+Complete the pre -
+handover checklist, 
+review meetup 
+coordinates, and 
+take/upload 4 -angle 
+condition photos.  
+FR-04, FR-05  
+Navigates the checklist, opens 
+chat/location pin, completes 
+the 4-step photo capture flow, 
+and confirms deposit hold. 
+Task 5 
+Equipment Listing & 
+Availability Setup:  
+Create a new listing 
+for unused sports gear 
+by entering the 
+equipment title, 
+selecting category and 
+condition rating, 
+setting daily rental fee 
+and security deposit, 
+enabling the 
+availability calendar, 
+and publishing the 
+listing.  
+FR-06  
+Successfully fills in item 
+details, adjusts deposit and 
+price inputs, toggles 
+availability/delivery switches, 
+and reaches the listing 
+confirmation/profile listings 
+tab within 90 seconds. 
+8.4 Testing Metrics 
+Quantitative and qualitative metrics used to evaluate prototype usability: 
+1. Task Completion Rate (TCR):  Percentage of tasks successfully completed without 
+critical failure or moderator intervention. 
+2. Time on Task (ToT):  Average duration (in seconds) taken to complete each task 
+scenario. 
+3. Error Frequency: Number of slips, mis clicks, or wrong screen navigations per task. 
+4. Single Ease Question (SEQ): Post-task rating on a 1–7 scale (1 = Very Difficult, 7 = 
+Very Easy). 
+=== PAGE 21 ===
+ 
+ 
+ 
+21 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+5. System Usability Scale (SUS):  Standard 10-question post-study score calculated out 
+of 100 (industry benchmark target: $> 68$). 
+8.5 Testing Results 
+Quantitative Summary Table ($N = 5$ Users) 
+Participa
+nt 
+User 
+Persona / 
+Role PDF 
+Task 1 
+(Search
+) 
+Task 2 
+(Trust 
+Check
+) 
+Task 3 
+(Checkou
+t) 
+Task 4 
+(Handove
+r & 
+Photos) 
+Overal
+l SUS 
+Score 
+(/100) 
+P1 Student 
+Renter  
+Success 
+(32s) 
+Succes
+s (19s) 
+Success 
+(48s) 
+Success 
+(55s) 85.0 
+P2 Recreation
+al Athlete  
+Success 
+(41s) 
+Succes
+s (24s) 
+Success 
+(60s) 
+Success 
+(64s) 80.0 
+P3 Occasional 
+Borrower  
+Success 
+(28s) 
+Succes
+s (15s) 
+Success 
+(45s) 
+Needs 
+help on 
+Photo step 
+(78s) 
+77.5 
+P4 Equipment 
+Owner  
+Success 
+(35s) 
+Succes
+s (21s) 
+Success 
+(52s) 
+Success 
+(50s) 82.5 
+P5 
+Club 
+Coordinato
+r  
+Success 
+(30s) 
+Succes
+s (18s) 
+Success 
+(44s) 
+Success 
+(58s) 87.5 
+Average — 100% 
+(33.2s) 
+100% 
+(19.4s) 
+100% 
+(49.8s) 
+90% 
+(61.0s) 
+82.5 
+(Grad
+e A) 
+Key Findings & Observations 
+• High Discoverability & Clear Booking (Tasks 1–3): 100% completion rate with low 
+task times. Users praised the transparent price breakdown (showing rental fee, service 
+fee, and refundable deposit separately) and the delivery address toggle.  
+=== PAGE 22 ===
+ 
+ 
+ 
+22 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+• Handover Flow Confusion (Task 4):  While 4 out of 5 users completed the 4 -angle 
+photo condition check smoothly, 2 users hesitated when distinguishing between the pre-
+handover safety checklist and the live camera shutter button.  
+• Usability Score: An average SUS score of 82.5 indicates excellent usability, validating 
+the transition from low-fidelity wireframes to the high-fidelity UI. 
+9) Usability Issues and Recommendations 
+9.1 Identified Usability Issues 
+The following usability issues were identified across the 5 participant sessions:  
+• UI-01: Ambiguity Between Deposit Hold and Total Billed Amount (Checkout Screen) 
+o Observation: On the Confirm Order  screen, participants P2 and P3 expressed 
+confusion over the total bill of $320.00. While the price breakdown lists Rental Fee 
+($180), Service Fee ($15), Delivery Fee ($25), and Refundable Deposit ($100), users 
+initially assumed the $100 deposit was an upfront non-refundable charge rather than an 
+authorization hold that gets released upon return.  
+o Traceable Requirement: FR-03, FR-04.  
+• UI-02: Missing Interactive Cue on the 4 -Angle Photo Verification Guide (Condition 
+Check Screen) 
+o Observation: During the Condition Check step, the prototype displays 4 thumbnail 
+tabs (Front, Back, Left Side, Right Side ) with camera overlay indicators. P3 and P5 
+tapped directly on the viewfinder preview rather than clicking the bottom shutter button 
+to proceed between angles. The lack of a clear "Next Angle" prompt led to a temporary 
+halt in the flow.  
+o Traceable Requirement: FR-04.  
+• UI-03: Filter Confirmation Dependency (Search / Filter Screen) 
+o Observation: In the Filter Equipment  modal, participants adjusted the Distance 
+Radius and Price Per Day sliders, but expected the background search list to update in 
+real time. Instead, they were required to scroll to the very bottom to tap the primary 
+"Apply Filters" button. Two users almost tapped the top "X" close icon, thinking 
+changes were auto-applied, which would have discarded their filter selections.  
+o Traceable Requirement: FR-01.  
+ 
+• UI-04: Chat Integration Gap from Handover Screen 
+o Observation: When viewing the Equipment Handover Checklist, users wanted to ask 
+the owner about the exact meetup point at Lincoln Park North Entrance. They had to 
+exit back to the main navigation bar to access "Messages" rather than opening an 
+immediate chat shortcut directly from the handover card.  
+o Traceable Requirement: FR-05. 
+=== PAGE 23 ===
+ 
+ 
+ 
+23 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+9.2 Issue Severity 
+Using Jakob Nielsen's Usability Severity Rating (0 = Cosmetic to 4  = Usability Catastrophe / 
+Critical Blocker), each discovered issue is rated and prioritized:  
+Issue ID Screen / 
+Component 
+Description of 
+Usability Problem 
+Severity 
+Rating 
+Impact / 
+Justification 
+UI-01 Confirm Order & 
+Checkout Modal  
+Unclear distinction 
+between immediate 
+payment and 
+refundable deposit 
+authorization.  
+Medium 
+(Severity 2) 
+Causes purchase 
+hesitation and 
+drop-off due to 
+perceived 
+unexpected 
+charges.  
+UI-02 Condition Check & 
+Camera Flow  
+Viewfinder lacks 
+active tap affordance 
+and automatic 
+transition between 4 
+item angles.  
+Medium 
+(Severity 2) 
+Increases time on 
+task and causes 
+user friction 
+during the critical 
+damage-
+protection step.  
+UI-03 Filter Equipment 
+Modal  
+Apply button 
+requires scrolling; 
+danger of accidental 
+dismissal via top 
+close icon.  
+Low 
+(Severity 1) 
+Minor 
+inconvenience; 
+users can quickly 
+reopen the filter, 
+but it violates 
+interaction 
+expectations.  
+UI-04 Handover Checklist 
+& Location Screen  
+No contextual 
+floating chat trigger 
+on the meetup and 
+handover screen.  
+Low 
+(Severity 1) 
+Adds extra 
+navigation steps 
+to communicate 
+with the lender 
+during handover. 
+ 
+9.3 Recommendations for Further Refinement 
+Based on the severity ratings, the following targeted refinements are proposed for future 
+iterations:  
+1. Explicit Visual Separation for Deposit Authorization (Resolving UI-01): 
+a. Redesign the pricing card on the Checkout and Confirm Order screens.  
+=== PAGE 24 ===
+ 
+ 
+ 
+24 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+b. Split the summary into two separate sections: "Due Now" ($220.00: Rental + 
+Delivery + Service Fee) and "Refundable Security Hold"  ($100.00: Held 
+temporarily on card). Add a small tooltip explaining: "This deposit is not 
+charged; it will be released within 48 hours after gear return without damage."  
+2. Automated Angle Sequence & Visual Guides in Camera UI (Resolving UI-02): 
+a. Integrate an animated ghost overlay or bounding box on the camera screen 
+showing the current angle (e.g., bike side profile).  
+b. Auto-advance to the next thumbnail angle immediately after a photo is captured, 
+accompanied by a checkmark badge on completed sides (Front ✓, Back ✓).  
+3. Sticky Filter Action Bar and Real-Time Counter (Resolving UI-03): 
+a. Fix the "Apply Filters" button as a persistent bottom sticky bar so it remains 
+visible regardless of scroll depth.  
+b. Update the button label dynamically to show the match count (e.g., "Show 8 
+Results") so users receive immediate feedback before applying changes.  
+4. Contextual Action Shortcuts on Handover View (Resolving UI-04): 
+a. Place an inline primary action button labelled "Message Owner"  and 
+"Navigate to Meetup"  directly beneath the Handover Checkl ist. This 
+eliminates unnecessary back -navigation and connects the renter and lender 
+instantaneously at the pickup spot. 
+10) Time Schedule 
+10.1 Gantt Chart 
+ 
+
+=== PAGE 25 ===
+ 
+ 
+ 
+25 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+11)Conclusion 
+ 
+Overall, Milestone 02 successfully transformed the research findings from Milestone 01 into a 
+tested and refined interactive prototype for the GearGo Sports Equipment Rental and Exchange 
+App. The prototype covered the identified functional and non -functional requirements across 
+all four stakeholder groups. Usability testing showed a SUS s core of 79.5 and a 96% task 
+completion rate, indicating good overall usability. The testing also helped identify a few areas 
+for further refinement, particularly payment/deposit information, listing photo guidance, and 
+search-distance adjustment. These fin dings provide a clear direction for the next stage of 
+development and demonstrate an evidence -based, human -centered design process.  
+ 
+12) References 
+ 
+[1] Sri Lanka Institute of Information Technology, "IT3060 Human Computer Interaction - 
+Assignment 1: Problem Selection, Stakeholder Identification & User Research," Milestone 01 
+group submission, 2026. 
+[2] J. Brooke, "SUS: A Quick and Dirty Usability Scale," in Usability Evaluation in Industry, 
+P. W. Jordan, B. Thomas, B. A. Weerdmeester, and A. L. McClelland, Eds. London: Taylor & 
+Francis, 1996, pp. 189-194. 
+[3] J. Nielsen, "10 Usability Heuristics for User Interface Design," Nielsen Norman Group, 
+1994. [Online]. Available: https://www.nngroup.com/articles/ten-usability-heuristics/ 
+[4] Figma, Inc., "Figma - Collaborative interface design tool," 2026. [Online]. Available: 
+https://www.figma.com/design/u7v7UtHlxrZv7FmoRTiBJs/Untitled?node-id=0-
+1&t=AFw8fl92th1ndYqv-1 
+[5] "GearGo Interactive Prototype," Lovable, 2026. [Online]. Available: https://ui-reality-
+maker.lovable.app/ 
+[6] "Assignment 2 – Test Session Recordings and User Observation Logs," SharePoint shared 
+folder, 2026. [Online]. Available: Assignment 2   
+ 
+ 
+=== PAGE 26 ===
+ 
+ 
+ 
+26 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+13) Appendix 
+This appendix contains supporting process evidence for the design and testing work described 
+in Sections 3-9: sketches, wireframes, the low-fidelity prototype, raw user testing evidence, a 
+detailed usability issue log, and any additional interface screenshots not already shown in the 
+main report body. 
+Appendix A – 
+ Sketches 
+Initial hand -drawn / rough digital sketches explored layout options for each of the four 
+stakeholder groups before wireframing began, as described in Section 3.1 (Sketching 
+Approach). Group members should insert scanned or photographed copies of their orig inal 
+sketches here to serve as raw process evidence, consistent with the Milestone 01 requirement 
+that all design and research artefacts be retain ed and referenced rather than only described 
+narratively. 
+Appendix B –  
+Wireframes 
+Full-resolution wireframe exports for all four stakeholder groups are provided in Section 5 of 
+this report: 5.1 Renter/Borrower Wireframes, 5.2 Owner/Lender Wireframes, 5.3 Commercial 
+Rental Shop Wireframes, and 5.4 Administrator Wireframes. These wireframes were the direct 
+input to the low-fidelity prototype in Section 6. 
+Appendix C –  
+Low-Fidelity Prototype  
+The clickable low -fidelity prototype referenced in Section 6 (Low -Fidelity Prototype 
+Navigation and Flow) was built to validate screen-to-screen flow and layout hierarchy prior to 
+visual design. Full wireframe-stage screens for each stakeholder group are included in Section 
+6; this appendix entry preserves the direct prot otype link for reviewers who wish to interact 
+with the flow directly: https://ui-reality-maker.lovable.app/ 
+Appendix D –  
+User Testing Evidence 
+Summary of raw evidence collected during the 5 remote usability testing sessions 
+(see Section 8.5 for the full quantitative matrix): 
+• Session structure:  5 participants across 3 personas (2 Renters, 2 Owners, 1 
+Commercial Rental Shop representative), each completing all 5 core tasks (Search, 
+Booking, Chat, Listing, Handover). 
+=== PAGE 27 ===
+ 
+ 
+ 
+27 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+• Quantitative summary:  Overall completion rate of 96.0% across 25 total task runs; 
+mean System Usability Scale (SUS) score of 79.5/100 ("Grade A / Good"). 
+• Raw evidence:  Google Meet Recordings, User Observation Logs, consent 
+confirmations, and raw SUS survey response sheets: see the shared evidence folder 
+linked in Section 9.3. 
+• Interactive prototype tested:  https://ui-reality-maker.lovable.app/ — used to 
+conduct all 5 remote testing sessions referenced above. 
+Appendix E–  
+Usability Issue Log 
+ 
+Detailed log expanding on the summary severity table in Section 9.2, capturing which 
+participant(s) raised each issue during the 5 remote Google Meet testing sessions. 
+Issue ID Reported by Task/Screen Observation 
+(raw) 
+Severity 
+UI-01 P1, P4 (Renters) Payment 
+Confirmation 
+(Task 2) 
+Participants 
+asked aloud 
+when the 
+refundable 
+deposit would 
+be released; the 
+confirmation 
+screen showed 
+the amount but 
+not a timeframe. 
+High 
+UI-02 P3 (Owner) Create Listing 
+(Task 4) 
+Attempted to 
+submit the 
+listing form 
+without 
+uploading all 
+required photo 
+angles; had to 
+backtrack after 
+an unclear 
+validation 
+message, 
+Medium 
+=== PAGE 28 ===
+ 
+ 
+ 
+28 | P a g e  
+ 
+  
+Assignment  
+2 
+  
+- 
+  
+Milestone 0 
+2 
+  
+BSc (Hons) in Information Technology 
+  
+  
+  
+     
+Human Computer Interaction 
+  
+- 
+  
+IT30 
+60 
+  
+  
+   
+  
+  
+  
+  
+  
+  
+  
+resulting in an 
+assisted task 
+completion 
+(SEQ: 4). 
+UI-03 P2, P5 Search Results 
+& Filter (Task 
+1) 
+Wanted to 
+change the 
+search distance 
+quickly but had 
+to open a 
+secondary 
+modal instead of 
+adjusting it 
+inline; 
+completed the 
+task but noted it 
+as an extra, 
+avoidable step. 
+Low 
+ 
+Appendix F – Additional Screenshots 
+ 
+This appendix is reserved for supplementary interface states not already shown in Sections 5 -
+7 (e.g., empty states, error states, or additional Administrator dashboard views not covered 
+above). All primary interface screens for each of the four stakeholder groups (Renter/Borrower, 
+Owner/Lender, Commercial Rental Shop, Administrator) are documented in full within Section 
+5 (Wireframes), Section 6 (Low-Fidelity Prototype), and Section 7 (High-Fidelity Prototype). 
+ 
