@@ -9,6 +9,7 @@ import 'firebase_options.dart';
 import 'member4/emulators.dart';
 import 'screens/splash/splash_screen.dart';
 import 'services/app_settings_service.dart';
+import 'services/database_seeder_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +36,13 @@ Future<void> main() async {
   }
 
   await configureMember4Emulators();
+
+  // Seed sample equipment data and 1-to-N reviews into Firestore
+  try {
+    await DatabaseSeederService().seedEquipmentAndReviews();
+  } catch (e) {
+    debugPrint('Database seeding notice: $e');
+  }
 
   runApp(const MyApp());
 }

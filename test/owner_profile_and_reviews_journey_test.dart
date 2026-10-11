@@ -4,6 +4,7 @@ import 'package:geargo/models/equipment_review.dart';
 import 'package:geargo/models/gear_item.dart';
 import 'package:geargo/screens/owner/public_owner_profile_screen.dart';
 import 'package:geargo/screens/renter/renter_equipment_details_screen.dart';
+import 'package:geargo/services/database_seeder_service.dart';
 import 'package:geargo/services/review_service.dart';
 
 void main() {
@@ -282,6 +283,43 @@ void main() {
       expect(fromDb.id, saved1.id);
       expect(fromDb.equipmentId, targetEquipmentId);
       expect(fromDb.comment, 'Top quality suspension and brakes.');
+    });
+
+    test('DatabaseSeederService seeds wireframe equipment items and 1-to-N reviews',
+        () async {
+      final seeder = DatabaseSeederService();
+
+      // Verify sample equipment catalog exists
+      expect(DatabaseSeederService.sampleEquipmentList.length, 6);
+      expect(
+        DatabaseSeederService.sampleEquipmentList
+            .any((e) => e.id == 'gear_specialized_stumpjumper'),
+        true,
+      );
+
+      // Verify sample reviews adhere strictly to 1-to-N constraint
+      expect(DatabaseSeederService.sampleReviewsList.isNotEmpty, true);
+      for (final rev in DatabaseSeederService.sampleReviewsList) {
+        expect(rev.equipmentId.isNotEmpty, true);
+        expect(
+          DatabaseSeederService.sampleEquipmentList
+              .any((e) => e.id == rev.equipmentId),
+          true,
+        );
+      }
+
+      // Execute seeding
+      await seeder.seedEquipmentAndReviews();
+
+      // Check reviews retrieved for Stumpjumper
+      final reviewService = ReviewService();
+      final stumpjumperReviews = await reviewService
+          .fetchReviewsForEquipment('gear_specialized_stumpjumper');
+      expect(stumpjumperReviews.length, greaterThanOrEqualTo(3));
+      expect(
+        stumpjumperReviews.any((r) => r.authorName == 'Sarah K.'),
+        true,
+      );
     });
   });
 }
