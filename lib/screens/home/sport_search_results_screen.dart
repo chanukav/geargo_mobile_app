@@ -13,11 +13,13 @@ import 'filter_screen.dart';
 class SportSearchResultsScreen extends StatefulWidget {
   final String initialQuery;
   final GearFilters initialFilters;
+  final List<GearItem>? initialCatalog;
 
   const SportSearchResultsScreen({
     super.key,
     this.initialQuery = '',
     this.initialFilters = const GearFilters(),
+    this.initialCatalog,
   });
 
   @override
@@ -29,19 +31,22 @@ class _SportSearchResultsScreenState extends State<SportSearchResultsScreen> {
   late String _query;
   late GearFilters _filters;
   String _sortBy = 'distance'; // 'distance', 'price_asc', 'price_desc', 'rating'
-  List<GearItem> _catalog = sampleGear;
+  late List<GearItem> _catalog;
 
   @override
   void initState() {
     super.initState();
     _query = widget.initialQuery;
     _filters = widget.initialFilters;
+    _catalog = widget.initialCatalog ?? sampleGear;
 
-    GearCatalogService().discoveryStream().listen((items) {
-      if (mounted) {
-        setState(() => _catalog = items);
-      }
-    });
+    if (widget.initialCatalog == null) {
+      GearCatalogService().discoveryStream().listen((items) {
+        if (mounted) {
+          setState(() => _catalog = items);
+        }
+      });
+    }
   }
 
   List<GearItem> get _filteredResults {

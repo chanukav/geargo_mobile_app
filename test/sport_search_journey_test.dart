@@ -5,6 +5,69 @@ import 'package:geargo/screens/home/filter_screen.dart';
 import 'package:geargo/screens/home/sport_search_results_screen.dart';
 import 'package:geargo/screens/home/tabs/search_tab.dart';
 
+const List<GearItem> testFootballGear = [
+  GearItem(
+    name: 'Football Size 5',
+    owner: 'Ahmad F.',
+    category: 'Football',
+    image: 'assets/images/gear_football.jpg',
+    rating: 4.8,
+    reviews: 24,
+    distanceKm: 1.2,
+    pricePerDay: 10,
+    available: true,
+    verified: true,
+  ),
+  GearItem(
+    name: 'Football Boots',
+    owner: 'Danial H.',
+    category: 'Football',
+    image: 'assets/images/gear_football_boots.jpg',
+    rating: 4.9,
+    reviews: 19,
+    distanceKm: 2.5,
+    pricePerDay: 15,
+    available: true,
+    verified: true,
+  ),
+  GearItem(
+    name: 'Goalkeeper Gloves',
+    owner: 'Hakim R.',
+    category: 'Football',
+    image: 'assets/images/gear_gloves.jpg',
+    rating: 4.6,
+    reviews: 14,
+    distanceKm: 3.0,
+    pricePerDay: 12,
+    available: false,
+    verified: true,
+  ),
+  GearItem(
+    name: 'Training Cones (Set)',
+    owner: 'Subash T.',
+    category: 'Football',
+    image: 'assets/images/gear_cones.jpg',
+    rating: 4.7,
+    reviews: 31,
+    distanceKm: 4.8,
+    pricePerDay: 8,
+    available: true,
+    verified: true,
+  ),
+  GearItem(
+    name: 'Football Jersey',
+    owner: 'Zul K.',
+    category: 'Football',
+    image: 'assets/images/gear_jersey.jpg',
+    rating: 4.8,
+    reviews: 16,
+    distanceKm: 4.9,
+    pricePerDay: 12,
+    available: true,
+    verified: true,
+  ),
+];
+
 void main() {
   testWidgets('Screen 1: Home / Search Screen renders all wireframe elements',
       (WidgetTester tester) async {
@@ -60,6 +123,7 @@ void main() {
             availableNow: false,
             location: 'Current Location',
           ),
+          initialCatalog: testFootballGear,
         ),
       ),
     );
@@ -111,7 +175,7 @@ void main() {
             distanceKm: 5.0,
             availableNow: true,
           ),
-          catalog: sampleGear,
+          catalog: testFootballGear,
         ),
       ),
     );

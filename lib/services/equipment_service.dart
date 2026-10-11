@@ -270,62 +270,7 @@ class EquipmentService {
 
   /// SEED: Creates starter demo equipment for an owner to test the CRUD instantly.
   Future<void> seedStarterEquipment(String ownerId) async {
-    final samples = [
-      Equipment(
-        id: 'sample_bike_01',
-        ownerId: ownerId,
-        name: 'Trek Fuel EX 8 Gen 6',
-        categoryId: 'mountain_bikes',
-        description:
-            'Extremely well-maintained. Light cosmetic scuffs on frame, mechanics are freshly tuned. Shocks serviced last month. Perfect for intermediate to advanced trail riding.',
-        price: 45.0,
-        availability: true,
-        image:
-            'https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?auto=format&fit=crop&w=1200&q=80',
-        createdAt: DateTime.now().subtract(const Duration(days: 3)),
-        updatedAt: DateTime.now().subtract(const Duration(hours: 4)),
-        condition: 'Excellent',
-        location: 'Denver, CO (Capitol Hill)',
-        rating: 4.9,
-        reviewsCount: 18,
-      ),
-      Equipment(
-        id: 'sample_backpack_02',
-        ownerId: ownerId,
-        name: 'Osprey Aether Plus 70L Backpack',
-        categoryId: 'camping',
-        description:
-            'Heavy-duty trekking pack with Custom Fit-on-the-Fly hipbelt, integrated raincover, and DayLid daypack. Great for multi-day expeditions in the backcountry.',
-        price: 18.0,
-        availability: true,
-        image:
-            'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=1200&q=80',
-        createdAt: DateTime.now().subtract(const Duration(days: 5)),
-        updatedAt: DateTime.now().subtract(const Duration(days: 1)),
-        condition: 'Like New',
-        location: 'Boulder, CO',
-        rating: 5.0,
-        reviewsCount: 7,
-      ),
-      Equipment(
-        id: 'sample_camera_03',
-        ownerId: ownerId,
-        name: 'Sony Alpha A7 IV + 24-70mm GM',
-        categoryId: 'cameras',
-        description:
-            'Professional full-frame mirrorless camera paired with 24-70mm f/2.8 G Master lens. Includes 2 high-capacity batteries, 128GB V90 SD card, and Pelican hard case.',
-        price: 85.0,
-        availability: false,
-        image:
-            'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=80',
-        createdAt: DateTime.now().subtract(const Duration(days: 8)),
-        updatedAt: DateTime.now().subtract(const Duration(days: 2)),
-        condition: 'Mint',
-        location: 'Denver, CO (Downtown)',
-        rating: 4.8,
-        reviewsCount: 24,
-      ),
-    ];
+    final samples = <Equipment>[];
 
     for (final sample in samples) {
       await createEquipment(sample);

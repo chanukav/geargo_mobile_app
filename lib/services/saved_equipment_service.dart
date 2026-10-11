@@ -232,54 +232,7 @@ class SavedEquipmentService {
     final hasItems = _localCache.values.any((s) => s.renterId == renterId);
     if (hasItems) return;
 
-    final now = DateTime.now();
-    final samples = [
-      SavedEquipment(
-        id: 'saved_seed_01',
-        renterId: renterId,
-        equipmentId: 'sample_bike_01',
-        equipmentName: 'Specialized Stumpjumper EVO',
-        equipmentCategory: 'Cycling',
-        equipmentImage: 'assets/images/gear_bike_red.jpg',
-        dailyPrice: 45.0,
-        rating: 4.9,
-        reviewsCount: 38,
-        available: true,
-        collectionName: 'Weekend Trips',
-        renterNote: 'Compare with Trek bike before renting for Knuckles trip.',
-        savedAt: now.subtract(const Duration(hours: 14)),
-      ),
-      SavedEquipment(
-        id: 'saved_seed_02',
-        renterId: renterId,
-        equipmentId: 'sample_skis_04',
-        equipmentName: 'Black Crows Camox All-Terrain Skis',
-        equipmentCategory: 'Skiing',
-        equipmentImage: 'assets/images/gear_skis.jpg',
-        dailyPrice: 50.0,
-        rating: 4.9,
-        reviewsCount: 17,
-        available: true,
-        collectionName: 'Winter Wishlist',
-        renterNote: 'Awesome twin-tip design. Check binding size.',
-        savedAt: now.subtract(const Duration(days: 2)),
-      ),
-      SavedEquipment(
-        id: 'saved_seed_03',
-        renterId: renterId,
-        equipmentId: 'sample_pack_03',
-        equipmentName: 'Osprey Atmos 65 AG Backpack',
-        equipmentCategory: 'Hiking',
-        equipmentImage: 'assets/images/gear_backpack.jpg',
-        dailyPrice: 15.0,
-        rating: 4.7,
-        reviewsCount: 22,
-        available: false,
-        collectionName: 'Favorites',
-        renterNote: 'Currently rented out. Rent as soon as back in stock.',
-        savedAt: now.subtract(const Duration(days: 4)),
-      ),
-    ];
+    final samples = <SavedEquipment>[];
 
     for (final s in samples) {
       await addSavedItem(s);
