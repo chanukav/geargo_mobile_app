@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../models/gear_item.dart';
 import '../../services/app_settings_service.dart';
 import 'gear_filter_logic.dart';
-import 'tabs/home_tab.dart';
 
 /// Filter values chosen by the user on the [FilterScreen].
 class GearFilters {
@@ -15,31 +15,66 @@ class GearFilters {
   final Set<String> categories;
   final RangeValues price;
   final bool availableNow;
+  final bool availableOnDate;
+  final DateTime? selectedDate;
+  final String location;
 
   const GearFilters({
-    this.distanceKm = 15,
-    this.categories = const {},
+    this.distanceKm = 5.0,
+    this.categories = const {'Football'},
     this.price = const RangeValues(0, maxPrice),
-    this.availableNow = false,
+    this.availableNow = true,
+    this.availableOnDate = false,
+    this.selectedDate,
+    this.location = 'Current Location',
   });
 
   /// True when price max is at the "$150+" end (no upper limit).
   bool get priceUnbounded => price.end >= maxPrice;
+
+  bool get hasActiveFilters =>
+      categories.isNotEmpty ||
+      distanceKm != 50 ||
+      availableNow ||
+      availableOnDate;
+
+  GearFilters copyWith({
+    double? distanceKm,
+    Set<String>? categories,
+    RangeValues? price,
+    bool? availableNow,
+    bool? availableOnDate,
+    DateTime? selectedDate,
+    String? location,
+  }) {
+    return GearFilters(
+      distanceKm: distanceKm ?? this.distanceKm,
+      categories: categories ?? this.categories,
+      price: price ?? this.price,
+      availableNow: availableNow ?? this.availableNow,
+      availableOnDate: availableOnDate ?? this.availableOnDate,
+      selectedDate: selectedDate ?? this.selectedDate,
+      location: location ?? this.location,
+    );
+  }
 }
 
 const List<String> filterCategories = [
   'Cricket',
+  'Football',
   'Badminton',
   'Cycling',
-  'Surfing',
-  'Hiking',
-  'Skiing',
-  'Tennis',
-  'Camping',
-  'Fitness',
-  'Water Sports',
+  'Gym',
+  'Other',
 ];
 
+const List<double> distanceOptions = [1.0, 5.0, 10.0, 20.0];
+
+/// Filter Equipment screen matching Wireframe 3:
+/// - Sport / Activity multi-select checkboxes
+/// - Location / Distance radio options (1km, 5km, 10km, 20km)
+/// - Availability (Available Now / Available on Selected Date with calendar picker)
+/// - Apply Filters & Clear All buttons
 class FilterScreen extends StatefulWidget {
   final GearFilters initial;
   final List<GearItem> catalog;
@@ -57,258 +92,475 @@ class FilterScreen extends StatefulWidget {
 }
 
 class _FilterScreenState extends State<FilterScreen> {
-  late double _distance = widget.initial.distanceKm;
-  late Set<String> _cats = {...widget.initial.categories};
-  late RangeValues _price = widget.initial.price;
-  late bool _available = widget.initial.availableNow;
+  late double _distance;
+  late Set<String> _cats;
+  late bool _availableNow;
+  late bool _availableOnDate;
+  DateTime? _selectedDate;
+  late String _location;
 
-  void _reset() => setState(() {
-        _distance = 15;
-        _cats = {};
-        _price = const RangeValues(0, GearFilters.maxPrice);
-        _available = false;
-      });
+  @override
+  void initState() {
+    super.initState();
+    _distance = widget.initial.distanceKm;
+    _cats = {...widget.initial.categories};
+    _availableNow = widget.initial.availableNow;
+    _availableOnDate = widget.initial.availableOnDate;
+    _selectedDate = widget.initial.selectedDate;
+    _location = widget.initial.location;
+  }
 
-  void _apply() => Navigator.of(context).pop(GearFilters(
+  void _clearAll() {
+    setState(() {
+      _distance = 20.0;
+      _cats = {};
+      _availableNow = false;
+      _availableOnDate = false;
+      _selectedDate = null;
+    });
+  }
+
+  void _apply() {
+    Navigator.of(context).pop(
+      GearFilters(
         distanceKm: _distance,
         categories: _cats,
-        price: _price,
-        availableNow: _available,
-      ));
+        availableNow: _availableNow,
+        availableOnDate: _availableOnDate,
+        selectedDate: _selectedDate,
+        location: _location,
+      ),
+    );
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? now,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  primary: AppColors.primary,
+                ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+        _availableOnDate = true;
+        _availableNow = false;
+      });
+    }
+  }
 
   int get _resultCount => countFilteredGear(
         catalog: widget.catalog,
         filters: GearFilters(
           distanceKm: _distance,
           categories: _cats,
-          price: _price,
-          availableNow: _available,
+          availableNow: _availableNow,
+          availableOnDate: _availableOnDate,
+          selectedDate: _selectedDate,
+          location: _location,
         ),
         query: widget.searchQuery,
       );
 
+  Widget _buildSectionHeader(String title, Color titleColor) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: titleColor,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final settings = AppSettingsService.instance;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final titleColor = isDark ? AppColors.textPrimaryDark : kNavy;
-    final subColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final titleColor = isDark ? AppColors.textPrimaryDark : AppColors.deepNavy;
+    final subColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
     final borderColor = isDark ? AppColors.borderDark : AppColors.borderLight;
-
-    final priceLabel = '\$${_price.start.round()} – '
-        '\$${_price.end.round()}${_price.end >= GearFilters.maxPrice ? '+' : ''}';
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              size: 20, color: titleColor),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Filter Equipment',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: titleColor,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 560),
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 12, 16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          settings.tr('filter'),
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: titleColor,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.close_rounded, color: titleColor),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ],
-                  ),
-                ),
-                Divider(height: 1, color: borderColor),
                 Expanded(
                   child: ListView(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
                     children: [
-                      _section(
-                        title: settings.tr('distance_radius'),
-                        trailing: '${_distance.round()} km',
-                        titleColor: titleColor,
-                        borderColor: borderColor,
-                        child: _slider(
-                          Slider(
-                            value: _distance,
-                            min: 1,
-                            max: GearFilters.maxDistance,
-                            onChanged: (v) => setState(() => _distance = v),
+                      // Section 1: Sport / Activity (Checkboxes)
+                      _buildSectionHeader('Sport / Activity', titleColor),
+                      ...filterCategories.map((category) {
+                        final isChecked = _cats.contains(category);
+                        return InkWell(
+                          onTap: () {
+                            setState(() {
+                              if (isChecked) {
+                                _cats.remove(category);
+                              } else {
+                                _cats.add(category);
+                              }
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Checkbox(
+                                    value: isChecked,
+                                    activeColor: AppColors.primary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    side: BorderSide(
+                                      color: isChecked
+                                          ? AppColors.primary
+                                          : borderColor,
+                                      width: 1.5,
+                                    ),
+                                    onChanged: (val) {
+                                      setState(() {
+                                        if (val == true) {
+                                          _cats.add(category);
+                                        } else {
+                                          _cats.remove(category);
+                                        }
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  category,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimaryLight,
+                                    fontWeight: isChecked
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          '1 km',
-                          '50 km',
-                          isDark,
-                          borderColor,
-                          subColor,
-                        ),
-                      ),
-                      _section(
-                        title: settings.tr('categories'),
-                        titleColor: titleColor,
-                        borderColor: borderColor,
-                        child: Column(
-                          children: filterCategories.map((c) {
-                            final on = _cats.contains(c);
-                            return InkWell(
-                              onTap: () => setState(
-                                  () => on ? _cats.remove(c) : _cats.add(c)),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        c,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                          color: titleColor,
-                                        ),
-                                      ),
-                                    ),
-                                    AnimatedContainer(
-                                      duration: const Duration(milliseconds: 150),
-                                      width: 26,
-                                      height: 26,
-                                      decoration: BoxDecoration(
-                                        color: on
-                                            ? AppColors.primary
-                                            : (isDark ? AppColors.surfaceDark : Colors.white),
-                                        borderRadius: BorderRadius.circular(7),
-                                        border: Border.all(
-                                          color: on ? AppColors.primary : borderColor,
-                                        ),
-                                      ),
-                                      child: on
-                                          ? const Icon(Icons.check_rounded,
-                                              size: 18, color: Colors.white)
-                                          : null,
-                                    ),
-                                  ],
+                        );
+                      }),
+
+                      const SizedBox(height: 20),
+                      Divider(color: borderColor, height: 1),
+                      const SizedBox(height: 20),
+
+                      // Section 2: Location / Distance (Radio Options)
+                      _buildSectionHeader('Location / Distance', titleColor),
+                      ...distanceOptions.map((km) {
+                        final isSelected = _distance == km;
+                        return InkWell(
+                          onTap: () {
+                            setState(() => _distance = km);
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Radio<double>(
+                                    value: km,
+                                    groupValue: _distance,
+                                    activeColor: AppColors.primary,
+                                    onChanged: (val) {
+                                      if (val != null) {
+                                        setState(() => _distance = val);
+                                      }
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Within ${km.round()} km',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimaryLight,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+
+                      const SizedBox(height: 20),
+                      Divider(color: borderColor, height: 1),
+                      const SizedBox(height: 20),
+
+                      // Section 3: Availability (Radio & Date Picker)
+                      _buildSectionHeader('Availability', titleColor),
+
+                      // Option A: Available Now
+                      InkWell(
+                        onTap: () {
+                          setState(() {
+                            _availableNow = true;
+                            _availableOnDate = false;
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: Radio<bool>(
+                                  value: true,
+                                  groupValue: _availableNow,
+                                  activeColor: AppColors.primary,
+                                  onChanged: (val) {
+                                    if (val == true) {
+                                      setState(() {
+                                        _availableNow = true;
+                                        _availableOnDate = false;
+                                      });
+                                    }
+                                  },
                                 ),
                               ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                      _section(
-                        title: settings.tr('price_per_day'),
-                        trailing: priceLabel,
-                        titleColor: titleColor,
-                        borderColor: borderColor,
-                        child: _slider(
-                          RangeSlider(
-                            values: _price,
-                            min: 0,
-                            max: GearFilters.maxPrice,
-                            onChanged: (v) => setState(() => _price = v),
-                          ),
-                          '\$0',
-                          '\$150+',
-                          isDark,
-                          borderColor,
-                          subColor,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 18),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    settings.tr('available_now'),
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                      color: titleColor,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    settings.tr('only_available_today'),
-                                    style: TextStyle(
-                                      fontSize: 12.5,
-                                      color: subColor,
-                                    ),
-                                  ),
-                                ],
+                              const SizedBox(width: 12),
+                              Text(
+                                'Available Now',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight,
+                                  fontWeight: _availableNow
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                                ),
                               ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Option B: Available on Selected Date
+                      InkWell(
+                        onTap: () {
+                          setState(() {
+                            _availableOnDate = true;
+                            _availableNow = false;
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: Radio<bool>(
+                                  value: true,
+                                  groupValue: _availableOnDate,
+                                  activeColor: AppColors.primary,
+                                  onChanged: (val) {
+                                    if (val == true) {
+                                      setState(() {
+                                        _availableOnDate = true;
+                                        _availableNow = false;
+                                      });
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Available on Selected Date',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight,
+                                  fontWeight: _availableOnDate
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Date selector box
+                      const SizedBox(height: 10),
+                      InkWell(
+                        onTap: _pickDate,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.surfaceDark
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _availableOnDate
+                                  ? AppColors.primary
+                                  : borderColor,
+                              width: _availableOnDate ? 1.5 : 1.0,
                             ),
-                            Switch(
-                              value: _available,
-                              activeThumbColor: Colors.white,
-                              activeTrackColor: AppColors.primary,
-                              onChanged: (v) => setState(() => _available = v),
-                            ),
-                          ],
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today_outlined,
+                                size: 20,
+                                color: _availableOnDate
+                                    ? AppColors.primary
+                                    : subColor,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _selectedDate != null
+                                      ? DateFormat('dd MMM yyyy')
+                                          .format(_selectedDate!)
+                                      : 'Select Date',
+                                  style: TextStyle(
+                                    fontSize: 14.5,
+                                    fontWeight: _selectedDate != null
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                    color: _selectedDate != null
+                                        ? titleColor
+                                        : subColor,
+                                  ),
+                                ),
+                              ),
+                              Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: subColor,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
+
+                // Bottom Action Buttons matching wireframe
                 Container(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
                   decoration: BoxDecoration(
                     color: Theme.of(context).scaffoldBackgroundColor,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 12,
-                        offset: const Offset(0, -4),
-                      ),
-                    ],
+                    border: Border(top: BorderSide(color: borderColor)),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Divider(height: 1, color: borderColor),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 14, 24, 8),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 52,
-                          child: ElevatedButton(
-                            onPressed: _apply,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.secondary,
-                              foregroundColor: Colors.white,
-                              elevation: 6,
-                              shadowColor:
-                                  AppColors.secondary.withValues(alpha: 0.4),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14)),
+                      // Apply Filters
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _apply,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.deepNavy,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Text(
-                              'Show $_resultCount Results',
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w700),
+                          ),
+                          child: Text(
+                            'Apply Filters ($_resultCount)',
+                            style: const TextStyle(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
-                      TextButton(
-                        onPressed: _reset,
-                        child: Text(
-                          settings.tr('reset_filters'),
-                          style: TextStyle(
-                            color: subColor,
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
+                      const SizedBox(height: 10),
+
+                      // Clear All
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton(
+                          onPressed: _clearAll,
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: borderColor),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'Clear All',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: titleColor,
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
@@ -317,80 +569,6 @@ class _FilterScreenState extends State<FilterScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _section({
-    required String title,
-    String? trailing,
-    required Color titleColor,
-    required Color borderColor,
-    required Widget child,
-  }) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 14),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: borderColor)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: titleColor,
-                  ),
-                ),
-              ),
-              if (trailing != null)
-                Text(
-                  trailing,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _slider(
-    Widget slider,
-    String min,
-    String max,
-    bool isDark,
-    Color borderColor,
-    Color subColor,
-  ) {
-    final style = TextStyle(fontSize: 12, color: subColor);
-    return Column(
-      children: [
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: AppColors.primary,
-            inactiveTrackColor: borderColor,
-            thumbColor: Colors.white,
-            overlayColor: AppColors.primary.withValues(alpha: 0.12),
-            rangeThumbShape: const RoundRangeSliderThumbShape(),
-          ),
-          child: slider,
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [Text(min, style: style), Text(max, style: style)],
-        ),
-      ],
     );
   }
 }

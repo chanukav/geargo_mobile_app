@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/utils/image_helper.dart';
 import '../../../models/gear_item.dart';
-import '../../../services/gear_catalog_service.dart';
-import '../../renter/create_rental_request_sheet.dart';
-import '../../renter/renter_equipment_details_screen.dart';
-import '../../renter/saved_equipment_screen.dart';
-import '../../renter/widgets/favorite_toggle_button.dart';
 import '../filter_screen.dart';
-import 'home_tab.dart';
+import '../sport_search_results_screen.dart';
 
+/// Screen 1: Home / Search Screen for SportShare / GearGo
+/// Allows users to enter search keywords, select their location,
+/// browse by sport category, and navigate to Search Results.
 class SearchTab extends StatefulWidget {
   const SearchTab({super.key});
 
@@ -19,446 +16,467 @@ class SearchTab extends StatefulWidget {
 }
 
 class _SearchTabState extends State<SearchTab> {
-  final TextEditingController _ctrl = TextEditingController();
-  bool _distance = true;
-  bool _rating = false;
-  bool _availableNow = false;
-  GearFilters _filters = const GearFilters(
-    distanceKm: GearFilters.maxDistance,
-  );
-  List<GearItem> _catalog = sampleGear;
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _selectedLocation = 'Current Location';
+  String? _selectedSport = 'Football';
 
-  @override
-  void initState() {
-    super.initState();
-    GearCatalogService().discoveryStream().listen((items) {
-      if (mounted) setState(() => _catalog = items);
-    });
-  }
+  final List<(String, IconData)> _sportCategories = const [
+    ('Cricket', Icons.sports_cricket_rounded),
+    ('Football', Icons.sports_soccer_rounded),
+    ('Badminton', Icons.sports_tennis_rounded),
+    ('Cycling', Icons.directions_bike_rounded),
+    ('Gym', Icons.fitness_center_rounded),
+    ('More', Icons.more_horiz_rounded),
+  ];
 
-  Future<void> _openFilters() async {
-    final result = await Navigator.of(context).push<GearFilters>(
-      MaterialPageRoute(
-        builder: (_) => FilterScreen(
-          initial: _filters,
-          catalog: _catalog,
-          searchQuery: _ctrl.text,
-        ),
-      ),
-    );
-    if (result != null) {
-      setState(() {
-        _filters = result;
-        _availableNow = result.availableNow;
-      });
-    }
-  }
+  final List<String> _locationOptions = const [
+    'Current Location',
+    'Kuala Lumpur',
+    'Petaling Jaya',
+    'Bangsar',
+    'Mont Kiara',
+    'Subang Jaya',
+  ];
 
   @override
   void dispose() {
-    _ctrl.dispose();
+    _searchCtrl.dispose();
     super.dispose();
   }
 
-  List<GearItem> get _results {
-    final q = _ctrl.text.trim().toLowerCase();
-    final activeFilters = GearFilters(
-      distanceKm: _filters.distanceKm,
-      categories: _filters.categories,
-      price: _filters.price,
-      availableNow: _availableNow,
-    );
-    var list = _catalog.where((g) {
-      final match = q.isEmpty ||
-          g.name.toLowerCase().contains(q) ||
-          g.category.toLowerCase().contains(q) ||
-          (q.contains('bike') && g.category == 'Cycling');
-      final inCategory = activeFilters.categories.isEmpty ||
-          activeFilters.categories.contains(g.category);
-      final inPrice = g.pricePerDay >= activeFilters.price.start &&
-          (activeFilters.priceUnbounded ||
-              g.pricePerDay <= activeFilters.price.end);
-      return match &&
-          inCategory &&
-          inPrice &&
-          g.distanceKm <= activeFilters.distanceKm &&
-          (!activeFilters.availableNow || g.available);
-    }).toList();
-    if (_rating) {
-      list.sort((a, b) => b.rating.compareTo(a.rating));
-    } else if (_distance) {
-      list.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
-    }
-    return list;
-  }
+  void _showLocationPicker() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? AppColors.textPrimaryDark : AppColors.deepNavy;
 
-  @override
-  Widget build(BuildContext context) {
-    final results = _results;
-    return SafeArea(
-      bottom: false,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            child: Row(children: [
-              Expanded(
-            child: Container(
-              height: 54,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary, width: 1.6),
-                boxShadow: [
-                  BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      blurRadius: 14,
-                      offset: const Offset(0, 5)),
-                ],
-              ),
-              child: TextField(
-                controller: _ctrl,
-                onChanged: (_) => setState(() {}),
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w600, color: kNavy),
-                decoration: InputDecoration(
-                  hintText: 'Search equipment...',
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  filled: false,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 15),
-                  prefixIcon:
-                      const Icon(Icons.search_rounded, color: AppColors.primary),
-                  suffixIcon: _ctrl.text.isEmpty
-                      ? null
-                      : IconButton(
-                          icon: const Icon(Icons.close_rounded, color: kNavy),
-                          onPressed: () => setState(_ctrl.clear),
-                        ),
-                ),
-              ),
-            ),
-              ),
-              const SizedBox(width: 10),
-              InkWell(
-                onTap: _openFilters,
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  width: 50,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                          blurRadius: 14,
-                          offset: const Offset(0, 5)),
-                    ],
-                  ),
-                  child: const Icon(Icons.tune_rounded, color: Colors.white, size: 22),
-                ),
-              ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SavedEquipmentScreen()),
-                  );
-                },
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  width: 50,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.borderLight, width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4)),
-                    ],
-                  ),
-                  child: const Icon(Icons.favorite_rounded, color: AppColors.error, size: 22),
-                ),
-              ),
-            ]),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text('${results.length} items found nearby',
-                      style: const TextStyle(
-                          color: AppColors.textSecondaryLight, fontSize: 14)),
-                ),
-                Text('Sort: ${_rating ? 'Rating' : 'Nearest'}',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w800, color: kNavy)),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: 44,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: [
-                _chip('Distance', _distance && !_rating, () {
-                  setState(() {
-                    _distance = true;
-                    _rating = false;
-                  });
-                }),
-                _chip('Rating', _rating, () {
-                  setState(() {
-                    _rating = true;
-                    _distance = false;
-                  });
-                }),
-                _chip('Available Now', _availableNow,
-                    () => setState(() => _availableNow = !_availableNow)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: results.isEmpty
-                ? const Center(
-                    child: Text('No equipment found',
-                        style: TextStyle(
-                            color: AppColors.textSecondaryLight, fontSize: 16)),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-                    itemCount: results.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 14),
-                    itemBuilder: (_, i) => _ResultCard(item: results[i]),
-                  ),
-          ),
-        ],
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'Select Location',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: titleColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ..._locationOptions.map((loc) {
+                  final isSelected = _selectedLocation == loc;
+                  return ListTile(
+                    leading: Icon(
+                      Icons.location_on_rounded,
+                      color: isSelected ? AppColors.primary : null,
+                    ),
+                    title: Text(
+                      loc,
+                      style: TextStyle(
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? AppColors.primary : null,
+                      ),
+                    ),
+                    trailing: isSelected
+                        ? const Icon(Icons.check_rounded,
+                            color: AppColors.primary)
+                        : null,
+                    onTap: () {
+                      setState(() => _selectedLocation = loc);
+                      Navigator.of(context).pop();
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _chip(String label, bool selected, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 10),
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: selected
-                ? AppColors.primary.withValues(alpha: 0.1)
-                : Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-                color: selected ? AppColors.primary : AppColors.borderLight,
-                width: selected ? 1.5 : 1),
-          ),
-          child: Row(
-            children: [
-              Text(label,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: selected ? AppColors.primary : kNavy)),
-              if (selected) ...[
-                const SizedBox(width: 6),
-                const Icon(Icons.check_rounded,
-                    size: 16, color: AppColors.primary),
+  void _showMoreSportsPicker() {
+    final extraSports = [
+      'Surfing',
+      'Hiking',
+      'Skiing',
+      'Tennis',
+      'Camping',
+      'Water Sports',
+      'Table Tennis',
+      'Basketball',
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'All Sports & Activities',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...extraSports.map((sport) {
+                  return ListTile(
+                    title: Text(sport),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () {
+                      setState(() => _selectedSport = sport);
+                      Navigator.of(context).pop();
+                      _executeSearch(sportOverride: sport);
+                    },
+                  );
+                }),
               ],
-            ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _executeSearch({String? sportOverride}) {
+    final sport = sportOverride ?? _selectedSport;
+    final Set<String> categories =
+        (sport != null && sport != 'More') ? {sport} : {};
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SportSearchResultsScreen(
+          initialQuery: _searchCtrl.text,
+          initialFilters: GearFilters(
+            categories: categories,
+            location: _selectedLocation,
+            distanceKm: 5.0,
+            availableNow: true,
           ),
         ),
       ),
     );
   }
-}
-
-class _ResultCard extends StatelessWidget {
-  final GearItem item;
-  const _ResultCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 136,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-              color: kNavy.withValues(alpha: 0.07),
-              blurRadius: 16,
-              offset: const Offset(0, 6)),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => RenterEquipmentDetailsScreen.fromGearItem(item),
-              ),
-            );
-          },
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.horizontal(left: Radius.circular(20)),
-                child: SizedBox(
-                  width: 120,
-                  height: double.infinity,
-                  child: EquipmentImageViewer(
-                    imageSource: item.image,
-                    fit: BoxFit.cover,
-                  ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? AppColors.textPrimaryDark : AppColors.deepNavy;
+    final subColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final borderColor = isDark ? AppColors.borderDark : AppColors.borderLight;
+    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
+
+    return SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 540),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 1. App Header: Logo + SportShare title + subtitle
+                Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.sports_rounded,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'SportShare',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.3,
+                            color: titleColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Rent • Play • Share',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w500,
+                            color: subColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 10, 12, 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 15,
-                                  color: kNavy),
-                            ),
-                          ),
-                          FavoriteToggleButton.fromGearItem(item, size: 18),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text('by ${item.owner}',
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textSecondaryLight)),
-                          ),
-                          if (item.verified) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.check_rounded,
-                                      size: 11, color: AppColors.primary),
-                                  SizedBox(width: 2),
-                                  Text('VERIFIED',
-                                      style: TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w800,
-                                          color: AppColors.primary)),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.star_rounded,
-                              size: 16, color: Color(0xFFFFB400)),
-                          const SizedBox(width: 3),
-                          Text('${item.rating}',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w800, color: kNavy)),
-                          Text(' (${item.reviews})',
-                              style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondaryLight)),
-                          const Spacer(),
-                          Text('${item.distanceKm} km',
-                              style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondaryLight)),
-                        ],
-                      ),
-                      const Spacer(),
-                      Row(
-                        children: [
-                          Text('\$${item.pricePerDay}',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 16.5,
-                                  color: AppColors.primary)),
-                          const Text('/day',
-                              style: TextStyle(
-                                  fontSize: 11.5,
-                                  color: AppColors.textSecondaryLight)),
-                          const Spacer(),
-                          SizedBox(
-                            height: 34,
-                            child: ElevatedButton(
-                              onPressed: item.available
-                                  ? () {
-                                      CreateRentalRequestSheet.show(
-                                        context,
-                                        equipmentId:
-                                            'gear_${item.name.toLowerCase().replaceAll(RegExp(r'\s+'), '_')}',
-                                        equipmentName: item.name,
-                                        equipmentCategory: item.category,
-                                        equipmentImage: item.image,
-                                        dailyPrice: item.pricePerDay.toDouble(),
-                                        ownerName: item.owner,
-                                      );
-                                    }
-                                  : null,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.secondary,
-                                foregroundColor: Colors.white,
-                                disabledBackgroundColor: AppColors.borderLight,
-                                elevation: 3,
-                                shadowColor:
-                                    AppColors.secondary.withValues(alpha: 0.4),
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 14),
-                                minimumSize: const Size(0, 34),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                              ),
-                              child: Text(item.available ? 'Book Now' : 'Rented',
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w800, fontSize: 12.5)),
-                            ),
-                          ),
-                        ],
+
+                const SizedBox(height: 24),
+
+                // 2. Search Field: "What equipment do you need?"
+                Container(
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: borderColor),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
+                  child: TextField(
+                    controller: _searchCtrl,
+                    onSubmitted: (_) => _executeSearch(),
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: titleColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'What equipment do you need?',
+                      hintStyle: TextStyle(
+                        fontSize: 14.5,
+                        color: subColor,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        color: AppColors.primary,
+                        size: 22,
+                      ),
+                      suffixIcon: _searchCtrl.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear_rounded, size: 18),
+                              onPressed: () => setState(_searchCtrl.clear),
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 14,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 14),
+
+                // 3. Location Dropdown Selector
+                InkWell(
+                  onTap: _showLocationPicker,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: borderColor),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_rounded,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _selectedLocation,
+                            style: TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w600,
+                              color: titleColor,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: subColor,
+                          size: 22,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 28),
+
+                // 4. Section: "Browse by Sport"
+                Text(
+                  'Browse by Sport',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: titleColor,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 5. 2x3 Grid of sport tiles matching wireframe
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.95,
+                  ),
+                  itemCount: _sportCategories.length,
+                  itemBuilder: (context, index) {
+                    final item = _sportCategories[index];
+                    final isSelected = _selectedSport == item.$1;
+
+                    return InkWell(
+                      onTap: () {
+                        if (item.$1 == 'More') {
+                          _showMoreSportsPicker();
+                        } else {
+                          setState(() => _selectedSport = item.$1);
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.08)
+                              : cardBg,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.primary
+                                : borderColor,
+                            width: isSelected ? 2 : 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(
+                                alpha: isDark ? 0.2 : 0.03,
+                              ),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : (isDark
+                                        ? AppColors.borderDark
+                                        : const Color(0xFFF1F5F9)),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                item.$2,
+                                color: isSelected
+                                    ? Colors.white
+                                    : (isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textSecondaryLight),
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              item.$1,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w600,
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : titleColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 36),
+
+                // 6. Bottom Search Equipment Button
+                SizedBox(
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () => _executeSearch(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.deepNavy,
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text(
+                      'Search Equipment',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
