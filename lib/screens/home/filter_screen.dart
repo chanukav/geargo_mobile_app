@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../models/gear_item.dart';
-import '../../services/app_settings_service.dart';
 import 'gear_filter_logic.dart';
 
 /// Filter values chosen by the user on the [FilterScreen].

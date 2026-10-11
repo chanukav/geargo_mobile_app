@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../models/gear_item.dart';
 import '../filter_screen.dart';
 import '../sport_search_results_screen.dart';
 

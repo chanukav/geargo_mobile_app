@@ -5,7 +5,7 @@ import '../../models/equipment.dart';
 import '../../models/gear_item.dart';
 import '../../services/equipment_service.dart';
 import '../../widgets/equipment_reviews_section.dart';
-import '../../widgets/trust_verification_badge.dart';
+import '../owner/public_owner_profile_screen.dart';
 import 'create_rental_request_sheet.dart';
 import 'widgets/favorite_toggle_button.dart';
 
@@ -195,13 +195,13 @@ class _RenterEquipmentDetailsScreenState
                     // Bottom Hero Chips
                     Positioned(
                       bottom: 16,
-                      left: 20,
-                      right: 20,
+                      left: 16,
+                      right: 16,
                       child: Row(
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: AppColors.primary,
                               borderRadius: BorderRadius.circular(8),
@@ -209,17 +209,17 @@ class _RenterEquipmentDetailsScreenState
                             child: Text(
                               widget.category.toUpperCase(),
                               style: const TextStyle(
-                                fontSize: 10.5,
+                                fontSize: 10,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
                                 letterSpacing: 0.5,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: widget.available
                                   ? AppColors.success
@@ -227,9 +227,9 @@ class _RenterEquipmentDetailsScreenState
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              widget.available ? 'AVAILABLE NOW' : 'RENTED',
+                              widget.available ? 'AVAILABLE' : 'RENTED',
                               style: const TextStyle(
-                                fontSize: 10.5,
+                                fontSize: 10,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
                               ),
@@ -238,20 +238,21 @@ class _RenterEquipmentDetailsScreenState
                           const Spacer(),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: Colors.black54,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Icon(Icons.location_on_rounded,
                                     size: 13, color: Colors.white),
                                 const SizedBox(width: 3),
                                 Text(
-                                  '${widget.distanceKm} km away',
+                                  '${widget.distanceKm} km',
                                   style: const TextStyle(
-                                    fontSize: 11,
+                                    fontSize: 10.5,
                                     fontWeight: FontWeight.w700,
                                     color: Colors.white,
                                   ),
@@ -304,113 +305,249 @@ class _RenterEquipmentDetailsScreenState
                               color: textColor,
                             ),
                           ),
-                          Text(
-                            ' (${widget.reviewsCount} verified renter reviews)',
-                            style: TextStyle(fontSize: 13, color: subText),
+                          Flexible(
+                            child: Text(
+                              ' (${widget.reviewsCount} verified renter reviews)',
+                              style: TextStyle(fontSize: 13, color: subText),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 20),
 
-                      // Owner Card
+                      // Owner Card (Clickable to Owner Profile)
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => PublicOwnerProfileScreen(
+                                ownerId: widget.ownerId,
+                                ownerName: widget.ownerName,
+                                ownerVerified: widget.ownerVerified,
+                              ),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(18),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: borderCol),
+                          ),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 26,
+                                backgroundColor: const Color(0xFFE5E7EB),
+                                child: Text(
+                                  widget.ownerName.isNotEmpty
+                                      ? widget.ownerName[0]
+                                      : 'M',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF4B5563),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          widget.ownerName,
+                                          style: TextStyle(
+                                            fontSize: 15.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: textColor,
+                                          ),
+                                        ),
+                                        if (widget.ownerVerified) ...[
+                                          const SizedBox(width: 6),
+                                          const Icon(
+                                            Icons.verified_rounded,
+                                            size: 16,
+                                            color: AppColors.primary,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.star_rounded,
+                                          size: 15,
+                                          color: Color(0xFFFFB400),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${widget.rating} (${widget.reviewsCount} rentals)',
+                                          style: TextStyle(
+                                            fontSize: 12.5,
+                                            color: subText,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.chat_bubble_outline_rounded,
+                                  color: textColor,
+                                  size: 22,
+                                ),
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Chat with ${widget.ownerName}'),
+                                      backgroundColor: AppColors.deepNavy,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Equipment Condition Section matching wireframe
+                      Text(
+                        'Equipment Condition',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: cardBg,
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: borderCol),
                         ),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CircleAvatar(
-                              radius: 24,
-                              backgroundColor: AppColors.deepNavy,
-                              child: Text(
-                                widget.ownerName.isNotEmpty
-                                    ? widget.ownerName[0]
-                                    : 'O',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE5E7EB),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'Excellent / Like New',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1F2937),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 14),
+                            const SizedBox(width: 10),
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        widget.ownerName,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w800,
-                                          color: textColor,
-                                        ),
-                                      ),
-                                      if (widget.ownerVerified) ...[
-                                        const SizedBox(width: 6),
-                                        const Icon(
-                                          Icons.verified_rounded,
-                                          size: 16,
-                                          color: AppColors.primary,
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Row(
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          'GearGo Host • Responds within 15 mins',
-                                          style: TextStyle(
-                                              fontSize: 12, color: subText),
-                                        ),
-                                      ),
-                                      if (widget.ownerVerified) ...[
-                                        const SizedBox(width: 6),
-                                        const TrustVerificationBadge(compact: true),
-                                      ],
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Chat with ${widget.ownerName}'),
-                                    backgroundColor: AppColors.deepNavy,
-                                  ),
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(10),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 8),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: borderCol),
-                                ),
-                                child: Text(
-                                  'Contact',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: textColor,
-                                  ),
+                              child: Text(
+                                'Mechanically perfect, freshly tuned, cleaned after every rental.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: subText,
+                                  height: 1.3,
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
+
+                      // Availability Preview matching wireframe
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Availability Preview',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: textColor,
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                'Full Calendar',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: subText,
+                                ),
+                              ),
+                              Icon(Icons.chevron_right_rounded,
+                                  size: 16, color: subText),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          for (final d in [
+                            {'day': 'Mon', 'num': '14'},
+                            {'day': 'Tue', 'num': '15'},
+                            {'day': 'Wed', 'num': '16'},
+                            {'day': 'Thu', 'num': '17'},
+                            {'day': 'Fri', 'num': '18'},
+                          ])
+                            Expanded(
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 3),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: cardBg,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: borderCol),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      d['day']!,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                        color: subText,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      d['num']!,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
 
                       // Gear Features Highlights
                       Text(
@@ -543,15 +680,6 @@ class _RenterEquipmentDetailsScreenState
                           ),
                       ],
                       const SizedBox(height: 24),
-                      Text(
-                        'Renter reviews',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: textColor,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
                       if (_loadingListing)
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 8),
@@ -560,6 +688,8 @@ class _RenterEquipmentDetailsScreenState
                       else
                         EquipmentReviewsSection(
                           equipmentId: widget.equipmentId,
+                          equipmentName: widget.name,
+                          ownerId: widget.ownerId,
                           textColor: textColor,
                           subColor: subText,
                           cardBg: cardBg,
@@ -580,17 +710,19 @@ class _RenterEquipmentDetailsScreenState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                Icon(Icons.shield_outlined,
+                                const Icon(Icons.shield_outlined,
                                     color: AppColors.primary, size: 20),
-                                SizedBox(width: 8),
-                                Text(
-                                  'GearGo Renter Protection',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 14,
-                                    color: AppColors.primary,
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'GearGo Renter Protection',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 14,
+                                      color: AppColors.primary,
+                                    ),
                                   ),
                                 ),
                               ],

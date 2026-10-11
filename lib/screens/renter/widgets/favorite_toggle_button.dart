@@ -66,7 +66,11 @@ class _FavoriteToggleButtonState extends State<FavoriteToggleButton>
   bool _isSaved = false;
 
   String get _currentUserId {
-    return FirebaseAuth.instance.currentUser?.uid ?? 'guest_renter';
+    try {
+      return FirebaseAuth.instance.currentUser?.uid ?? 'guest_renter';
+    } catch (_) {
+      return 'guest_renter';
+    }
   }
 
   @override

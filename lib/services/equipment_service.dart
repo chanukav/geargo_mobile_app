@@ -332,6 +332,33 @@ class EquipmentService {
     }
   }
 
+  /// Updates aggregate review statistics for a piece of equipment in the database.
+  Future<void> updateReviewStats(
+      String equipmentId, double rating, int reviewsCount) async {
+    final cached = _localCache[equipmentId];
+    if (cached != null) {
+      _localCache[equipmentId] = cached.copyWith(
+        rating: rating,
+        reviewsCount: reviewsCount,
+        updatedAt: DateTime.now(),
+      );
+      _notifyCacheListeners(cached.ownerId);
+    }
+
+    final col = _equipmentCollection;
+    if (col != null) {
+      try {
+        await col.doc(equipmentId).set({
+          'rating': rating,
+          'reviews_count': reviewsCount,
+          'updated_at': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (e) {
+        debugPrint('Firestore updateReviewStats warning: $e');
+      }
+    }
+  }
+
   void _notifyCacheListeners(String ownerId) {
     final list = _localCache.values.where((e) => e.ownerId == ownerId).toList();
     list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
