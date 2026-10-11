@@ -23,6 +23,7 @@ class SupabaseStorageService {
   static Future<String> uploadEquipmentImage({
     required String equipmentId,
     required Uint8List bytes,
+    String? ownerId,
     String contentType = 'image/jpeg',
   }) async {
     final client = _client;
@@ -41,21 +42,32 @@ class SupabaseStorageService {
       throw StateError('Equipment photo must be under 5 MB.');
     }
 
+    final sanitizedOwner = (ownerId != null && ownerId.trim().isNotEmpty)
+        ? ownerId.trim().replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')
+        : 'general';
     final sanitizedId = equipmentId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final filePath = 'equipments/$sanitizedId-$timestamp.jpg';
+    final filePath = 'equipments/$sanitizedOwner/$sanitizedId-$timestamp.jpg';
 
     debugPrint('Uploading equipment image to Supabase Storage: $filePath (${bytes.lengthInBytes} bytes)...');
 
     // Upload to public bucket
-    await client.storage.from(SupabaseConfig.equipmentBucket).uploadBinary(
-          filePath,
-          bytes,
-          fileOptions: FileOptions(
-            contentType: contentType,
-            upsert: true,
-          ),
-        );
+    try {
+      await client.storage.from(SupabaseConfig.equipmentBucket).uploadBinary(
+            filePath,
+            bytes,
+            fileOptions: FileOptions(
+              contentType: contentType,
+              upsert: true,
+            ),
+          );
+    } catch (e) {
+      debugPrint('Supabase Storage uploadBinary failed: $e');
+      throw StateError(
+        'Failed to upload image to Supabase Storage bucket "${SupabaseConfig.equipmentBucket}": $e. '
+        'Please ensure the "${SupabaseConfig.equipmentBucket}" public bucket exists in your Supabase project.',
+      );
+    }
 
     // Retrieve direct public CDN URL
     final publicUrl = client.storage

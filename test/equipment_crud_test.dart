@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geargo/core/constants/supabase_config.dart';
+import 'package:geargo/core/utils/image_helper.dart';
 import 'package:geargo/models/equipment.dart';
 import 'package:geargo/screens/owner/widgets/category_selector.dart';
 import 'package:geargo/screens/owner/widgets/equipment_card.dart';
@@ -155,6 +157,20 @@ void main() {
       await service.deleteEquipment('crud_test_01');
       final fetched = await service.getEquipmentById('crud_test_01');
       expect(fetched, isNull);
+    });
+
+    test('Supabase Storage is configured with valid URL and bucket', () {
+      expect(SupabaseConfig.isConfigured, isTrue);
+      expect(SupabaseConfig.url, contains('supabase.co'));
+      expect(SupabaseConfig.equipmentBucket, 'equipment-images');
+    });
+
+    test('resolveEquipmentImageUrl retains valid Supabase Storage CDN URL', () async {
+      const supabaseUrl =
+          'https://eiezkelexlvswihxajfe.supabase.co/storage/v1/object/public/equipment-images/equipments/eq_99.jpg';
+      final resolved =
+          await ImageHelper.resolveEquipmentImageUrl('eq_99', supabaseUrl);
+      expect(resolved, supabaseUrl);
     });
   });
 

@@ -48,14 +48,14 @@ class EquipmentService {
       updatedAt: DateTime.now(),
     );
 
-    try {
+    // Resolve and upload image strictly to Supabase Storage before persisting to Firestore
+    if (finalEquipment.image.isNotEmpty) {
       final resolvedImage = await ImageHelper.resolveEquipmentImageUrl(
         docId,
         finalEquipment.image,
+        ownerId: finalEquipment.ownerId,
       );
       finalEquipment = finalEquipment.copyWith(image: resolvedImage);
-    } catch (e) {
-      debugPrint('Equipment image upload warning: $e');
     }
 
     // Save to local cache first
@@ -206,14 +206,14 @@ class EquipmentService {
       updatedAt: DateTime.now(),
     );
 
-    try {
+    // Resolve and upload image strictly to Supabase Storage before persisting to Firestore
+    if (updatedItem.image.isNotEmpty) {
       final resolvedImage = await ImageHelper.resolveEquipmentImageUrl(
         updatedItem.id,
         updatedItem.image,
+        ownerId: updatedItem.ownerId,
       );
       updatedItem = updatedItem.copyWith(image: resolvedImage);
-    } catch (e) {
-      debugPrint('Equipment image upload warning: $e');
     }
 
     // Update local cache
