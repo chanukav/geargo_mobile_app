@@ -30,11 +30,19 @@ class _SearchTabState extends State<SearchTab> {
 
   final List<String> _locationOptions = const [
     'Current Location',
-    'Kuala Lumpur',
-    'Petaling Jaya',
-    'Bangsar',
-    'Mont Kiara',
-    'Subang Jaya',
+    'Colombo',
+    'Kandy',
+    'Galle',
+    'Negombo',
+    'Nuwara Eliya',
+    'Jaffna',
+    'Matara',
+    'Ella',
+    'Mirissa',
+    'Batticaloa',
+    'Trincomalee',
+    'Anuradhapura',
+    'Kurunegala',
   ];
 
   @override

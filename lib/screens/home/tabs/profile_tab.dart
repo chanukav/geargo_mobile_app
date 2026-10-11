@@ -1188,7 +1188,7 @@ class _ProfileTabState extends State<ProfileTab> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Vancouver, BC · ${settings.tr('member_since')}',
+                                'Colombo, Sri Lanka · ${settings.tr('member_since')}',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: subColor,

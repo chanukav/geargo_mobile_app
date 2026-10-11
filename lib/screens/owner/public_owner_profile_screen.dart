@@ -605,7 +605,7 @@ class _PublicOwnerProfileScreenState extends State<PublicOwnerProfileScreen>
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '\$${item.pricePerDay} / day',
+                    'Rs. ${item.pricePerDay} / day',
                     style: TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w900,

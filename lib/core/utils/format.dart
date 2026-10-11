@@ -3,8 +3,8 @@ const List<String> _months = [
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
-/// Configurable currency symbol. Defaults to 'RM' to match group members' screens.
-String currencySymbol = 'RM';
+/// Configurable currency symbol. Defaults to 'Rs.' for Sri Lankan currency.
+String currencySymbol = 'Rs.';
 
 void setCurrencySymbol(String symbol) {
   currencySymbol = symbol;

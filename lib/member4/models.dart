@@ -21,7 +21,7 @@ class RentalRecord {
   String get equipmentName => data['equipmentName'] as String;
   String get status => data['status'] as String;
   String get phase => status == 'pending' ? 'pickup' : 'return';
-  String get currency => data['currency'] as String? ?? 'USD';
+  String get currency => data['currency'] as String? ?? 'Rs.';
   String get dateLabel => '${data['startDate']} – ${data['endDate']}';
   Map<String, dynamic> get meetup =>
       Map<String, dynamic>.from(data['meetup'] as Map);

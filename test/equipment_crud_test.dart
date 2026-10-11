@@ -243,7 +243,7 @@ void main() {
       );
 
       expect(find.text('Specialized Stumpjumper'), findsOneWidget);
-      expect(find.text('\$50'), findsOneWidget);
+      expect(find.text('Rs. 50'), findsOneWidget);
       expect(find.text('Denver, CO'), findsOneWidget);
       expect(find.text('Available'), findsOneWidget);
 

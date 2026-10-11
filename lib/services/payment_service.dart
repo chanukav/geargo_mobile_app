@@ -30,7 +30,7 @@ class PaymentService {
   Future<String> authorizeDepositHold({
     required double depositAmount,
     required String rentalRequestId,
-    String currency = 'USD',
+    String currency = 'LKR',
   }) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -111,7 +111,7 @@ class MockPaymentService implements PaymentService {
   Future<String> authorizeDepositHold({
     required double depositAmount,
     required String rentalRequestId,
-    String currency = 'USD',
+    String currency = 'LKR',
   }) async {
     return 'mock_hold_$rentalRequestId';
   }

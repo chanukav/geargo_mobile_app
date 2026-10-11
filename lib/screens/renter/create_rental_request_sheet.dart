@@ -546,7 +546,7 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '\$${widget.dailyPrice.toStringAsFixed(0)} / day',
+                                  'Rs. ${widget.dailyPrice.toStringAsFixed(0)} / day',
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w800,
@@ -783,7 +783,7 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
                           Expanded(
                             child: Text(
                               'Submitting authorizes a sandbox deposit hold (SetupIntent-style) '
-                              'for \$${_depositAmount.toStringAsFixed(2)} on your saved payment method. '
+                              'for Rs. ${_depositAmount.toStringAsFixed(2)} on your saved payment method. '
                               'Rental fees are charged separately as Due Now.',
                               style: TextStyle(
                                 fontSize: 12,
@@ -842,7 +842,7 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
                           const Icon(Icons.send_rounded, size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            'Submit Request · Due Now \$${_dueNow.toStringAsFixed(2)}',
+                            'Submit Request · Due Now Rs. ${_dueNow.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,

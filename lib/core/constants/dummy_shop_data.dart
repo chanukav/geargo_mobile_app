@@ -8,7 +8,7 @@ class DummyShopData {
   static const String shopName = 'Apex Trail Rentals';
   static const String shopRating = '4.9 (148 reviews)';
   static const String pickupLocation =
-      'Capitol Hill, Denver (1.4 miles away)\nMeet at a safe public location';
+      'Colombo 07, Cinnamon Gardens (1.4 km away)\nMeet at a safe public location';
   static const String deliveryDescription =
       'Oct 12, 8:00 AM - 10:00 AM\nContactless drop-off & safe returns';
 
@@ -39,9 +39,9 @@ class DummyShopData {
     imageUrl: defaultHeroImage,
   );
 
-  static const String homeAddress = '1230 N Lafayette St, Denver, CO 80218';
-  static const String workAddress = '1700 Lincoln St, Denver, CO 80203';
-  static const String defaultDeliveryAddress = '128 Pine Street, Denver, CO 80202';
+  static const String homeAddress = 'No. 45, Galle Road, Colombo 03, Sri Lanka';
+  static const String workAddress = 'Level 12, World Trade Center, Echelon Square, Colombo 01';
+  static const String defaultDeliveryAddress = '28 Alfred House Gardens, Colombo 03, Sri Lanka';
   static const String defaultInstructions = 'Leave at front door, ring bell';
   static const String defaultPaymentMethod = 'Visa Ending in 4242';
   static const String defaultPaymentExpiry = 'Expires 12/28';

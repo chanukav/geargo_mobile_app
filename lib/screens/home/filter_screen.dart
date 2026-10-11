@@ -295,49 +295,53 @@ class _FilterScreenState extends State<FilterScreen> {
 
                       // Section 2: Location / Distance (Radio Options)
                       _buildSectionHeader('Location / Distance', titleColor),
-                      ...distanceOptions.map((km) {
-                        final isSelected = _distance == km;
-                        return InkWell(
-                          onTap: () {
-                            setState(() => _distance = km);
-                          },
-                          borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: Radio<double>(
-                                    value: km,
-                                    groupValue: _distance,
-                                    activeColor: AppColors.primary,
-                                    onChanged: (val) {
-                                      if (val != null) {
-                                        setState(() => _distance = val);
-                                      }
-                                    },
-                                  ),
+                      RadioGroup<double>(
+                        groupValue: _distance,
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _distance = val);
+                          }
+                        },
+                        child: Column(
+                          children: distanceOptions.map((km) {
+                            final isSelected = _distance == km;
+                            return InkWell(
+                              onTap: () {
+                                setState(() => _distance = km);
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 6),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: Radio<double>(
+                                        value: km,
+                                        activeColor: AppColors.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Within ${km.round()} km',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: isDark
+                                            ? AppColors.textPrimaryDark
+                                            : AppColors.textPrimaryLight,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  'Within ${km.round()} km',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    color: isDark
-                                        ? AppColors.textPrimaryDark
-                                        : AppColors.textPrimaryLight,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
 
                       const SizedBox(height: 20),
                       Divider(color: borderColor, height: 1),
@@ -346,99 +350,96 @@ class _FilterScreenState extends State<FilterScreen> {
                       // Section 3: Availability (Radio & Date Picker)
                       _buildSectionHeader('Availability', titleColor),
 
-                      // Option A: Available Now
-                      InkWell(
-                        onTap: () {
+                      RadioGroup<String>(
+                        groupValue: _availableNow
+                            ? 'now'
+                            : (_availableOnDate ? 'date' : null),
+                        onChanged: (val) {
                           setState(() {
-                            _availableNow = true;
-                            _availableOnDate = false;
+                            _availableNow = val == 'now';
+                            _availableOnDate = val == 'date';
                           });
                         },
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: Radio<bool>(
-                                  value: true,
-                                  groupValue: _availableNow,
-                                  activeColor: AppColors.primary,
-                                  onChanged: (val) {
-                                    if (val == true) {
-                                      setState(() {
-                                        _availableNow = true;
-                                        _availableOnDate = false;
-                                      });
-                                    }
-                                  },
+                        child: Column(
+                          children: [
+                            // Option A: Available Now
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _availableNow = true;
+                                  _availableOnDate = false;
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 6),
+                                child: Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: Radio<String>(
+                                        value: 'now',
+                                        activeColor: AppColors.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Available Now',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: isDark
+                                            ? AppColors.textPrimaryDark
+                                            : AppColors.textPrimaryLight,
+                                        fontWeight: _availableNow
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Available Now',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: isDark
-                                      ? AppColors.textPrimaryDark
-                                      : AppColors.textPrimaryLight,
-                                  fontWeight: _availableNow
-                                      ? FontWeight.w600
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                            ),
 
-                      // Option B: Available on Selected Date
-                      InkWell(
-                        onTap: () {
-                          setState(() {
-                            _availableOnDate = true;
-                            _availableNow = false;
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: Radio<bool>(
-                                  value: true,
-                                  groupValue: _availableOnDate,
-                                  activeColor: AppColors.primary,
-                                  onChanged: (val) {
-                                    if (val == true) {
-                                      setState(() {
-                                        _availableOnDate = true;
-                                        _availableNow = false;
-                                      });
-                                    }
-                                  },
+                            // Option B: Available on Selected Date
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _availableOnDate = true;
+                                  _availableNow = false;
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 6),
+                                child: Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: Radio<String>(
+                                        value: 'date',
+                                        activeColor: AppColors.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Available on Selected Date',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: isDark
+                                            ? AppColors.textPrimaryDark
+                                            : AppColors.textPrimaryLight,
+                                        fontWeight: _availableOnDate
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Available on Selected Date',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: isDark
-                                      ? AppColors.textPrimaryDark
-                                      : AppColors.textPrimaryLight,
-                                  fontWeight: _availableOnDate
-                                      ? FontWeight.w600
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
 

@@ -780,7 +780,7 @@ class _RenterEquipmentDetailsScreenState
                           textBaseline: TextBaseline.alphabetic,
                           children: [
                             Text(
-                              '\$${widget.dailyPrice.toStringAsFixed(0)}',
+                              'Rs. ${widget.dailyPrice.toStringAsFixed(0)}',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w900,
@@ -789,7 +789,7 @@ class _RenterEquipmentDetailsScreenState
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'USD',
+                              'LKR',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
@@ -878,7 +878,7 @@ class _RenterEquipmentDetailsScreenState
         border: Border.all(color: border),
       ),
       child: Text(
-        '$label · \$${amount.toStringAsFixed(0)}',
+        '$label · Rs. ${amount.toStringAsFixed(0)}',
         style: TextStyle(
           fontWeight: FontWeight.w700,
           fontSize: 13,

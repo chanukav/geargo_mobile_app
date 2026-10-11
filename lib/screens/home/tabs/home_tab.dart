@@ -616,7 +616,7 @@ class _GearCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '\$${item.pricePerDay}',
+                        'Rs. ${item.pricePerDay}',
                         style: const TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 15.5,

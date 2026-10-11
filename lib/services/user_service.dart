@@ -190,9 +190,9 @@ class UserService {
         photoUrl:
             'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
         role: UserRole.renter,
-        phoneNumber: '+1 (555) 234-5678',
+        phoneNumber: '+94 77 234 5678',
         bio: 'Avid weekend hiker, trail runner, and outdoor enthusiast.',
-        address: 'Vancouver, BC, Canada',
+        address: 'Colombo 07, Sri Lanka',
         isVerified: true,
         createdAt: DateTime.now().subtract(const Duration(days: 90)),
         updatedAt: DateTime.now(),
@@ -204,10 +204,10 @@ class UserService {
         photoUrl:
             'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
         role: UserRole.owner,
-        phoneNumber: '+1 (555) 345-6789',
+        phoneNumber: '+94 71 345 6789',
         bio:
             'Passionate mountain biker & gear collector. All equipment tuned before handover.',
-        address: 'Seattle, WA, USA',
+        address: 'Kandy, Sri Lanka',
         businessName: 'Vance Trail Rentals',
         isVerified: true,
         createdAt: DateTime.now().subtract(const Duration(days: 120)),
@@ -220,10 +220,10 @@ class UserService {
         photoUrl:
             'https://images.unsplash.com/photo-1556742049-0a67e557224f?auto=format&fit=crop&w=400&q=80',
         role: UserRole.commercialShop,
-        phoneNumber: '+1 (555) 890-1234',
+        phoneNumber: '+94 11 890 1234',
         bio:
-            'Commercial full-service rental depot offering fleet bikes, ski gear, and group tents.',
-        address: 'Whistler, BC, Canada',
+            'Commercial full-service rental depot offering fleet bikes, surfboards, and camping gear.',
+        address: 'Nuwara Eliya, Sri Lanka',
         businessName: 'Apex Mountain Gear Commercial Depot',
         isVerified: true,
         createdAt: DateTime.now().subtract(const Duration(days: 150)),
@@ -236,9 +236,9 @@ class UserService {
         photoUrl:
             'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
         role: UserRole.admin,
-        phoneNumber: '+1 (555) 999-0001',
+        phoneNumber: '+94 11 999 0001',
         bio: 'GearGo platform trust, safety, and operations administrator.',
-        address: 'HQ - San Francisco, CA',
+        address: 'Colombo 03, Sri Lanka',
         businessName: 'GearGo Platform Operations',
         isVerified: true,
         createdAt: DateTime.now().subtract(const Duration(days: 200)),

@@ -454,7 +454,7 @@ class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen>
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '\$${_request.dailyPrice.toStringAsFixed(0)} / day',
+                              'Rs. ${_request.dailyPrice.toStringAsFixed(0)} / day',
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w800,

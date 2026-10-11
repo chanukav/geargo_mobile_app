@@ -148,10 +148,10 @@ void main() {
     expect(find.text('Training Cones (Set)'), findsOneWidget);
 
     // Verify prices & status badges
-    expect(find.text('RM 10 / day'), findsOneWidget);
-    expect(find.text('RM 15 / day'), findsOneWidget);
-    expect(find.text('RM 12 / day'), findsWidgets);
-    expect(find.text('RM 8 / day'), findsOneWidget);
+    expect(find.text('Rs. 10 / day'), findsOneWidget);
+    expect(find.text('Rs. 15 / day'), findsOneWidget);
+    expect(find.text('Rs. 12 / day'), findsWidgets);
+    expect(find.text('Rs. 8 / day'), findsOneWidget);
 
     expect(find.text('Unavailable'), findsOneWidget);
     expect(find.text('Available Now'), findsWidgets);

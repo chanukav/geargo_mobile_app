@@ -187,11 +187,19 @@ class _SportSearchResultsScreenState extends State<SportSearchResultsScreen> {
   void _showEditLocationDialog() {
     final locations = [
       'Current Location',
-      'Kuala Lumpur',
-      'Petaling Jaya',
-      'Bangsar',
-      'Mont Kiara',
-      'Subang Jaya',
+      'Colombo',
+      'Kandy',
+      'Galle',
+      'Negombo',
+      'Nuwara Eliya',
+      'Jaffna',
+      'Matara',
+      'Ella',
+      'Mirissa',
+      'Batticaloa',
+      'Trincomalee',
+      'Anuradhapura',
+      'Kurunegala',
     ];
     final distances = [1.0, 5.0, 10.0, 20.0];
 
@@ -404,7 +412,7 @@ class _SportSearchResultsScreenState extends State<SportSearchResultsScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                'RM ${item.pricePerDay} / day',
+                'Rs. ${item.pricePerDay} / day',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,

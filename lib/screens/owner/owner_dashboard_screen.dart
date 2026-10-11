@@ -165,7 +165,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                           child: _buildMetricTile(
                             title: 'Daily Value',
                             value:
-                                '\$${potentialDailyEarnings.toStringAsFixed(0)}',
+                                'Rs. ${potentialDailyEarnings.toStringAsFixed(0)}',
                             subtitle: 'Active daily rate',
                             icon: Icons.attach_money_rounded,
                             iconColor: AppColors.orange,

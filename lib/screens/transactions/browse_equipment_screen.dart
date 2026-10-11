@@ -335,7 +335,7 @@ class _BrowseEquipmentScreenState extends State<BrowseEquipmentScreen> {
                                                 TextBaseline.alphabetic,
                                             children: [
                                               Text(
-                                                '\$${p.pricePerDay.toStringAsFixed(0)}',
+                                                'Rs. ${p.pricePerDay.toStringAsFixed(0)}',
                                                 style: const TextStyle(
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.w800,

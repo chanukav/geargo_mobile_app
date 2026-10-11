@@ -545,7 +545,7 @@ class _SavedListCard extends StatelessWidget {
                           ),
                           const Spacer(),
                           Text(
-                            '\$${item.dailyPrice.toStringAsFixed(0)}',
+                            'Rs. ${item.dailyPrice.toStringAsFixed(0)}',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w900,
@@ -784,7 +784,7 @@ class _SavedGridCard extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        '\$${item.dailyPrice.toStringAsFixed(0)}',
+                        'Rs. ${item.dailyPrice.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w900,

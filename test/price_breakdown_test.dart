@@ -189,15 +189,15 @@ void main() {
   });
 
   group('Currency & Formatting (format.dart)', () {
-    test('default currency is RM', () {
-      expect(currencySymbol, 'RM');
+    test('default currency is Rs.', () {
+      expect(currencySymbol, 'Rs.');
     });
 
-    test('money() formats correctly with RM prefix', () {
-      expect(money(50.0), 'RM 50.00');
-      expect(money(12.5), 'RM 12.50');
-      expect(money(0.0), 'RM 0.00');
-      expect(money(187.80), 'RM 187.80');
+    test('money() formats correctly with Rs. prefix', () {
+      expect(money(50.0), 'Rs. 50.00');
+      expect(money(12.5), 'Rs. 12.50');
+      expect(money(0.0), 'Rs. 0.00');
+      expect(money(187.80), 'Rs. 187.80');
     });
 
     test('calculateRentalDays handles same day and multi days', () {

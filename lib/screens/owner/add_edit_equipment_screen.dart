@@ -56,7 +56,7 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
     _descriptionController =
         TextEditingController(text: item?.description ?? '');
     _locationController =
-        TextEditingController(text: item?.location ?? 'Denver, CO');
+        TextEditingController(text: item?.location ?? 'Colombo, Sri Lanka');
     _priceWeeklyController = TextEditingController(
       text: item?.priceWeekly?.toStringAsFixed(0) ?? '',
     );
@@ -109,7 +109,7 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
     if (price == null || price <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter a valid price greater than \$0.'),
+          content: Text('Please enter a valid price greater than Rs. 0.'),
           backgroundColor: AppColors.error,
         ),
       );
@@ -284,9 +284,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                       flex: 5,
                       child: _buildTextField(
                         controller: _priceController,
-                        label: 'Price per day (\$USD) *',
-                        hint: '45',
-                        prefixText: '\$ ',
+                        label: 'Price per day (Rs.) *',
+                        hint: '450',
+                        prefixText: 'Rs. ',
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
@@ -390,7 +390,7 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                 _buildTextField(
                   controller: _locationController,
                   label: 'Pickup Location',
-                  hint: 'e.g. Denver, CO (Capitol Hill)',
+                  hint: 'e.g. Colombo 07, Cinnamon Gardens',
                   prefixIcon: Icons.location_on_rounded,
                 ),
                 const SizedBox(height: 16),
@@ -414,8 +414,8 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                         Expanded(
                           child: _buildTextField(
                             controller: _priceWeeklyController,
-                            label: 'Weekly rate (\$)',
-                            hint: '140',
+                            label: 'Weekly rate (Rs.)',
+                            hint: '1400',
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
@@ -425,8 +425,8 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                         Expanded(
                           child: _buildTextField(
                             controller: _priceMonthlyController,
-                            label: 'Monthly rate (\$)',
-                            hint: '480',
+                            label: 'Monthly rate (Rs.)',
+                            hint: '4800',
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),

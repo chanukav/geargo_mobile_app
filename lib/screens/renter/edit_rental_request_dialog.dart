@@ -235,7 +235,7 @@ class _EditRentalRequestDialogState extends State<EditRentalRequestDialog> {
                                     ),
                                   ),
                                   Text(
-                                    'Duration: $_totalDays days • Subtotal: \$${_subtotal.toStringAsFixed(2)}',
+                                    'Duration: $_totalDays days • Subtotal: Rs. ${_subtotal.toStringAsFixed(2)}',
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: AppColors.primary,
@@ -344,7 +344,7 @@ class _EditRentalRequestDialogState extends State<EditRentalRequestDialog> {
                             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                           ),
                           Text(
-                            '\$${_totalPrice.toStringAsFixed(2)}',
+                            'Rs. ${_totalPrice.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontWeight: FontWeight.w900,
                               fontSize: 17,

@@ -102,7 +102,7 @@ void main() {
 
       // Verify equipment listings in 2-column grid
       expect(find.text('Specialized Stumpjumper EVO Comp Bike'), findsWidgets);
-      expect(find.text('\$45 / day'), findsWidgets);
+      expect(find.text('Rs. 45 / day'), findsWidgets);
     });
 
     testWidgets(

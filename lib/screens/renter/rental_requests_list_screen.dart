@@ -531,7 +531,7 @@ class _RentalRequestCard extends StatelessWidget {
                             style: TextStyle(fontSize: 12, color: subText),
                           ),
                           Text(
-                            '\$${request.totalPrice.toStringAsFixed(2)}',
+                            'Rs. ${request.totalPrice.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 14.5,
                               fontWeight: FontWeight.w900,

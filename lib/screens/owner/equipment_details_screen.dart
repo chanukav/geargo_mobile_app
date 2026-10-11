@@ -271,7 +271,7 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                                 textBaseline: TextBaseline.alphabetic,
                                 children: [
                                   Text(
-                                    '\$${_equipment.price.toStringAsFixed(_equipment.price.truncateToDouble() == _equipment.price ? 0 : 2)}',
+                                    'Rs. ${_equipment.price.toStringAsFixed(_equipment.price.truncateToDouble() == _equipment.price ? 0 : 2)}',
                                     style: const TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.w800,

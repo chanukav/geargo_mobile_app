@@ -82,7 +82,7 @@ class CheckoutPriceSummary extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '\$${dueNow.toStringAsFixed(2)}',
+                    'Rs. ${dueNow.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
@@ -115,7 +115,7 @@ class CheckoutPriceSummary extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '\$${depositAmount.toStringAsFixed(2)}',
+                'Rs. ${depositAmount.toStringAsFixed(2)}',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
@@ -162,7 +162,7 @@ class CheckoutPriceSummary extends StatelessWidget {
       children: [
         Text(label, style: TextStyle(fontSize: 13.5, color: color)),
         Text(
-          '\$${amount.toStringAsFixed(2)}',
+          'Rs. ${amount.toStringAsFixed(2)}',
           style: TextStyle(
             fontSize: 13.5,
             fontWeight: FontWeight.w600,
