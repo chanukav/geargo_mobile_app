@@ -31,6 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   UserRole _selectedRole = UserRole.renter;
   bool _isLoading = false;
   bool _isGuestLoading = false;
+  bool _isGoogleLoading = false;
   String? _errorMessage;
 
   @override
@@ -144,10 +145,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _isGoogleLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final credential = await _authService.signInWithGoogle();
+      if (credential == null && mounted) {
+        return;
+      }
+      final user = credential?.user;
+      if (user != null) {
+        final hasRole = await _authService.hasSelectedRole(user.uid);
+        if (!hasRole) {
+          // Pre-assign the role chosen on this registration screen
+          await _authService.completeRegistration(
+            user: user,
+            role: _selectedRole,
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = AuthService.getAuthErrorMessage(e);
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGoogleLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isAnyLoading = _isLoading || _isGuestLoading;
+    final isAnyLoading = _isLoading || _isGuestLoading || _isGoogleLoading;
 
     return Scaffold(
       body: SafeArea(
@@ -384,6 +422,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   SocialSignInButton.guest(
                     onPressed: isAnyLoading ? null : _handleGuestSignIn,
                     isLoading: _isGuestLoading,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Google Sign-In Option
+                  SocialSignInButton.google(
+                    onPressed: isAnyLoading ? null : _handleGoogleSignIn,
+                    isLoading: _isGoogleLoading,
                   ),
 
                   const SizedBox(height: 28),

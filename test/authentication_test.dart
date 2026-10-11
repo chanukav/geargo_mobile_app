@@ -82,5 +82,40 @@ void main() {
       final reconstructed = AppUser.fromMap(map, owner.uid);
       expect(reconstructed.isOwner, isTrue);
     });
+
+    test('supports all 4 roles: Renter, Gear Owner, Commercial Shop, Administrator', () {
+      expect(UserRole.renter.displayName, 'Renter');
+      expect(UserRole.owner.displayName, 'Gear Owner & Lender');
+      expect(UserRole.commercialShop.displayName, 'Commercial Rental Shop');
+      expect(UserRole.admin.displayName, 'Platform Administrator');
+
+      expect(UserRole.renter.storageValue, 'renter');
+      expect(UserRole.owner.storageValue, 'owner');
+      expect(UserRole.commercialShop.storageValue, 'commercial_shop');
+      expect(UserRole.admin.storageValue, 'admin');
+
+      expect(UserRole.fromString('renter'), UserRole.renter);
+      expect(UserRole.fromString('owner'), UserRole.owner);
+      expect(UserRole.fromString('commercial_shop'), UserRole.commercialShop);
+      expect(UserRole.fromString('commercialshop'), UserRole.commercialShop);
+      expect(UserRole.fromString('admin'), UserRole.admin);
+
+      const shopUser = AppUser(
+        uid: 'shop_1',
+        email: 'shop@gear.com',
+        role: UserRole.commercialShop,
+      );
+      expect(shopUser.isCommercialShop, isTrue);
+      expect(shopUser.canManageListings, isTrue);
+      expect(shopUser.toMap()['role'], 'commercial_shop');
+
+      const adminUser = AppUser(
+        uid: 'admin_1',
+        email: 'admin@geargo.com',
+        role: UserRole.admin,
+      );
+      expect(adminUser.isPlatformAdmin, isTrue);
+      expect(adminUser.toMap()['role'], 'admin');
+    });
   });
 }

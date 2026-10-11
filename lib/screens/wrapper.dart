@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../services/auth_service.dart';
 import 'authentication/authenticate.dart';
+import 'authentication/role_selection_screen.dart';
 import 'home/home.dart';
 
 /// The root authentication gateway (Wrapper).
-/// Listens to Firebase auth state stream and renders either [Authenticate] or [HomeScreen].
+/// Listens to Firebase auth state stream and renders either [Authenticate] or [UserRoleGate].
 class Wrapper extends StatelessWidget {
   const Wrapper({super.key});
 
@@ -51,46 +52,88 @@ class Wrapper extends StatelessWidget {
 
         // Handle initial loading / connection state
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Icon(
-                      Icons.directions_car_filled_rounded,
-                      color: AppColors.primary,
-                      size: 40,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2.5),
-                  ),
-                ],
-              ),
-            ),
-          );
+          return const _LoadingScaffold();
         }
 
         final user = snapshot.data;
 
-        // If authenticated, navigate to Home screen
+        // If authenticated, check if first-time user needs role selection
         if (user != null) {
-          return HomeScreen(user: user);
+          return UserRoleGate(user: user);
         }
 
         // Otherwise, navigate to Authentication screen (Login / Register)
         return const Authenticate();
       },
+    );
+  }
+}
+
+/// Gatekeeper widget that verifies the authenticated user has chosen their
+/// platform role (Renter, Gear Owner, Commercial Shop, Administrator).
+/// First-time users (e.g. registering via Google OAuth 2.0) are directed to [RoleSelectionScreen].
+class UserRoleGate extends StatelessWidget {
+  final User user;
+  const UserRoleGate({super.key, required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    if (user.isAnonymous) {
+      return HomeScreen(user: user);
+    }
+
+    final authService = AuthService();
+
+    return StreamBuilder<bool>(
+      stream: authService.userHasRoleStream(user.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const _LoadingScaffold();
+        }
+
+        final hasRole = snapshot.data ?? true;
+        if (!hasRole) {
+          return RoleSelectionScreen(user: user);
+        }
+
+        return HomeScreen(user: user);
+      },
+    );
+  }
+}
+
+class _LoadingScaffold extends StatelessWidget {
+  const _LoadingScaffold();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.directions_car_filled_rounded,
+                color: AppColors.primary,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2.5),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

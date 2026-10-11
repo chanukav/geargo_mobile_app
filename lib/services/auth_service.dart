@@ -10,16 +10,27 @@ import 'owner_profile_service.dart';
 /// Handles Email/Password, Anonymous ("Guest"), Google Sign-In, and Role persistence.
 class AuthService {
   static final AuthService _instance = AuthService._internal();
-  factory AuthService() => _instance;
-  AuthService._internal();
+  factory AuthService({FirebaseAuth? auth, FirebaseFirestore? firestore}) {
+    if (auth != null || firestore != null) {
+      return AuthService._internal(auth: auth, firestore: firestore);
+    }
+    return _instance;
+  }
+  AuthService._internal({FirebaseAuth? auth, FirebaseFirestore? firestore})
+      : _customAuth = auth,
+        _customFirestore = firestore;
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseAuth? _customAuth;
+  final FirebaseFirestore? _customFirestore;
+
+  FirebaseAuth get _auth => _customAuth ?? FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   // In-memory cache for user roles to avoid redundant Firestore reads
   final Map<String, UserRole> _roleCache = {};
 
   FirebaseFirestore? get _safeFirestore {
+    if (_customFirestore != null) return _customFirestore;
     try {
       return FirebaseFirestore.instance;
     } catch (_) {
@@ -107,6 +118,91 @@ class AuthService {
         debugPrint('[AuthService] Warning saving user profile to Firestore: $e');
       }
     }
+  }
+
+  /// Completes registration / first-time onboarding for an authenticated [User]
+  /// with their chosen [UserRole] (e.g. following Google OAuth 2.0).
+  Future<void> completeRegistration({
+    required User user,
+    required UserRole role,
+  }) async {
+    final appUser = AppUser(
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoUrl: user.photoURL,
+      role: role,
+    );
+
+    await saveUserProfile(appUser);
+
+    // If registered as Owner or Commercial Shop, initialize owner profile
+    if (role == UserRole.owner || role == UserRole.commercialShop) {
+      try {
+        final existing = await OwnerProfileService().getProfile(user.uid);
+        if (existing == null) {
+          await OwnerProfileService().createProfile(
+            OwnerProfile(
+              id: user.uid,
+              userId: user.uid,
+              name: (user.displayName != null && user.displayName!.trim().isNotEmpty)
+                  ? user.displayName!.trim()
+                  : 'Gear Owner',
+              phone: '',
+              address: '',
+              profileImage: user.photoURL ?? '',
+              businessName: role == UserRole.commercialShop
+                  ? '${user.displayName ?? "Gear"} Commercial Shop'
+                  : '${user.displayName ?? "Gear"} Rentals',
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+              isVerified: true,
+            ),
+          );
+        }
+      } catch (profileErr) {
+        debugPrint('[AuthService] Owner profile setup error: $profileErr');
+      }
+    }
+  }
+
+  /// Checks whether the user has already selected a role in Firestore.
+  Future<bool> hasSelectedRole(String uid) async {
+    if (_roleCache.containsKey(uid)) {
+      return true;
+    }
+    final fs = _safeFirestore;
+    if (fs == null) return true;
+
+    try {
+      final doc = await fs.collection('users').doc(uid).get();
+      if (doc.exists && doc.data() != null) {
+        final roleStr = doc.data()!['role'] as String?;
+        return roleStr != null && roleStr.isNotEmpty;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('[AuthService] hasSelectedRole error: $e');
+      return true;
+    }
+  }
+
+  /// Real-time stream of whether the user has a selected role saved in Firestore.
+  Stream<bool> userHasRoleStream(String uid) {
+    final fs = _safeFirestore;
+    if (fs == null) {
+      return Stream.value(true);
+    }
+    return fs.collection('users').doc(uid).snapshots().map((doc) {
+      if (!doc.exists || doc.data() == null) {
+        return false;
+      }
+      final roleStr = doc.data()!['role'] as String?;
+      return roleStr != null && roleStr.isNotEmpty;
+    }).handleError((e) {
+      debugPrint('[AuthService] userHasRoleStream error: $e');
+      return true;
+    });
   }
 
   /// Sign in using Email and Password. Ensures user document is in database.
@@ -293,6 +389,7 @@ class AuthService {
 
   /// Sign out current user from all providers.
   Future<void> signOut() async {
+    _roleCache.clear();
     try {
       if (kIsWeb) {
         await _auth.signOut();
