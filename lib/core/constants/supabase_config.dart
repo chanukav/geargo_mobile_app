@@ -24,6 +24,12 @@ class SupabaseConfig {
   /// Public Storage Bucket for Equipment Photos
   static const String equipmentBucket = 'equipment-images';
 
+  /// Storage Folder for User Profile Images in Supabase Storage
+  static const String profileImageFolder = 'profile image';
+
+  /// Storage Bucket for Profile Images (defaults to equipmentBucket)
+  static const String profileBucket = 'equipment-images';
+
   /// Checks if Supabase credentials have been filled in
   static bool get isConfigured {
     return url.isNotEmpty &&

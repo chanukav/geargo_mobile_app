@@ -139,6 +139,25 @@ class ImageHelper {
     }
   }
 
+  /// Picks an image from Camera or Gallery and returns raw bytes for Supabase Storage uploads.
+  static Future<Uint8List?> pickImageBytes({
+    ImageSource source = ImageSource.gallery,
+  }) async {
+    try {
+      final XFile? photo = await _picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      if (photo == null) return null;
+      return await photo.readAsBytes();
+    } catch (e) {
+      debugPrint('Error picking image bytes: $e');
+      return null;
+    }
+  }
+
   /// Converts an [XFile] to base64 data URL string so it can be stored directly.
   static Future<String> _fileToBase64DataUrl(XFile file) async {
     final bytes = await file.readAsBytes();

@@ -2,9 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/image_helper.dart';
 import '../../../models/app_user.dart';
 import '../../../services/app_settings_service.dart';
 import '../../../services/auth_service.dart';
+import '../../../services/user_service.dart';
+import '../../../widgets/profile_photo_modal.dart';
 import '../../owner/add_edit_equipment_screen.dart';
 import '../../owner/manage_listings_screen.dart';
 import '../../owner/owner_dashboard_screen.dart';
@@ -105,19 +108,38 @@ class _ProfileTabState extends State<ProfileTab> {
   final Set<String> _selectedActivities = {'Hiking', 'Cycling', 'Camping'};
   UserRole _userRole = UserRole.renter;
   VerificationStatus _verificationStatus = VerificationStatus.none;
+  AppUser? _dbUser;
 
   @override
   void initState() {
     super.initState();
-    _loadUserRole();
+    _loadUserData();
     _loadVerificationStatus();
   }
 
-  Future<void> _loadUserRole() async {
-    final role = await AuthService().getUserRole(widget.user.uid, email: widget.user.email);
+  Future<void> _loadUserData() async {
+    final user = await UserService().getUserData(widget.user.uid);
+    final role = user?.role ??
+        await AuthService().getUserRole(widget.user.uid, email: widget.user.email);
     if (mounted) {
-      setState(() => _userRole = role);
+      setState(() {
+        _userRole = role;
+        _dbUser = user;
+      });
     }
+  }
+
+  void _openProfilePhotoModal(AppUser user) {
+    ProfilePhotoModal.show(
+      context,
+      user: user,
+      onPhotoChanged: (updated) {
+        setState(() {
+          _dbUser = updated;
+          _userRole = updated.role;
+        });
+      },
+    );
   }
 
   Future<void> _loadVerificationStatus() async {
@@ -297,7 +319,7 @@ class _ProfileTabState extends State<ProfileTab> {
       listenable: settings,
       builder: (context, _) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
-        final appUser = AppUser.fromFirebase(widget.user, role: _userRole);
+        final appUser = _dbUser ?? AppUser.fromFirebase(widget.user, role: _userRole);
         final verificationBadge = _verificationBadge();
         final displayName = appUser.displayName?.trim().isNotEmpty == true
             ? appUser.displayName!
@@ -324,6 +346,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 name: displayName,
                 initials: userInitials,
                 photoUrl: appUser.photoUrl,
+                onAvatarTap: () => _openProfilePhotoModal(appUser),
                 isDark: isDark,
                 cardBg: cardBg,
                 borderColor: borderColor,
@@ -970,6 +993,7 @@ class _ProfileTabState extends State<ProfileTab> {
     required String name,
     required String initials,
     required String? photoUrl,
+    required VoidCallback onAvatarTap,
     required bool isDark,
     required Color cardBg,
     required Color borderColor,
@@ -1064,37 +1088,72 @@ class _ProfileTabState extends State<ProfileTab> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       // Avatar
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isDark ? AppColors.surfaceDark : Colors.white,
-                            width: 3.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.15),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                      InkWell(
+                        onTap: onAvatarTap,
+                        borderRadius: BorderRadius.circular(34),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isDark ? AppColors.surfaceDark : Colors.white,
+                                  width: 3.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: CircleAvatar(
+                                radius: 34,
+                                backgroundColor: isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFE2E8F0),
+                                child: ClipOval(
+                                  child: (photoUrl != null && photoUrl.trim().isNotEmpty)
+                                      ? EquipmentImageViewer(
+                                          imageSource: photoUrl,
+                                          width: 68,
+                                          height: 68,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Text(
+                                          initials,
+                                          style: const TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              right: -2,
+                              bottom: -2,
+                              child: Container(
+                                padding: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isDark ? AppColors.surfaceDark : Colors.white,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt_rounded,
+                                  size: 13,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ],
-                        ),
-                        child: CircleAvatar(
-                          radius: 34,
-                          backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
-                          backgroundImage: photoUrl != null
-                              ? NetworkImage(photoUrl)
-                              : null,
-                          child: photoUrl == null
-                              ? Text(
-                                  initials,
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.primary,
-                                  ),
-                                )
-                              : null,
                         ),
                       ),
                       const SizedBox(width: 12),

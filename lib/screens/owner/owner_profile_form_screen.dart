@@ -3,6 +3,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/utils/image_helper.dart';
 import '../../models/owner_profile.dart';
 import '../../services/owner_profile_service.dart';
+import '../../services/user_service.dart';
 import 'widgets/image_picker_sheet.dart';
 
 /// Dual-mode form screen for creating or editing an owner profile (CRUD 02).
@@ -99,6 +100,23 @@ class _OwnerProfileFormScreenState extends State<OwnerProfileFormScreen> {
       final saved = _isEditing
           ? await _service.updateProfile(draft)
           : await _service.createProfile(draft);
+
+      // Keep user persona data synchronized in database
+      try {
+        final existingUser = await UserService().getUserData(widget.userId);
+        if (existingUser != null) {
+          await UserService().saveUserData(existingUser.copyWith(
+            displayName: draft.name,
+            phoneNumber: draft.phone,
+            address: draft.address,
+            photoUrl: draft.profileImage,
+            businessName: draft.businessName,
+            bio: draft.bio,
+          ));
+        }
+      } catch (e) {
+        debugPrint('[OwnerProfileFormScreen] UserService sync warning: $e');
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

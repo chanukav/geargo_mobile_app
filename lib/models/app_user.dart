@@ -50,6 +50,13 @@ class AppUser {
   final bool isAnonymous;
   final bool isEmailVerified;
   final UserRole role;
+  final String? phoneNumber;
+  final String? bio;
+  final String? address;
+  final String? businessName;
+  final bool isVerified;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   const AppUser({
     required this.uid,
@@ -59,6 +66,13 @@ class AppUser {
     this.isAnonymous = false,
     this.isEmailVerified = false,
     this.role = UserRole.renter,
+    this.phoneNumber,
+    this.bio,
+    this.address,
+    this.businessName,
+    this.isVerified = false,
+    this.createdAt,
+    this.updatedAt,
   });
 
   bool get isOwner => role == UserRole.owner;
@@ -83,6 +97,7 @@ class AppUser {
       isAnonymous: user.isAnonymous,
       isEmailVerified: user.emailVerified,
       role: resolvedRole,
+      phoneNumber: user.phoneNumber,
     );
   }
 
@@ -94,6 +109,13 @@ class AppUser {
     bool? isAnonymous,
     bool? isEmailVerified,
     UserRole? role,
+    String? phoneNumber,
+    String? bio,
+    String? address,
+    String? businessName,
+    bool? isVerified,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
@@ -103,6 +125,13 @@ class AppUser {
       isAnonymous: isAnonymous ?? this.isAnonymous,
       isEmailVerified: isEmailVerified ?? this.isEmailVerified,
       role: role ?? this.role,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      bio: bio ?? this.bio,
+      address: address ?? this.address,
+      businessName: businessName ?? this.businessName,
+      isVerified: isVerified ?? this.isVerified,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -114,18 +143,43 @@ class AppUser {
       'photo_url': photoUrl ?? '',
       'role': role.storageValue,
       'is_anonymous': isAnonymous,
-      'updated_at': DateTime.now().toIso8601String(),
+      'phone_number': phoneNumber ?? '',
+      'bio': bio ?? '',
+      'address': address ?? '',
+      'business_name': businessName ?? '',
+      'is_verified': isVerified,
+      'created_at': (createdAt ?? DateTime.now()).toIso8601String(),
+      'updated_at': (updatedAt ?? DateTime.now()).toIso8601String(),
     };
   }
 
   factory AppUser.fromMap(Map<String, dynamic> map, String uid) {
+    final rawPhoto = map['photo_url'] as String?;
+    final rawProfileImg = map['profile_image'] as String?;
+    final photo = (rawPhoto != null && rawPhoto.trim().isNotEmpty)
+        ? rawPhoto
+        : ((rawProfileImg != null && rawProfileImg.trim().isNotEmpty)
+            ? rawProfileImg
+            : null);
+
     return AppUser(
       uid: uid,
       email: map['email'] as String?,
       displayName: map['display_name'] as String?,
-      photoUrl: map['photo_url'] as String?,
+      photoUrl: photo,
       isAnonymous: (map['is_anonymous'] as bool?) ?? false,
       role: UserRole.fromString(map['role'] as String?),
+      phoneNumber: (map['phone_number'] ?? map['phone']) as String?,
+      bio: map['bio'] as String?,
+      address: map['address'] as String?,
+      businessName: map['business_name'] as String?,
+      isVerified: (map['is_verified'] as bool?) ?? false,
+      createdAt: map['created_at'] != null
+          ? DateTime.tryParse(map['created_at'].toString())
+          : null,
+      updatedAt: map['updated_at'] != null
+          ? DateTime.tryParse(map['updated_at'].toString())
+          : null,
     );
   }
 

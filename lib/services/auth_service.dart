@@ -5,6 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../models/app_user.dart';
 import '../models/owner_profile.dart';
 import 'owner_profile_service.dart';
+import 'user_service.dart';
 
 /// Production-ready Firebase Authentication Service with Persona/Role management.
 /// Handles Email/Password, Anonymous ("Guest"), Google Sign-In, and Role persistence.
@@ -107,17 +108,8 @@ class AuthService {
   Future<void> saveUserProfile(AppUser user) async {
     _roleCache[user.uid] = user.role;
     final fs = _safeFirestore;
-    if (fs != null) {
-      try {
-        await fs.collection('users').doc(user.uid).set(
-          user.toMap(),
-          SetOptions(merge: true),
-        );
-        debugPrint('[AuthService] Saved user profile: ${user.uid} with role: ${user.role.name}');
-      } catch (e) {
-        debugPrint('[AuthService] Warning saving user profile to Firestore: $e');
-      }
-    }
+    await UserService(firestore: fs).saveUserData(user);
+    debugPrint('[AuthService] Saved user profile: ${user.uid} with role: ${user.role.name}');
   }
 
   /// Completes registration / first-time onboarding for an authenticated [User]

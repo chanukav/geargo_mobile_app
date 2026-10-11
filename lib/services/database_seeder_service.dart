@@ -4,10 +4,11 @@ import '../models/equipment.dart';
 import '../models/equipment_review.dart';
 import 'equipment_service.dart';
 import 'review_service.dart';
+import 'user_service.dart';
 
 /// Database Seeder Service.
 /// Seeds and syncs sample equipment data into Cloud Firestore
-/// with explicit 1-to-N equipment review relationships.
+/// with explicit 1-to-N equipment review relationships and persona users.
 class DatabaseSeederService {
   static final DatabaseSeederService _instance =
       DatabaseSeederService._internal();
@@ -16,6 +17,7 @@ class DatabaseSeederService {
 
   final EquipmentService _equipmentService = EquipmentService();
   final ReviewService _reviewService = ReviewService();
+  final UserService _userService = UserService();
 
   /// Initial sample equipment items to seed into the database.
   static final List<Equipment> sampleEquipmentList = [
@@ -296,6 +298,13 @@ class DatabaseSeederService {
             double.parse((total / reviews.length).toStringAsFixed(2));
         await _equipmentService.updateReviewStats(eq.id, avg, reviews.length);
       }
+    }
+
+    // 4. Seed Persona Users into database (Renter, Gear Owner, Commercial Shop, Admin)
+    try {
+      await _userService.seedPersonaUsers();
+    } catch (e) {
+      debugPrint('Persona users seed warning: $e');
     }
 
     debugPrint('DatabaseSeederService completed successfully.');
