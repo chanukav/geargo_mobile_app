@@ -1,0 +1,9 @@
+{
+  "name": "geargo",
+  "version": "1.0.0",
+  "description": "GearGo Flutter Mobile App & Cloud Database Management",
+  "scripts": {
+    "seed": "node scripts/seed_cloud_firestore.js",
+    "seed:cloud": "node scripts/seed_cloud_firestore.js"
+  }
+}
