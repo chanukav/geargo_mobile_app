@@ -8,7 +8,7 @@ import 'gear_filter_logic.dart';
 /// Filter values chosen by the user on the [FilterScreen].
 class GearFilters {
   static const double maxDistance = 50;
-  static const double maxPrice = 150;
+  static const double maxPrice = 10000;
 
   final double distanceKm;
   final Set<String> categories;
@@ -28,7 +28,7 @@ class GearFilters {
     this.location = 'Current Location',
   });
 
-  /// True when price max is at the "$150+" end (no upper limit).
+  /// True when price max is at the unbounded upper limit.
   bool get priceUnbounded => price.end >= maxPrice;
 
   bool get hasActiveFilters =>

@@ -18,7 +18,7 @@ void main() {
     rating: 4.9,
     reviews: 42,
     distanceKm: 1.2,
-    pricePerDay: 45,
+    pricePerDay: 1850,
     available: true,
     verified: true,
     listingId: 'gear_specialized_stumpjumper',
@@ -102,7 +102,7 @@ void main() {
 
       // Verify equipment listings in 2-column grid
       expect(find.text('Specialized Stumpjumper EVO Comp Bike'), findsWidgets);
-      expect(find.text('Rs. 45 / day'), findsWidgets);
+      expect(find.text('Rs. 1850 / day'), findsWidgets);
     });
 
     testWidgets(

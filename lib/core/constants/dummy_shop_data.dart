@@ -32,8 +32,8 @@ class DummyShopData {
     description:
         'Extremely well-maintained. Light cosmetic scuffs on frame, mechanics are freshly tuned. Shocks serviced last month.',
     condition: 'Excellent',
-    pricePerDay: 45.0,
-    deposit: 100.0,
+    pricePerDay: 1850.0,
+    deposit: 3500.0,
     quantity: 5,
     isAvailable: true,
     imageUrl: defaultHeroImage,

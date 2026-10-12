@@ -28,7 +28,7 @@ class DatabaseSeederService {
       categoryId: 'mountain_bikes',
       description:
           'Mechanically perfect, freshly tuned, cleaned after every rental. FOX Float 36 Rhythm fork, SRAM NX Eagle 12-speed drivetrain with hydraulic 4-piston disc brakes.',
-      price: 45.0,
+      price: 1850.0,
       availability: true,
       image:
           'https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?auto=format&fit=crop&w=1200&q=80',
@@ -46,7 +46,7 @@ class DatabaseSeederService {
       categoryId: 'mountain_bikes',
       description:
           'MIPS Spheric technology trail helmet, size Medium. Superior ventilation and impact management, thoroughly sanitized after every ride.',
-      price: 8.0,
+      price: 1100.0,
       availability: true,
       image:
           'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1200&q=80',
@@ -64,7 +64,7 @@ class DatabaseSeederService {
       categoryId: 'camping',
       description:
           'Spacious 6-person car camping tent with massive vestibule, hybrid double-wall construction, and color-coded poles for 10-minute setup.',
-      price: 28.0,
+      price: 1650.0,
       availability: true,
       image:
           'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1200&q=80',
@@ -82,7 +82,7 @@ class DatabaseSeederService {
       categoryId: 'fitness',
       description:
           'Legendary power and spin racket with fresh Babolat RPM Blast 16G strings at 54 lbs tension. 4 3/8 grip size with new overgrip.',
-      price: 15.0,
+      price: 1350.0,
       availability: true,
       image:
           'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&w=1200&q=80',
@@ -100,7 +100,7 @@ class DatabaseSeederService {
       categoryId: 'camping',
       description:
           'Trail Pro shock-absorbing carbon fiber hiking poles with FlickLock Pro adjustments and natural cork grips.',
-      price: 12.0,
+      price: 1200.0,
       availability: true,
       image:
           'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1200&q=80',
@@ -118,7 +118,7 @@ class DatabaseSeederService {
       categoryId: 'mountain_bikes',
       description:
           'Lightweight A1 Premium aluminum hardtail mountain bike with Shimano Deore 1x10 drivetrain and SR Suntour XCM suspension fork.',
-      price: 32.0,
+      price: 1700.0,
       availability: true,
       image:
           'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1200&q=80',
@@ -136,7 +136,7 @@ class DatabaseSeederService {
       categoryId: 'surfing',
       description:
           'Versatile epoxy funboard shaped for mid-length wave cruising in Mirissa and Weligama. Includes thruster fins and 7ft leash.',
-      price: 35.0,
+      price: 1800.0,
       availability: true,
       image:
           'https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=1200&q=80',
@@ -154,7 +154,7 @@ class DatabaseSeederService {
       categoryId: 'cricket',
       description:
           'Handcrafted Grade 1 English Willow cricket bat, professionally knocked-in with anti-scuff sheet and toe guard. Superb balance.',
-      price: 20.0,
+      price: 1500.0,
       availability: true,
       image:
           'https://images.unsplash.com/photo-1531415074868-036b107e775a?auto=format&fit=crop&w=1200&q=80',
@@ -172,7 +172,7 @@ class DatabaseSeederService {
       categoryId: 'badminton',
       description:
           'Head-heavy offensive doubles racket, strung with Yonex BG80 at 26 lbs tension with cushioned overgrip.',
-      price: 15.0,
+      price: 1400.0,
       availability: true,
       image:
           'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=1200&q=80',
@@ -190,7 +190,7 @@ class DatabaseSeederService {
       categoryId: 'football',
       description:
           'Thermally bonded seamless construction for predictable flight trajectory and low water uptake on grass and turf pitches.',
-      price: 10.0,
+      price: 1150.0,
       availability: true,
       image:
           'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1200&q=80',
@@ -208,7 +208,7 @@ class DatabaseSeederService {
       categoryId: 'hiking',
       description:
           'Ergonomic trekking backpack with adjustable back length, rain cover, and trekking pole loops. Perfect for Horton Plains or Ella hikes.',
-      price: 16.0,
+      price: 1300.0,
       availability: true,
       image:
           'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1200&q=80',
@@ -226,7 +226,7 @@ class DatabaseSeederService {
       categoryId: 'cricket',
       description:
           'Full protective match kit including batting pads, gloves, thigh guard, inner pads, and certified cricket helmet.',
-      price: 38.0,
+      price: 1950.0,
       availability: true,
       image:
           'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1200&q=80',
