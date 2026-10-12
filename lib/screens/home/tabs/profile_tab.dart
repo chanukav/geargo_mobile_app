@@ -24,6 +24,7 @@ import '../../../member4/hub_screen.dart';
 import '../../../services/identity_verification_service.dart';
 import '../../../member4/repository.dart';
 import '../../../member4/widgets.dart';
+import '../../../services/database_seeder_service.dart';
 import 'home_tab.dart';
 
 /// Simple empty-state tab (Bookings / Messages).
@@ -193,6 +194,71 @@ class _ProfileTabState extends State<ProfileTab> {
           backgroundColor: newRole == UserRole.owner ? AppColors.orange : AppColors.primary,
         ),
       );
+    }
+  }
+
+  Future<void> _seedDatabase() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final nav = Navigator.of(context, rootNavigator: true);
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 18),
+                Text(
+                  'Seeding Cloud Firestore Database…',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  'Writing 12 equipment items, reviews & personas',
+                  style: TextStyle(fontSize: 12.5, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final result =
+          await DatabaseSeederService().seedEquipmentAndReviews(force: true);
+      if (mounted) {
+        nav.pop();
+        messenger.showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF137333),
+            behavior: SnackBarBehavior.floating,
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_outline, color: Colors.white),
+                const SizedBox(width: 10),
+                Expanded(child: Text(result.message)),
+              ],
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        nav.pop();
+        messenger.showSnackBar(
+          SnackBar(
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            content: Text('Seeding failed: $e'),
+          ),
+        );
+      }
     }
   }
 
@@ -807,6 +873,32 @@ class _ProfileTabState extends State<ProfileTab> {
                     isDark: isDark,
                     value: _offersNearYou,
                     onChanged: (v) => setState(() => _offersNearYou = v),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
+
+              // Database & Demo Tools
+              _buildSectionHeader(
+                title: 'Database & Demo Tools',
+                titleColor: titleColor,
+              ),
+              const SizedBox(height: 10),
+              _buildCard(
+                cardBg: cardBg,
+                borderColor: borderColor,
+                isDark: isDark,
+                children: [
+                  _buildListTile(
+                    icon: Icons.cloud_sync_rounded,
+                    title: 'Seed / Sync Sample Database',
+                    subtitle:
+                        'Populate 12 sports equipment items, reviews & personas to Cloud Firestore',
+                    titleColor: titleColor,
+                    subColor: subColor,
+                    isDark: isDark,
+                    trailing: const Icon(Icons.play_arrow_rounded, color: AppColors.primary),
+                    onTap: _seedDatabase,
                   ),
                 ],
               ),

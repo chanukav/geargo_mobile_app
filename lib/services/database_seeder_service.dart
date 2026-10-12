@@ -129,6 +129,114 @@ class DatabaseSeederService {
       rating: 4.9,
       reviewsCount: 1,
     ),
+    Equipment(
+      id: 'gear_torq_surfboard',
+      ownerId: 'user_shop_apex',
+      name: 'Torq Mod Fun 7\'2" Surfboard',
+      categoryId: 'surfing',
+      description:
+          'Versatile epoxy funboard shaped for mid-length wave cruising in Mirissa and Weligama. Includes thruster fins and 7ft leash.',
+      price: 35.0,
+      availability: true,
+      image:
+          'https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=1200&q=80',
+      createdAt: DateTime.now().subtract(const Duration(days: 18)),
+      updatedAt: DateTime.now().subtract(const Duration(days: 1)),
+      condition: 'Excellent',
+      location: 'Mirissa, Sri Lanka',
+      rating: 5.0,
+      reviewsCount: 2,
+    ),
+    Equipment(
+      id: 'gear_ss_ton_cricket_bat',
+      ownerId: 'owner_default',
+      name: 'SS Ton Professional English Willow Bat',
+      categoryId: 'cricket',
+      description:
+          'Handcrafted Grade 1 English Willow cricket bat, professionally knocked-in with anti-scuff sheet and toe guard. Superb balance.',
+      price: 20.0,
+      availability: true,
+      image:
+          'https://images.unsplash.com/photo-1531415074868-036b107e775a?auto=format&fit=crop&w=1200&q=80',
+      createdAt: DateTime.now().subtract(const Duration(days: 15)),
+      updatedAt: DateTime.now().subtract(const Duration(hours: 12)),
+      condition: 'Like New',
+      location: 'Colombo 05 (Havelock), Sri Lanka',
+      rating: 4.8,
+      reviewsCount: 1,
+    ),
+    Equipment(
+      id: 'gear_yonex_astrox_badminton',
+      ownerId: 'user_shop_apex',
+      name: 'Yonex Astrox 88D Pro Badminton Racket',
+      categoryId: 'badminton',
+      description:
+          'Head-heavy offensive doubles racket, strung with Yonex BG80 at 26 lbs tension with cushioned overgrip.',
+      price: 15.0,
+      availability: true,
+      image:
+          'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=1200&q=80',
+      createdAt: DateTime.now().subtract(const Duration(days: 12)),
+      updatedAt: DateTime.now().subtract(const Duration(days: 2)),
+      condition: 'Like New',
+      location: 'Negombo, Sri Lanka',
+      rating: 4.9,
+      reviewsCount: 1,
+    ),
+    Equipment(
+      id: 'gear_adidas_match_ball',
+      ownerId: 'owner_default',
+      name: 'Adidas FIFA Pro Official Match Ball',
+      categoryId: 'football',
+      description:
+          'Thermally bonded seamless construction for predictable flight trajectory and low water uptake on grass and turf pitches.',
+      price: 10.0,
+      availability: true,
+      image:
+          'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1200&q=80',
+      createdAt: DateTime.now().subtract(const Duration(days: 10)),
+      updatedAt: DateTime.now().subtract(const Duration(hours: 8)),
+      condition: 'Brand New',
+      location: 'Colombo 07, Sri Lanka',
+      rating: 5.0,
+      reviewsCount: 1,
+    ),
+    Equipment(
+      id: 'gear_deuter_aircontact_backpack',
+      ownerId: 'user_shop_apex',
+      name: 'Deuter Aircontact Lite 50+10L Backpack',
+      categoryId: 'hiking',
+      description:
+          'Ergonomic trekking backpack with adjustable back length, rain cover, and trekking pole loops. Perfect for Horton Plains or Ella hikes.',
+      price: 16.0,
+      availability: true,
+      image:
+          'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1200&q=80',
+      createdAt: DateTime.now().subtract(const Duration(days: 8)),
+      updatedAt: DateTime.now().subtract(const Duration(days: 1)),
+      condition: 'Like New',
+      location: 'Ella, Sri Lanka',
+      rating: 4.9,
+      reviewsCount: 1,
+    ),
+    Equipment(
+      id: 'gear_kookaburra_cricket_kit',
+      ownerId: 'user_shop_apex',
+      name: 'Kookaburra Kahuna Complete Kit Bag',
+      categoryId: 'cricket',
+      description:
+          'Full protective match kit including batting pads, gloves, thigh guard, inner pads, and certified cricket helmet.',
+      price: 38.0,
+      availability: true,
+      image:
+          'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1200&q=80',
+      createdAt: DateTime.now().subtract(const Duration(days: 6)),
+      updatedAt: DateTime.now().subtract(const Duration(hours: 4)),
+      condition: 'Very Good',
+      location: 'Colombo 08 (Borella), Sri Lanka',
+      rating: 4.8,
+      reviewsCount: 1,
+    ),
   ];
 
   /// Initial sample reviews where each review belongs to exactly one equipment item (1-to-N).
@@ -261,18 +369,120 @@ class DatabaseSeederService {
       createdAt: DateTime.now().subtract(const Duration(days: 20)),
       equipmentName: 'Specialized Rockhopper Comp',
     ),
+
+    // Reviews belonging to Torq Surfboard (gear_torq_surfboard)
+    EquipmentReview(
+      id: 'seed_review_surfboard_01',
+      equipmentId: 'gear_torq_surfboard',
+      ownerId: 'user_shop_apex',
+      authorId: 'user_tariq_a',
+      authorName: 'Tariq A.',
+      rating: 5,
+      comment:
+          'Super fun board at Weligama bay! Responsive and buoyant, wax was fresh.',
+      createdAt: DateTime.now().subtract(const Duration(days: 5)),
+      equipmentName: 'Torq Mod Fun 7\'2" Surfboard',
+    ),
+    EquipmentReview(
+      id: 'seed_review_surfboard_02',
+      equipmentId: 'gear_torq_surfboard',
+      ownerId: 'user_shop_apex',
+      authorId: 'user_charlotte_w',
+      authorName: 'Charlotte W.',
+      rating: 5,
+      comment:
+          'Apex shop staff in Mirissa were very helpful and gave great swell tips.',
+      createdAt: DateTime.now().subtract(const Duration(days: 11)),
+      equipmentName: 'Torq Mod Fun 7\'2" Surfboard',
+    ),
+
+    // Reviews belonging to SS Ton Cricket Bat (gear_ss_ton_cricket_bat)
+    EquipmentReview(
+      id: 'seed_review_cricket_01',
+      equipmentId: 'gear_ss_ton_cricket_bat',
+      ownerId: 'owner_default',
+      authorId: 'user_dinesh_p',
+      authorName: 'Dinesh P.',
+      rating: 5,
+      comment:
+          'Incredible ping and balanced pickup! Made our weekend match in Colombo a blast.',
+      createdAt: DateTime.now().subtract(const Duration(days: 7)),
+      equipmentName: 'SS Ton Professional English Willow Bat',
+    ),
+
+    // Reviews belonging to Yonex Astrox Badminton Racket (gear_yonex_astrox_badminton)
+    EquipmentReview(
+      id: 'seed_review_badminton_01',
+      equipmentId: 'gear_yonex_astrox_badminton',
+      ownerId: 'user_shop_apex',
+      authorId: 'user_kaveen_s',
+      authorName: 'Kaveen S.',
+      rating: 5,
+      comment:
+          'Strings had sharp bite and punchy smashes on indoor court. Clean grip.',
+      createdAt: DateTime.now().subtract(const Duration(days: 4)),
+      equipmentName: 'Yonex Astrox 88D Pro Badminton Racket',
+    ),
+
+    // Reviews belonging to Adidas Match Ball (gear_adidas_match_ball)
+    EquipmentReview(
+      id: 'seed_review_football_01',
+      equipmentId: 'gear_adidas_match_ball',
+      ownerId: 'owner_default',
+      authorId: 'user_samuel_k',
+      authorName: 'Samuel K.',
+      rating: 5,
+      comment:
+          'Authentic match ball with great flight and touch. Owner provided pump and needle.',
+      createdAt: DateTime.now().subtract(const Duration(days: 6)),
+      equipmentName: 'Adidas FIFA Pro Official Match Ball',
+    ),
+
+    // Reviews belonging to Deuter Backpack (gear_deuter_aircontact_backpack)
+    EquipmentReview(
+      id: 'seed_review_deuter_01',
+      equipmentId: 'gear_deuter_aircontact_backpack',
+      ownerId: 'user_shop_apex',
+      authorId: 'user_amaya_f',
+      authorName: 'Amaya F.',
+      rating: 5,
+      comment:
+          'Hiked Ella Rock with full load and the harness distributed weight like a dream.',
+      createdAt: DateTime.now().subtract(const Duration(days: 3)),
+      equipmentName: 'Deuter Aircontact Lite 50+10L Backpack',
+    ),
+
+    // Reviews belonging to Kookaburra Kit (gear_kookaburra_cricket_kit)
+    EquipmentReview(
+      id: 'seed_review_kookaburra_01',
+      equipmentId: 'gear_kookaburra_cricket_kit',
+      ownerId: 'user_shop_apex',
+      authorId: 'user_malik_r',
+      authorName: 'Malik R.',
+      rating: 5,
+      comment:
+          'All pads, gloves, and helmet were clean and well-padded. Excellent value.',
+      createdAt: DateTime.now().subtract(const Duration(days: 2)),
+      equipmentName: 'Kookaburra Kahuna Complete Kit Bag',
+    ),
   ];
 
   /// Seeds all sample equipment and reviews into Firestore database.
   /// If [force] is true, overwrites existing documents.
-  Future<void> seedEquipmentAndReviews({bool force = false}) async {
+  Future<SeederResult> seedEquipmentAndReviews({bool force = false}) async {
     debugPrint('Starting DatabaseSeederService sync...');
+    int eqCount = 0;
+    int revCount = 0;
+    int personaCount = 0;
+    final List<String> warnings = [];
 
     // 1. Seed Equipment into database
     for (final eq in sampleEquipmentList) {
       try {
         await _equipmentService.createEquipment(eq);
+        eqCount++;
       } catch (e) {
+        warnings.add('Equipment ${eq.id}: $e');
         debugPrint('Equipment seed warning for ${eq.id}: $e');
       }
     }
@@ -281,7 +491,9 @@ class DatabaseSeederService {
     for (final rev in sampleReviewsList) {
       try {
         await _reviewService.saveReviewToDatabase(rev);
+        revCount++;
       } catch (e) {
+        warnings.add('Review ${rev.id}: $e');
         debugPrint('Review seed warning for ${rev.id}: $e');
       }
     }
@@ -303,10 +515,40 @@ class DatabaseSeederService {
     // 4. Seed Persona Users into database (Renter, Gear Owner, Commercial Shop, Admin)
     try {
       await _userService.seedPersonaUsers();
+      personaCount = 4;
     } catch (e) {
+      warnings.add('Personas: $e');
       debugPrint('Persona users seed warning: $e');
     }
 
-    debugPrint('DatabaseSeederService completed successfully.');
+    final message = warnings.isEmpty
+        ? 'Successfully seeded $eqCount equipment, $revCount reviews, and $personaCount personas to database.'
+        : 'Seeded $eqCount items with warnings: ${warnings.join(", ")}';
+    debugPrint('DatabaseSeederService: $message');
+
+    return SeederResult(
+      success: eqCount > 0,
+      equipmentCount: eqCount,
+      reviewCount: revCount,
+      personaCount: personaCount,
+      message: message,
+    );
   }
+}
+
+/// Result of a database seeding operation.
+class SeederResult {
+  final bool success;
+  final int equipmentCount;
+  final int reviewCount;
+  final int personaCount;
+  final String message;
+
+  const SeederResult({
+    required this.success,
+    required this.equipmentCount,
+    required this.reviewCount,
+    required this.personaCount,
+    required this.message,
+  });
 }

@@ -290,7 +290,7 @@ void main() {
       final seeder = DatabaseSeederService();
 
       // Verify sample equipment catalog exists
-      expect(DatabaseSeederService.sampleEquipmentList.length, 6);
+      expect(DatabaseSeederService.sampleEquipmentList.length, 12);
       expect(
         DatabaseSeederService.sampleEquipmentList
             .any((e) => e.id == 'gear_specialized_stumpjumper'),

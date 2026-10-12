@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'admin_evidence_screen.dart';
 
+import '../services/database_seeder_service.dart';
 import 'models.dart';
 import 'repository.dart';
 import 'widgets.dart';
@@ -201,7 +202,32 @@ class _AdminScreenState extends State<AdminScreen> {
   );
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Platform Operations')),
+    appBar: AppBar(
+      title: const Text('Platform Operations'),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.cloud_sync_rounded),
+          tooltip: 'Seed / Sync Sample Database',
+          onPressed: () async {
+            final m = ScaffoldMessenger.of(context);
+            m.showSnackBar(
+              const SnackBar(
+                content: Text('Seeding sample data to Cloud Firestore...'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+            final res =
+                await DatabaseSeederService().seedEquipmentAndReviews(force: true);
+            m.showSnackBar(
+              SnackBar(
+                content: Text(res.message),
+                backgroundColor: const Color(0xFF137333),
+              ),
+            );
+          },
+        ),
+      ],
+    ),
     body: FutureBuilder<bool>(
       future: allowed,
       builder: (context, s) {
