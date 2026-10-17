@@ -310,13 +310,12 @@ class RentalRequestService {
       } on FirebaseException catch (e) {
         _deletedIds.remove(id);
         _unpersistDeletedId(id);
-        final currentUid = FirebaseAuth.instance.currentUser?.uid;
         debugPrint('🔥 [RentalRequestService.deleteBooking] FirebaseException caught:');
         debugPrint('  e.code: ${e.code}');
         debugPrint('  e.message: ${e.message}');
         debugPrint('  collectionPath: ${col.path}');
         debugPrint('  docId: $id');
-        debugPrint('  FirebaseAuth.currentUser.uid: $currentUid');
+        debugPrint('  FirebaseAuth.currentUser.uid: ${FirebaseAuth.instance.currentUser?.uid}');
         rethrow;
       } on TimeoutException {
         _deletedIds.remove(id);
