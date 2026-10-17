@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import '../../core/constants/dummy_shop_data.dart';
 import '../../core/theme/shop_theme.dart';
 import '../../core/utils/format.dart';
+import '../../models/rental_request.dart';
 import '../../models/rental_transaction.dart';
 import '../../models/shop_product.dart';
 import '../../services/booking_draft_service.dart';
 import '../../services/payment_service.dart';
+import '../../services/rental_request_service.dart';
 import '../../services/transaction_service.dart';
 import 'address_selection_screen.dart';
 import 'payment_confirmation_screen.dart';
@@ -133,6 +135,47 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
           status: 'confirmed',
           createdAt: DateTime.now(),
         );
+      }
+
+      // Mirror booking to RentalRequestService so My Bookings (RentalRequestsListScreen) immediately shows this booking
+      try {
+        final renterId = user?.uid ?? 'guest_renter';
+        final renterName = (user?.displayName != null && user!.displayName!.isNotEmpty)
+            ? user.displayName!
+            : (user?.email?.split('@').first ?? 'Guest Renter');
+        final renterEmail = user?.email ?? 'renter@geargo.com';
+
+        await RentalRequestService().createRequest(
+          RentalRequest(
+            id: txn.id,
+            renterId: renterId,
+            renterName: renterName,
+            renterEmail: renterEmail,
+            renterPhone: '',
+            equipmentId: widget.product.id,
+            equipmentName: widget.product.name,
+            equipmentCategory: widget.product.category,
+            equipmentImage: widget.product.imageUrl,
+            dailyPrice: widget.product.pricePerDay,
+            ownerId: widget.product.ownerId,
+            ownerName: DummyShopData.shopName,
+            startDate: widget.range.start,
+            endDate: widget.range.end,
+            totalDays: _days,
+            serviceFee: price.serviceFee,
+            deliveryFee: price.deliveryFee,
+            depositAmount: price.deposit,
+            totalPrice: price.total,
+            deliveryMethod: widget.delivery ? 'delivery' : 'pickup',
+            deliveryAddress: _address,
+            renterNotes: widget.deliveryInstructions ?? '',
+            status: RentalStatus.pending,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+      } catch (e) {
+        debugPrint('Notice: RentalRequest mirror: $e');
       }
 
       // Satisfies NFR-04: Clear active booking draft upon completed booking

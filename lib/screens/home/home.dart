@@ -13,13 +13,15 @@ import 'tabs/search_tab.dart';
 /// Main shell for GearGo: bottom navigation with Home, Search, Bookings,
 /// Messages and Profile tabs.
 class HomeScreen extends StatefulWidget {
-  final User user;
+  final User? user;
   final FirebaseAuth? auth;
+  final int initialIndex;
 
   const HomeScreen({
     super.key,
-    required this.user,
+    this.user,
     this.auth,
+    this.initialIndex = 0,
   });
 
   @override
@@ -27,7 +29,21 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _index = 0;
+  late int _index;
+
+  @override
+  void initState() {
+    super.initState();
+    _index = widget.initialIndex;
+  }
+
+  @override
+  void didUpdateWidget(HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialIndex != oldWidget.initialIndex) {
+      _index = widget.initialIndex;
+    }
+  }
 
   Future<void> _handleSignOut() async {
     final settings = AppSettingsService.instance;
@@ -71,7 +87,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final settings = AppSettingsService.instance;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final appUser = AppUser.fromFirebase(widget.user);
+    final currentUser = widget.user ?? FirebaseAuth.instance.currentUser;
+    final appUser = currentUser != null
+        ? AppUser.fromFirebase(currentUser)
+        : const AppUser(uid: 'guest_renter', displayName: 'Guest Renter');
     final firstName = appUser.displayTitle.split(' ').first;
 
     final navItems = [
@@ -91,7 +110,14 @@ class _HomeScreenState extends State<HomeScreen> {
         title: 'No messages',
         subtitle: 'Chat with owners to arrange pickups once you book gear.',
       ),
-      ProfileTab(user: widget.user, onSignOut: _handleSignOut),
+      if (currentUser != null)
+        ProfileTab(user: currentUser, onSignOut: _handleSignOut)
+      else
+        const EmptyTab(
+          icon: Icons.person_outline_rounded,
+          title: 'Guest Profile',
+          subtitle: 'Sign in to manage your profile and listings.',
+        ),
     ];
 
     return Scaffold(

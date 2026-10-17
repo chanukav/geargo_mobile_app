@@ -7,6 +7,7 @@ import '../../models/rental_request.dart';
 import '../../services/payment_service.dart';
 import '../../services/rental_request_service.dart';
 import '../../widgets/checkout_price_summary.dart';
+import '../home/home.dart';
 
 /// Interactive modal sheet to submit a new Rental Request (CRUD 01 - Create).
 class CreateRentalRequestSheet extends StatefulWidget {
@@ -363,7 +364,18 @@ class _CreateRentalRequestSheetState extends State<CreateRentalRequestSheet> {
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-              onPressed: () => Navigator.of(context).pop(req),
+              onPressed: () {
+                final user = FirebaseAuth.instance.currentUser;
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (_) => HomeScreen(
+                      user: user,
+                      initialIndex: 2,
+                    ),
+                  ),
+                  (route) => false,
+                );
+              },
               child: const Text(
                 'Great, View My Bookings',
                 style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),

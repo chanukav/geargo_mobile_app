@@ -1,10 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/constants/dummy_shop_data.dart';
 import '../../core/theme/shop_theme.dart';
 import '../../core/utils/format.dart';
 import '../../models/rental_transaction.dart';
-import 'transactions_screen.dart';
+import '../home/home.dart';
 
 /// Screen 5: Booking Confirmed!
 /// Replicates "7.4 Commercial Rental Shop Interfaces" (Report Page 17, Screen 5).
@@ -254,15 +255,19 @@ class PaymentConfirmationScreen extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
+                    final user = FirebaseAuth.instance.currentUser;
+                    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
                       MaterialPageRoute(
-                          builder: (_) => const TransactionsScreen()),
-                      (route) => route.isFirst,
+                        builder: (_) => HomeScreen(
+                          user: user,
+                          initialIndex: 2,
+                        ),
+                      ),
+                      (route) => false,
                     );
                   },
                   child: const Text(
-                    'View My Bookings',
+                    'Great, View My Bookings',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -283,7 +288,16 @@ class PaymentConfirmationScreen extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    Navigator.popUntil(context, (route) => route.isFirst);
+                    final user = FirebaseAuth.instance.currentUser;
+                    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (_) => HomeScreen(
+                          user: user,
+                          initialIndex: 0,
+                        ),
+                      ),
+                      (route) => false,
+                    );
                   },
                   child: const Text(
                     'Back to Home',

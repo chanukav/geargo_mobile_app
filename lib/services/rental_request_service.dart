@@ -51,14 +51,13 @@ class RentalRequestService {
     _notifyCacheListeners(newRequest.renterId);
 
     if (col != null) {
-      col.doc(docId).set(newRequest.toMap()).timeout(
-        const Duration(seconds: 1),
-        onTimeout: () {
-          debugPrint('Firestore write timed out; saved to local cache.');
-        },
-      ).catchError((e) {
-        debugPrint('Firestore write warning (using cache): $e');
-      });
+      try {
+        await col.doc(docId).set(newRequest.toMap()).timeout(
+          const Duration(seconds: 2),
+        );
+      } catch (e) {
+        debugPrint('Firestore write notice (saved to local cache): $e');
+      }
     }
 
     return newRequest;
@@ -78,22 +77,22 @@ class RentalRequestService {
           .where('renter_id', isEqualTo: renterId)
           .snapshots()
           .map((snapshot) {
+        final firestoreIds = <String>{};
         final items = snapshot.docs.map((doc) {
           final item = RentalRequest.fromMap(doc.data(), doc.id);
           _localCache[item.id] = item;
+          firestoreIds.add(item.id);
           return item;
         }).toList();
 
-        items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
-        if (items.isEmpty) {
-          final cached =
-              _localCache.values.where((r) => r.renterId == renterId).toList();
-          if (cached.isNotEmpty) {
-            cached.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-            return cached;
+        // Ensure newly created or updated items in local cache are present even if Firestore is syncing
+        for (final cached in _localCache.values) {
+          if (cached.renterId == renterId && !firestoreIds.contains(cached.id)) {
+            items.add(cached);
           }
         }
+
+        items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         return items;
       }).handleError((error) {
         debugPrint('Firestore request stream error (using cache): $error');
@@ -143,14 +142,13 @@ class RentalRequestService {
 
     final col = _requestsCollection;
     if (col != null) {
-      col.doc(updated.id).update(updated.toMap()).timeout(
-        const Duration(seconds: 1),
-        onTimeout: () {
-          debugPrint('Firestore update timed out; updated locally.');
-        },
-      ).catchError((e) {
-        debugPrint('Firestore update warning (using cache): $e');
-      });
+      try {
+        await col.doc(updated.id).set(updated.toMap(), SetOptions(merge: true)).timeout(
+          const Duration(seconds: 2),
+        );
+      } catch (e) {
+        debugPrint('Firestore update notice (updated locally): $e');
+      }
     }
 
     return updated;
