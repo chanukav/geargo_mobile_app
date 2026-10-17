@@ -227,6 +227,7 @@ class RentalRequest {
     return {
       'id': id,
       'renter_id': renterId,
+      'renterId': renterId,
       'renter_name': renterName,
       'renter_email': renterEmail,
       'renter_phone': renterPhone,
@@ -236,6 +237,7 @@ class RentalRequest {
       'equipment_image': equipmentImage,
       'daily_price': dailyPrice,
       'owner_id': ownerId,
+      'ownerId': ownerId,
       'owner_name': ownerName,
       'start_date': Timestamp.fromDate(startDate),
       'end_date': Timestamp.fromDate(endDate),

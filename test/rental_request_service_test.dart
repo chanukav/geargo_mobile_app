@@ -290,5 +290,58 @@ void main() {
       expect(recordGone, isNull);
       expect(find.text('Booking record removed.'), findsOneWidget);
     });
+
+    testWidgets('UI ERROR HANDLING: Deletion failure shows friendly message and does not pop', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final sample = sampleRequest(id: 'req_err_test', status: RentalStatus.cancelled);
+      await service.createRequest(sample);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => RentalRequestDetailsScreen(request: sample),
+                      ),
+                    );
+                  },
+                  child: const Text('Open Details'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Open Details'));
+      await tester.pumpAndSettle();
+
+      // Change user to cause an ownership mismatch / permission rejection
+      service.setCustomAuth(null, userId: 'intruder_renter');
+
+      // Tap "Delete Record" -> dialog appears
+      await tester.tap(find.text('Delete Record').first);
+      await tester.pumpAndSettle();
+
+      // Tap "Delete" in confirmation dialog
+      await tester.tap(find.text('Delete'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Friendly error message appears, not raw error
+      expect(find.text('Failed to delete booking. Please check your permissions or network connection.'), findsOneWidget);
+
+      // Screen is still mounted and showing Booking Details
+      expect(find.text('Booking Details'), findsOneWidget);
+    });
   });
 }

@@ -18,16 +18,26 @@ service cloud.firestore {
     function member(data) {
       return signedIn() && request.auth.uid in data.participantIds;
     }
+    function isBookingRenter(data) {
+      return signedIn() && (
+        request.auth.uid == data.get('renter_id', '') ||
+        request.auth.uid == data.get('renterId', '') ||
+        request.auth.uid == data.get('userId', '')
+      );
+    }
     function rentalParticipant(data) {
       return signedIn() && (
-        request.auth.uid == data.renter_id ||
-        request.auth.uid == data.owner_id
+        isBookingRenter(data) ||
+        request.auth.uid == data.get('owner_id', '') ||
+        request.auth.uid == data.get('ownerId', '') ||
+        request.auth.uid == data.get('shopId', '')
       );
     }
     function handoverParticipant(data) {
       return signedIn() && (
-        request.auth.uid == data.renter_id ||
-        request.auth.uid == data.owner_id
+        isBookingRenter(data) ||
+        request.auth.uid == data.get('owner_id', '') ||
+        request.auth.uid == data.get('ownerId', '')
       );
     }
 
@@ -43,17 +53,21 @@ service cloud.firestore {
     // 2. Rental Transactions:
     // Readable and updatable only by the renter (renterId) or shop owner (shopId).
     // Booking creation restricted to the renter (renterId).
-    // Deletion allowed for either party (e.g. removing cancelled records).
+    // Deletion strictly allowed only when cancelled and requested by the booking owner (or admin).
     match /rental_transactions/{transactionId} {
       allow read: if isSignedIn() && (
-        resource.data.renterId == request.auth.uid ||
-        resource.data.shopId == request.auth.uid ||
+        isBookingRenter(resource.data) ||
+        resource.data.get('shopId', '') == request.auth.uid ||
         admin()
       );
-      allow create: if isSignedIn() && request.resource.data.renterId == request.auth.uid;
-      allow update, delete: if isSignedIn() && (
-        resource.data.renterId == request.auth.uid ||
-        resource.data.shopId == request.auth.uid ||
+      allow create: if isSignedIn() && isBookingRenter(request.resource.data);
+      allow update: if isSignedIn() && (
+        isBookingRenter(resource.data) ||
+        resource.data.get('shopId', '') == request.auth.uid ||
+        admin()
+      );
+      allow delete: if isSignedIn() && (
+        (isBookingRenter(resource.data) && resource.data.get('status', '') == 'cancelled') ||
         admin()
       );
     }
@@ -101,22 +115,27 @@ service cloud.firestore {
     }
 
     match /rental_requests/{id} {
-      allow create: if (signedIn()
-        && request.auth.uid == request.resource.data.renter_id)
-        || id.matches('req_.*') || request.resource.data.renter_id == 'guest_renter';
-      allow read: if (signedIn() && (
-        rentalParticipant(resource.data) || admin()
-      )) || id.matches('req_.*') || resource.data.renter_id == 'guest_renter';
-      allow update: if (signedIn() && (
-        rentalParticipant(resource.data) || admin()
-      )) || id.matches('req_.*') || resource.data.renter_id == 'guest_renter';
+      allow create: if (signedIn() && isBookingRenter(request.resource.data))
+        || id.matches('req_.*') || request.resource.data.get('renter_id', '') == 'guest_renter';
+      allow read: if (signedIn() && (rentalParticipant(resource.data) || admin()))
+        || id.matches('req_.*') || resource.data.get('renter_id', '') == 'guest_renter';
+      allow update: if (signedIn() && (rentalParticipant(resource.data) || admin()))
+        || id.matches('req_.*') || resource.data.get('renter_id', '') == 'guest_renter';
       allow delete: if (signedIn() && (
-        (request.auth.uid == resource.data.renter_id && (
-          resource.data.status == 'cancelled' ||
-          resource.data.status == 'completed' ||
-          resource.data.status == 'rejected'
-        )) || admin()
-      )) || id.matches('req_.*') || resource.data.renter_id == 'guest_renter';
+        (isBookingRenter(resource.data) && resource.data.get('status', '') == 'cancelled') ||
+        admin()
+      )) || (id.matches('req_.*') && resource.data.get('status', '') == 'cancelled')
+         || (resource.data.get('renter_id', '') == 'guest_renter' && resource.data.get('status', '') == 'cancelled');
+    }
+
+    match /bookings/{id} {
+      allow create: if (signedIn() && isBookingRenter(request.resource.data));
+      allow read: if (signedIn() && (rentalParticipant(resource.data) || admin()));
+      allow update: if (signedIn() && (rentalParticipant(resource.data) || admin()));
+      allow delete: if (signedIn() && (
+        (isBookingRenter(resource.data) && resource.data.get('status', '') == 'cancelled') ||
+        admin()
+      ));
     }
 
     match /saved_equipment/{id} {

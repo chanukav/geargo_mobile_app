@@ -241,12 +241,14 @@ class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen>
             ),
           );
         }
-      } catch (e) {
+      } catch (e, st) {
+        debugPrint('Error deleting booking record: $e\n$st');
         if (mounted) {
           setState(() => _isProcessing = false);
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to delete booking: ${e.toString().replaceAll('Exception: ', '')}'),
+            const SnackBar(
+              content: Text('Failed to delete booking. Please check your permissions or network connection.'),
               backgroundColor: AppColors.error,
             ),
           );
