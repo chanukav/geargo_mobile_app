@@ -85,7 +85,7 @@ class RentalRequestService {
     if (col != null) {
       try {
         await col.doc(docId).set(newRequest.toMap()).timeout(
-          const Duration(seconds: 2),
+          const Duration(seconds: 10),
         );
       } catch (e) {
         debugPrint('Firestore write notice (saved to local cache): $e');
@@ -199,12 +199,20 @@ class RentalRequestService {
     if (col != null) {
       try {
         await col.doc(updated.id).set(updated.toMap(), SetOptions(merge: true)).timeout(
-          const Duration(seconds: 2),
+          const Duration(seconds: 10),
         );
       } catch (e) {
         debugPrint('Firestore update notice (updated locally): $e');
       }
     }
+
+    // Mirror status update to rental_transactions if applicable
+    try {
+      await _safeFirestore?.collection('rental_transactions').doc(updated.id).update({
+        'status': updated.status.name,
+        'updated_at': Timestamp.fromDate(DateTime.now()),
+      }).timeout(const Duration(seconds: 5));
+    } catch (_) {}
 
     return updated;
   }

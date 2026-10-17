@@ -67,7 +67,7 @@ service cloud.firestore {
         admin()
       );
       allow delete: if isSignedIn() && (
-        (isBookingRenter(resource.data) && resource.data.get('status', '') == 'cancelled') ||
+        (isBookingRenter(resource.data) && (resource.data.get('status', '') == 'cancelled' || resource.data.get('status', '') == 'Cancelled')) ||
         admin()
       );
     }
@@ -122,10 +122,10 @@ service cloud.firestore {
       allow update: if (signedIn() && (rentalParticipant(resource.data) || admin()))
         || id.matches('req_.*') || resource.data.get('renter_id', '') == 'guest_renter';
       allow delete: if (signedIn() && (
-        (isBookingRenter(resource.data) && resource.data.get('status', '') == 'cancelled') ||
+        (isBookingRenter(resource.data) && (resource.data.get('status', '') == 'cancelled' || resource.data.get('status', '') == 'Cancelled')) ||
         admin()
-      )) || (id.matches('req_.*') && resource.data.get('status', '') == 'cancelled')
-         || (resource.data.get('renter_id', '') == 'guest_renter' && resource.data.get('status', '') == 'cancelled');
+      )) || (id.matches('req_.*') && (resource.data.get('status', '') == 'cancelled' || resource.data.get('status', '') == 'Cancelled'))
+         || (resource.data.get('renter_id', '') == 'guest_renter' && (resource.data.get('status', '') == 'cancelled' || resource.data.get('status', '') == 'Cancelled'));
     }
 
     match /bookings/{id} {
@@ -133,7 +133,7 @@ service cloud.firestore {
       allow read: if (signedIn() && (rentalParticipant(resource.data) || admin()));
       allow update: if (signedIn() && (rentalParticipant(resource.data) || admin()));
       allow delete: if (signedIn() && (
-        (isBookingRenter(resource.data) && resource.data.get('status', '') == 'cancelled') ||
+        (isBookingRenter(resource.data) && (resource.data.get('status', '') == 'cancelled' || resource.data.get('status', '') == 'Cancelled')) ||
         admin()
       ));
     }
