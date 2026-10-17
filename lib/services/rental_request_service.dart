@@ -307,6 +307,17 @@ class RentalRequestService {
     if (col != null) {
       try {
         await col.doc(id).delete().timeout(const Duration(seconds: 10));
+      } on FirebaseException catch (e) {
+        _deletedIds.remove(id);
+        _unpersistDeletedId(id);
+        final currentUid = FirebaseAuth.instance.currentUser?.uid;
+        debugPrint('🔥 [RentalRequestService.deleteBooking] FirebaseException caught:');
+        debugPrint('  e.code: ${e.code}');
+        debugPrint('  e.message: ${e.message}');
+        debugPrint('  collectionPath: ${col.path}');
+        debugPrint('  docId: $id');
+        debugPrint('  FirebaseAuth.currentUser.uid: $currentUid');
+        rethrow;
       } on TimeoutException {
         _deletedIds.remove(id);
         _unpersistDeletedId(id);

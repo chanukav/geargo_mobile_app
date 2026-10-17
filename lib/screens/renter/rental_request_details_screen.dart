@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
@@ -241,14 +242,48 @@ class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen>
             ),
           );
         }
+      } on FirebaseException catch (e, st) {
+        debugPrint('🔥 [RentalRequestDetailsScreen] FirebaseException: code=${e.code}, message=${e.message}\n$st');
+        if (mounted) {
+          setState(() => _isProcessing = false);
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          final String userMessage;
+          switch (e.code) {
+            case 'permission-denied':
+              userMessage = "You don't have permission to delete this booking.";
+              break;
+            case 'unavailable':
+              userMessage = "No connection. Please try again.";
+              break;
+            default:
+              userMessage = "Could not delete booking. Please try again.";
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(userMessage),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       } catch (e, st) {
         debugPrint('Error deleting booking record: $e\n$st');
         if (mounted) {
           setState(() => _isProcessing = false);
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          final String userMessage;
+          final errorStr = e.toString();
+          if (errorStr.contains('cancelled bookings')) {
+            userMessage = 'Only cancelled bookings can be deleted.';
+          } else if (errorStr.contains('own booking records')) {
+            userMessage = "You don't have permission to delete this booking.";
+          } else if (errorStr.contains('timed out') || errorStr.contains('connection')) {
+            userMessage = 'No connection. Please try again.';
+          } else {
+            userMessage = 'Could not delete booking. Please try again.';
+          }
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to delete booking. Please check your permissions or network connection.'),
+            SnackBar(
+              content: Text(userMessage),
               backgroundColor: AppColors.error,
             ),
           );

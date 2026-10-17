@@ -338,7 +338,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
 
       // Friendly error message appears, not raw error
-      expect(find.text('Failed to delete booking. Please check your permissions or network connection.'), findsOneWidget);
+      expect(find.text("You don't have permission to delete this booking."), findsOneWidget);
 
       // Screen is still mounted and showing Booking Details
       expect(find.text('Booking Details'), findsOneWidget);
