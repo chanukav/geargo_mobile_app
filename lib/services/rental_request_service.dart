@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/rental_request.dart';
 
 /// Service managing all Rental Request CRUD operations (CRUD 01).
@@ -8,16 +10,44 @@ import '../models/rental_request.dart';
 class RentalRequestService {
   static final RentalRequestService _instance = RentalRequestService._internal();
   factory RentalRequestService() => _instance;
-  RentalRequestService._internal();
+  RentalRequestService._internal() {
+    _loadPersistedDeletedIds();
+  }
 
   static const String collectionName = 'rental_requests';
 
+  FirebaseFirestore? _customFirestore;
+  FirebaseAuth? _customAuth;
+  String? _explicitUserId;
+
+  @visibleForTesting
+  void setCustomFirestore(FirebaseFirestore? fs) {
+    _customFirestore = fs;
+  }
+
+  @visibleForTesting
+  void setCustomAuth(FirebaseAuth? auth, {String? userId}) {
+    _customAuth = auth;
+    _explicitUserId = userId;
+  }
+
+  String? get _currentUserId {
+    if (_explicitUserId != null) return _explicitUserId;
+    try {
+      return (_customAuth ?? FirebaseAuth.instance).currentUser?.uid;
+    } catch (_) {
+      return null;
+    }
+  }
+
   // In-memory fallback cache for instant UI responsiveness and offline resilience.
   final Map<String, RentalRequest> _localCache = {};
+  final Set<String> _deletedIds = {};
   final StreamController<List<RentalRequest>> _cacheStreamController =
       StreamController<List<RentalRequest>>.broadcast();
 
   FirebaseFirestore? get _safeFirestore {
+    if (_customFirestore != null) return _customFirestore;
     try {
       return FirebaseFirestore.instance;
     } catch (_) {
@@ -47,6 +77,8 @@ class RentalRequestService {
       updatedAt: DateTime.now(),
     );
 
+    _deletedIds.remove(newRequest.id);
+    _unpersistDeletedId(newRequest.id);
     _localCache[newRequest.id] = newRequest;
     _notifyCacheListeners(newRequest.renterId);
 
@@ -67,9 +99,7 @@ class RentalRequestService {
   Stream<List<RentalRequest>> getRenterRequestsStream(String renterId) {
     final col = _requestsCollection;
     if (col == null) {
-      final cached = _localCache.values.where((r) => r.renterId == renterId).toList();
-      cached.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return Stream.value(cached);
+      return _localCacheStream(renterId);
     }
 
     try {
@@ -78,16 +108,24 @@ class RentalRequestService {
           .snapshots()
           .map((snapshot) {
         final firestoreIds = <String>{};
-        final items = snapshot.docs.map((doc) {
+        final items = <RentalRequest>[];
+
+        for (final doc in snapshot.docs) {
+          if (_deletedIds.contains(doc.id)) {
+            continue;
+          }
           final item = RentalRequest.fromMap(doc.data(), doc.id);
           _localCache[item.id] = item;
           firestoreIds.add(item.id);
-          return item;
-        }).toList();
+          items.add(item);
+        }
 
-        // Ensure newly created or updated items in local cache are present even if Firestore is syncing
+        // Include any newly created or updated items in local cache not yet in Firestore,
+        // excluding any deleted items
         for (final cached in _localCache.values) {
-          if (cached.renterId == renterId && !firestoreIds.contains(cached.id)) {
+          if (cached.renterId == renterId &&
+              !firestoreIds.contains(cached.id) &&
+              !_deletedIds.contains(cached.id)) {
             items.add(cached);
           }
         }
@@ -96,20 +134,37 @@ class RentalRequestService {
         return items;
       }).handleError((error) {
         debugPrint('Firestore request stream error (using cache): $error');
-        final cached = _localCache.values.where((r) => r.renterId == renterId).toList();
+        final cached = _localCache.values
+            .where((r) => r.renterId == renterId && !_deletedIds.contains(r.id))
+            .toList();
         cached.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         return cached;
       });
     } catch (e) {
       debugPrint('Error creating request stream: $e');
-      final cached = _localCache.values.where((r) => r.renterId == renterId).toList();
-      cached.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return Stream.value(cached);
+      return _localCacheStream(renterId);
     }
+  }
+
+  Stream<List<RentalRequest>> _localCacheStream(String renterId) async* {
+    List<RentalRequest> current() {
+      final list = _localCache.values
+          .where((r) => r.renterId == renterId && !_deletedIds.contains(r.id))
+          .toList();
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return list;
+    }
+
+    yield current();
+    yield* _cacheStreamController.stream.map((_) => current());
   }
 
   /// READ: Get single rental request by ID.
   Future<RentalRequest?> getRequestById(String id) async {
+    if (_deletedIds.contains(id)) {
+      return null;
+    }
+
     if (_localCache.containsKey(id)) {
       return _localCache[id];
     }
@@ -173,28 +228,100 @@ class RentalRequestService {
     await updateStatus(id, RentalStatus.cancelled, reason: reason ?? 'Cancelled by renter');
   }
 
-  /// DELETE: Permanently deletes a request record.
-  Future<void> deleteRequestPermanently(String id) async {
-    final item = _localCache[id];
-    final renterId = item?.renterId;
+  static const String _deletedIdsPrefsKey = 'deleted_booking_request_ids';
 
-    _localCache.remove(id);
-    if (renterId != null) {
-      _notifyCacheListeners(renterId);
+  void _loadPersistedDeletedIds() {
+    try {
+      SharedPreferences.getInstance().then((prefs) {
+        final list = prefs.getStringList(_deletedIdsPrefsKey) ?? [];
+        if (list.isNotEmpty) {
+          _deletedIds.addAll(list);
+          for (final id in list) {
+            _localCache.remove(id);
+          }
+          if (_explicitUserId != null) {
+            _notifyCacheListeners(_explicitUserId!);
+          }
+        }
+      }).catchError((_) {});
+    } catch (_) {}
+  }
+
+  void _persistDeletedId(String id) {
+    try {
+      SharedPreferences.getInstance().then((prefs) {
+        final list = prefs.getStringList(_deletedIdsPrefsKey) ?? [];
+        if (!list.contains(id)) {
+          list.add(id);
+          prefs.setStringList(_deletedIdsPrefsKey, list);
+        }
+      }).catchError((_) {});
+    } catch (_) {}
+  }
+
+  void _unpersistDeletedId(String id) {
+    try {
+      SharedPreferences.getInstance().then((prefs) {
+        final list = prefs.getStringList(_deletedIdsPrefsKey) ?? [];
+        if (list.remove(id)) {
+          prefs.setStringList(_deletedIdsPrefsKey, list);
+        }
+      }).catchError((_) {});
+    } catch (_) {}
+  }
+
+  /// DELETE: Permanently deletes a booking record.
+  /// Validation: Only cancelled bookings can be deleted. If a booking is Pending, Approved, or Active,
+  /// only Cancel is allowed, and this delete method rejects it.
+  Future<void> deleteBooking(String id) async {
+    final existing = await getRequestById(id);
+    if (existing == null) {
+      throw Exception('Booking record not found.');
     }
+
+    // Validation 1: Only cancelled requests may be permanently deleted.
+    if (existing.status != RentalStatus.cancelled) {
+      throw Exception('Only cancelled bookings can be deleted.');
+    }
+
+    // Validation 2: Ensure user can only delete their own booking records.
+    final currentUserId = _currentUserId;
+    if (currentUserId != null &&
+        existing.renterId != currentUserId &&
+        existing.renterId != 'guest_renter') {
+      throw Exception('You can only delete your own booking records.');
+    }
+
+    _deletedIds.add(id);
+    _persistDeletedId(id);
 
     final col = _requestsCollection;
     if (col != null) {
-      col.doc(id).delete().timeout(
-        const Duration(seconds: 1),
-        onTimeout: () {
-          debugPrint('Firestore delete timed out; removed locally.');
-        },
-      ).catchError((e) {
-        debugPrint('Firestore delete warning: $e');
-      });
+      try {
+        await col.doc(id).delete().timeout(const Duration(seconds: 10));
+      } on TimeoutException {
+        _deletedIds.remove(id);
+        _unpersistDeletedId(id);
+        throw Exception('Delete operation timed out. Please check your internet connection.');
+      } catch (e) {
+        _deletedIds.remove(id);
+        _unpersistDeletedId(id);
+        debugPrint('Firestore delete error: $e');
+        rethrow;
+      }
     }
+
+    // Mirror cleanup on rental_transactions collection if this was a mirrored booking
+    try {
+      await _safeFirestore?.collection('rental_transactions').doc(id).delete().timeout(const Duration(seconds: 5));
+    } catch (_) {}
+
+    _localCache.remove(id);
+    _notifyCacheListeners(existing.renterId);
   }
+
+  /// Alias for backward compatibility with existing calls.
+  Future<void> deleteRequestPermanently(String id) => deleteBooking(id);
 
   /// SEED: Seeds starter demonstration requests for a new renter so the UI is richly populated.
   Future<void> seedStarterRequests({
@@ -213,10 +340,21 @@ class RentalRequestService {
   }
 
   void _notifyCacheListeners(String renterId) {
-    final list = _localCache.values.where((r) => r.renterId == renterId).toList();
+    final list = _localCache.values
+        .where((r) => r.renterId == renterId && !_deletedIds.contains(r.id))
+        .toList();
     list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     if (!_cacheStreamController.isClosed) {
       _cacheStreamController.add(list);
     }
+  }
+
+  @visibleForTesting
+  void resetForTesting() {
+    _localCache.clear();
+    _deletedIds.clear();
+    _customFirestore = null;
+    _customAuth = null;
+    _explicitUserId = null;
   }
 }

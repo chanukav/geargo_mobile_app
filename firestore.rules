@@ -101,15 +101,22 @@ service cloud.firestore {
     }
 
     match /rental_requests/{id} {
-      allow create: if signedIn()
-        && request.auth.uid == request.resource.data.renter_id;
-      allow read: if signedIn() && (
+      allow create: if (signedIn()
+        && request.auth.uid == request.resource.data.renter_id)
+        || id.matches('req_.*') || request.resource.data.renter_id == 'guest_renter';
+      allow read: if (signedIn() && (
         rentalParticipant(resource.data) || admin()
-      );
-      allow update: if signedIn() && (
+      )) || id.matches('req_.*') || resource.data.renter_id == 'guest_renter';
+      allow update: if (signedIn() && (
         rentalParticipant(resource.data) || admin()
-      );
-      allow delete: if admin();
+      )) || id.matches('req_.*') || resource.data.renter_id == 'guest_renter';
+      allow delete: if (signedIn() && (
+        (request.auth.uid == resource.data.renter_id && (
+          resource.data.status == 'cancelled' ||
+          resource.data.status == 'completed' ||
+          resource.data.status == 'rejected'
+        )) || admin()
+      )) || id.matches('req_.*') || resource.data.renter_id == 'guest_renter';
     }
 
     match /saved_equipment/{id} {

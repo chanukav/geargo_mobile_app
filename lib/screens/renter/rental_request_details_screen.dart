@@ -206,9 +206,9 @@ class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete Request Record?'),
+        title: const Text('Delete this booking record?'),
         content: const Text(
-          'This will permanently delete this booking history item from your account.',
+          'This cannot be undone.',
           style: TextStyle(fontSize: 13.5),
         ),
         actions: [
@@ -219,22 +219,38 @@ class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen>
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete Permanently'),
+            child: const Text('Delete'),
           ),
         ],
       ),
     );
 
     if (confirmed == true && mounted) {
-      await _service.deleteRequestPermanently(_request.id);
-      if (mounted) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Booking record removed.'),
-            backgroundColor: AppColors.deepNavy,
-          ),
-        );
+      setState(() => _isProcessing = true);
+      try {
+        final messenger = ScaffoldMessenger.of(context);
+        final navigator = Navigator.of(context);
+        await _service.deleteBooking(_request.id);
+        if (mounted) {
+          navigator.pop(true);
+          messenger.hideCurrentSnackBar();
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('Booking record removed.'),
+              backgroundColor: AppColors.deepNavy,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isProcessing = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete booking: ${e.toString().replaceAll('Exception: ', '')}'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       }
     }
   }
@@ -314,8 +330,7 @@ class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen>
                     ],
                   ),
                 ),
-              if (_request.status == RentalStatus.completed ||
-                  _request.status == RentalStatus.cancelled)
+              if (_request.status == RentalStatus.cancelled)
                 const PopupMenuItem(
                   value: 'delete',
                   child: Row(
@@ -417,6 +432,8 @@ class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen>
                           height: 80,
                           child: EquipmentImageViewer(
                             imageSource: _request.equipmentImage,
+                            width: 80,
+                            height: 80,
                           ),
                         ),
                       ),
@@ -892,8 +909,32 @@ class _RentalRequestDetailsScreenState extends State<RentalRequestDetailsScreen>
         );
 
       case RentalStatus.completed:
-      case RentalStatus.cancelled:
       case RentalStatus.rejected:
+        return SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.secondary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+            onPressed: () {
+              CreateRentalRequestSheet.show(
+                context,
+                equipmentId: _request.equipmentId,
+                equipmentName: _request.equipmentName,
+                equipmentCategory: _request.equipmentCategory,
+                equipmentImage: _request.equipmentImage,
+                dailyPrice: _request.dailyPrice,
+                ownerId: _request.ownerId,
+                ownerName: _request.ownerName,
+              );
+            },
+            child: const Text('Rent Again', style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        );
+
+      case RentalStatus.cancelled:
         return Row(
           children: [
             Expanded(

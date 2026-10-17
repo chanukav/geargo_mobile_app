@@ -215,6 +215,7 @@ class _RentalRequestsListScreenState extends State<RentalRequestsListScreen> {
                         textColor: textColor,
                         subText: subText,
                         isDark: isDark,
+                        onRefresh: () => setState(() {}),
                       );
                     },
                   );
@@ -350,6 +351,7 @@ class _RentalRequestCard extends StatelessWidget {
   final Color textColor;
   final Color subText;
   final bool isDark;
+  final VoidCallback? onRefresh;
 
   const _RentalRequestCard({
     required this.request,
@@ -358,6 +360,7 @@ class _RentalRequestCard extends StatelessWidget {
     required this.textColor,
     required this.subText,
     required this.isDark,
+    this.onRefresh,
   });
 
   @override
@@ -565,13 +568,16 @@ class _RentalRequestCard extends StatelessWidget {
                       side: BorderSide(color: borderCol),
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.of(context).push(
+                  onPressed: () async {
+                    await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) =>
                             RentalRequestDetailsScreen(request: request),
                       ),
                     );
+                    if (context.mounted) {
+                      onRefresh?.call();
+                    }
                   },
                   child: const Row(
                     children: [

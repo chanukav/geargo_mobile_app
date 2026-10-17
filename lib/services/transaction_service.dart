@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/shop_product.dart';
 import '../models/rental_transaction.dart';
+import 'rental_request_service.dart';
 
 /// CRUD for the `rental_transactions` collection (Transaction/Payment Management).
 /// Payment is simulated: no real gateway is called, the record is stored as paid.
@@ -242,5 +243,11 @@ class TransactionService {
 
   // ---------------- DELETE ----------------
   /// Removes a booking record (used for cancelled bookings).
-  Future<void> deleteBooking(String id) => _col.doc(id).delete();
+  Future<void> deleteBooking(String id) async {
+    await _col.doc(id).delete();
+    try {
+      await _db.collection('rental_requests').doc(id).delete();
+      RentalRequestService().deleteRequestPermanently(id).catchError((_) {});
+    } catch (_) {}
+  }
 }
