@@ -79,6 +79,16 @@ service cloud.firestore {
       allow read, write: if isOwner(userId) || admin();
     }
 
+    // 4. Saved Payment Methods:
+    // Subcollection under users/{userId}/payment_methods, strictly accessible
+    // only by the authenticated owner. Whitelists only PCI-safe metadata.
+    match /users/{userId}/payment_methods/{methodId} {
+      allow read, delete: if signedIn() && request.auth.uid == userId;
+      allow create, update: if signedIn() && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['brand','last4','expMonth','expYear','cardHolderName','isDefault','createdAt'])
+        && request.resource.data.last4 is string && request.resource.data.last4.size() == 4;
+    }
+
     match /rentals/{id} {
       allow read: if admin() || member(resource.data);
       allow write: if false;

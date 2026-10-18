@@ -25,6 +25,9 @@ import '../../../services/identity_verification_service.dart';
 import '../../../member4/repository.dart';
 import '../../../member4/widgets.dart';
 import '../../../services/database_seeder_service.dart';
+import '../../../models/payment_method.dart';
+import '../../../services/payment_method_service.dart';
+import '../widgets/payment_method_sheets.dart';
 import 'home_tab.dart';
 
 /// Simple empty-state tab (Bookings / Messages).
@@ -110,6 +113,7 @@ class _ProfileTabState extends State<ProfileTab> {
   UserRole _userRole = UserRole.renter;
   VerificationStatus _verificationStatus = VerificationStatus.none;
   AppUser? _dbUser;
+  final PaymentMethodService _paymentMethodService = PaymentMethodService();
 
   @override
   void initState() {
@@ -777,46 +781,144 @@ class _ProfileTabState extends State<ProfileTab> {
                 actionText: settings.tr('add_new'),
                 titleColor: titleColor,
                 onAction: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(settings.tr('payments'))),
+                  AddPaymentMethodSheet.show(
+                    context,
+                    service: _paymentMethodService,
                   );
                 },
               ),
               const SizedBox(height: 10),
-              _buildCard(
-                cardBg: cardBg,
-                borderColor: borderColor,
-                isDark: isDark,
-                children: [
-                  _buildListTile(
-                    icon: Icons.credit_card_rounded,
-                    title: 'Visa •••• 4821',
-                    subtitle: settings.tr('default_payment_sub'),
-                    titleColor: titleColor,
-                    subColor: subColor,
+              StreamBuilder<List<PaymentMethod>>(
+                stream: _paymentMethodService.streamPaymentMethods(),
+                builder: (context, snapshot) {
+                  final cards = snapshot.data ?? [];
+                  final isLoading = snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
+
+                  return _buildCard(
+                    cardBg: cardBg,
+                    borderColor: borderColor,
                     isDark: isDark,
-                    trailing: _buildBadge(
-                      text: settings.tr('default_badge'),
-                      textColor: const Color(0xFF137333),
-                      bgColor: const Color(0xFFE6F4EA),
-                    ),
-                    onTap: () {},
-                  ),
-                  Divider(height: 1, color: borderColor),
-                  _buildListTile(
-                    icon: Icons.account_balance_outlined,
-                    title: settings.tr('payout_account'),
-                    subtitle: 'Coast Capital •••• 0916',
-                    titleColor: titleColor,
-                    subColor: subColor,
-                    isDark: isDark,
-                    trailing: Icon(
-                      Icons.chevron_right_rounded,
-                      color: subColor,
-                    ),
-                    onTap: () {},
-                  ),
-                ],
+                    children: [
+                      if (isLoading)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                        )
+                      else if (snapshot.hasError)
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            'Error loading cards: ${snapshot.error}',
+                            style: const TextStyle(color: Colors.red, fontSize: 13),
+                          ),
+                        )
+                      else if (cards.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF3F6FA),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(Icons.credit_card_off_rounded, size: 20, color: subColor),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'No cards saved yet',
+                                      style: TextStyle(
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: titleColor,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Add a debit or credit card for instant rentals',
+                                      style: TextStyle(fontSize: 12, color: subColor),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  AddPaymentMethodSheet.show(
+                                    context,
+                                    service: _paymentMethodService,
+                                  );
+                                },
+                                child: const Text('Add Card', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        ...cards.asMap().entries.map((entry) {
+                          final idx = entry.key;
+                          final card = entry.value;
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (idx > 0) Divider(height: 1, color: borderColor),
+                              _buildListTile(
+                                icon: Icons.credit_card_rounded,
+                                title: card.displayTitle,
+                                subtitle: 'Expires ${card.formattedExpiry}',
+                                titleColor: titleColor,
+                                subColor: subColor,
+                                isDark: isDark,
+                                trailing: card.isDefault
+                                    ? _buildBadge(
+                                        text: settings.tr('default_badge'),
+                                        textColor: const Color(0xFF137333),
+                                        bgColor: const Color(0xFFE6F4EA),
+                                      )
+                                    : Icon(Icons.chevron_right_rounded, color: subColor),
+                                onTap: () {
+                                  PaymentMethodDetailsSheet.show(
+                                    context,
+                                    method: card,
+                                    service: _paymentMethodService,
+                                  );
+                                },
+                              ),
+                            ],
+                          );
+                        }),
+                      Divider(height: 1, color: borderColor),
+                      _buildListTile(
+                        icon: Icons.account_balance_outlined,
+                        title: settings.tr('payout_account'),
+                        subtitle: 'Coast Capital •••• 0916',
+                        titleColor: titleColor,
+                        subColor: subColor,
+                        isDark: isDark,
+                        trailing: Icon(
+                          Icons.chevron_right_rounded,
+                          color: subColor,
+                        ),
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(settings.tr('payout_account'))),
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 22),
 

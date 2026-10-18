@@ -11,6 +11,9 @@ import '../../services/booking_draft_service.dart';
 import '../../services/payment_service.dart';
 import '../../services/rental_request_service.dart';
 import '../../services/transaction_service.dart';
+import '../../models/payment_method.dart';
+import '../../services/payment_method_service.dart';
+import '../home/widgets/payment_method_sheets.dart';
 import 'address_selection_screen.dart';
 import 'payment_confirmation_screen.dart';
 import 'widgets/deposit_hold_card.dart';
@@ -42,13 +45,135 @@ class ConfirmOrderScreen extends StatefulWidget {
 
 class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
   final TransactionService _service = TransactionService();
+  final PaymentMethodService _paymentMethodService = PaymentMethodService();
   bool _processing = false;
   late String _address;
+  PaymentMethod? _selectedPaymentMethod;
 
   @override
   void initState() {
     super.initState();
     _address = widget.deliveryAddress ?? DummyShopData.defaultDeliveryAddress;
+    _loadSavedPaymentMethod();
+  }
+
+  Future<void> _loadSavedPaymentMethod() async {
+    final method = await _paymentMethodService.getDefaultPaymentMethod();
+    if (mounted) {
+      setState(() => _selectedPaymentMethod = method);
+    }
+  }
+
+  Future<void> _changePaymentMethod() async {
+    final methods = await _paymentMethodService.getPaymentMethods();
+    if (!mounted) return;
+
+    if (methods.isEmpty) {
+      AddPaymentMethodSheet.show(
+        context,
+        service: _paymentMethodService,
+        onAdded: (newCard) {
+          setState(() => _selectedPaymentMethod = newCard);
+        },
+      );
+      return;
+    }
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Select Payment Method',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: ShopPalette.text,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded),
+                  onPressed: () => Navigator.of(sheetCtx).pop(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...methods.map((card) {
+              final isSelected = _selectedPaymentMethod?.id == card.id;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? ShopPalette.blueTint : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected ? ShopPalette.blue : ShopPalette.border,
+                    width: isSelected ? 1.5 : 1,
+                  ),
+                ),
+                child: ListTile(
+                  leading: CardBrandIcon(brand: card.brand, size: 24),
+                  title: Text(card.displayTitle, style: const TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: Text('Expires ${card.formattedExpiry}'),
+                  trailing: isSelected
+                      ? const Icon(Icons.check_circle_rounded, color: ShopPalette.blue)
+                      : null,
+                  onTap: () {
+                    setState(() => _selectedPaymentMethod = card);
+                    Navigator.of(sheetCtx).pop();
+                  },
+                ),
+              );
+            }),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.add_rounded, color: ShopPalette.blue),
+                label: const Text('Add New Card', style: TextStyle(color: ShopPalette.blue, fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: ShopPalette.blue),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  Navigator.of(sheetCtx).pop();
+                  AddPaymentMethodSheet.show(
+                    context,
+                    service: _paymentMethodService,
+                    onAdded: (newCard) {
+                      setState(() => _selectedPaymentMethod = newCard);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   int get _days =>
@@ -79,11 +204,12 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
 
     try {
       final price = _price;
+      final paymentSnapshot = _selectedPaymentMethod?.displayTitle ?? DummyShopData.defaultPaymentMethod;
       // Satisfies NFR-02: process simulated payment through abstract payment gateway
       const paymentService = MockPaymentService();
       final paymentResult = await paymentService.processPayment(
         amount: price.dueNow,
-        paymentMethod: DummyShopData.defaultPaymentMethod,
+        paymentMethod: paymentSnapshot,
         bookingRef: DummyShopData.sampleBookingRef,
       );
 
@@ -104,7 +230,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
           instructions: widget.deliveryInstructions ??
               DummyShopData.defaultInstructions,
           window: widget.deliveryWindow ?? 'Afternoon (12 PM - 5 PM)',
-          paymentMethod: DummyShopData.defaultPaymentMethod,
+          paymentMethod: paymentSnapshot,
         );
       } else {
         // High-fidelity fallback for offline / viva demo matching prototype
@@ -130,7 +256,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
           deposit: price.deposit,
           dueNow: price.dueNow,
           total: price.total,
-          paymentMethod: DummyShopData.defaultPaymentMethod,
+          paymentMethod: paymentSnapshot,
           paymentStatus: 'paid',
           status: 'confirmed',
           createdAt: DateTime.now(),
@@ -392,72 +518,101 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
               const SizedBox(height: 20),
 
               // 3. Payment Method Section Header
-              const Text(
-                'Payment Method',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: ShopPalette.text,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Payment Method',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: ShopPalette.text,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: _changePaymentMethod,
+                    child: Text(
+                      _selectedPaymentMethod != null ? 'CHANGE' : 'ADD',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: ShopPalette.blue,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
 
               // Payment Method Card
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: ShopPalette.blue,
-                    width: 1.5,
+              InkWell(
+                onTap: _changePaymentMethod,
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: ShopPalette.blue,
+                      width: 1.5,
+                    ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: ShopPalette.blueTint,
-                        borderRadius: BorderRadius.circular(10),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: ShopPalette.blueTint,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: _selectedPaymentMethod != null
+                            ? Center(
+                                child: CardBrandIcon(
+                                  brand: _selectedPaymentMethod!.brand,
+                                  size: 20,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.credit_card_rounded,
+                                color: ShopPalette.blue,
+                                size: 22,
+                              ),
                       ),
-                      child: const Icon(
-                        Icons.credit_card_rounded,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _selectedPaymentMethod?.displayTitle ?? 'Add a payment method',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: ShopPalette.text,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _selectedPaymentMethod != null
+                                  ? 'Expires ${_selectedPaymentMethod!.formattedExpiry}'
+                                  : 'Debit or credit card',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: ShopPalette.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.check_circle_rounded,
                         color: ShopPalette.blue,
                         size: 22,
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            DummyShopData.defaultPaymentMethod,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: ShopPalette.text,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            DummyShopData.defaultPaymentExpiry,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: ShopPalette.textMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(
-                      Icons.check_circle_rounded,
-                      color: ShopPalette.blue,
-                      size: 22,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 10),
